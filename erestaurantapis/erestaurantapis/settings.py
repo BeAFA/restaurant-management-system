@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+
 cloudinary.config(
 CLOUD_NAME_REMOVED
 API_KEY_REMOVED
@@ -45,6 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'restaurant.apps.RestaurantConfig',
+    'ckeditor',
+    'rest_framework',
+    'drf_yasg',
+    'oauth2_provider'
 ]
 
 AUTH_USER_MODEL = 'restaurant.User'
@@ -91,6 +96,7 @@ DATABASES = {
     }
 }
 import pymysql
+
 pymysql.install_as_MySQLdb()
 
 # Password validation

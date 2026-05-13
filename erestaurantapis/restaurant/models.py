@@ -151,9 +151,9 @@ class Review(BaseModel):
         unique_together = ('user', 'food')
 
 
-class Food_Chef(BaseModel):
-    food = models.ForeignKey(Food, on_delete=models.PROTECT)
-    chef = models.ForeignKey(User, on_delete=models.PROTECT)
+class FoodChef(BaseModel):
+    food = models.ForeignKey(Food, related_name='chefs', on_delete=models.PROTECT)
+    chef = models.ForeignKey(User, related_name='foods', on_delete=models.PROTECT)
 
 
 class Reservation(BaseModel):
