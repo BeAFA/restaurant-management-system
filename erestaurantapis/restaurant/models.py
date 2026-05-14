@@ -17,7 +17,6 @@ class Status_Table(models.TextChoices):
     AVAILABLE = 'AVAILABLE', 'Trống'
     RESERVED = 'RESERVED', 'Đã đặt trước'
     OCCUPIED = 'OCCUPIED', 'Đang có khách'
-    # DIRTY = 'DIRTY', 'Chờ dọn dẹp'
 
 
 class Status_Order(models.TextChoices):
