@@ -36,7 +36,9 @@ class FoodDetailSerializer(FoodSerializer):
 
         request = self.context.get('request')
         if request and request.user and request.user.is_authenticated:
-            data['rating'] = food.reviews.filter(user=request.user, active=True).exists()
+            data['rating'] = food.reviews.filter(user=request.user, active=True).first()
+
+            data['rating'] = Review.rating if Review else None
 
         return data
 
@@ -77,6 +79,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        data['user'] = UserSerializer(instance.user).data
+        data['user'] = UserAnonymousSerializer(instance.user).data
 
         return data
