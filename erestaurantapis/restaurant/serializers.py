@@ -1,5 +1,5 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User
+from .models import Category, Food, Review, User, OrderDetail, Order
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -30,17 +30,6 @@ class FoodDetailSerializer(FoodSerializer):
     class Meta:
         model = FoodSerializer.Meta.model
         fields = FoodSerializer.Meta.fields + ['description', 'category']
-
-    def to_representation(self, food):
-        data = super().to_representation(food)
-
-        request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
-            data['rating'] = food.reviews.filter(user=request.user, active=True).first()
-
-            data['rating'] = Review.rating if Review else None
-
-        return data
 
 class UserAnonymousSerializer(serializers.ModelSerializer):
     class Meta:
@@ -74,7 +63,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'user', 'food', 'comment', 'rating']
-        extra_kwargs = {'food': {'read_only': True}}
+        extra_kwargs = {'food': {'read_only': True},
+                        'user': {'read_only': True}}
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -82,3 +72,26 @@ class ReviewSerializer(serializers.ModelSerializer):
         data['user'] = UserAnonymousSerializer(instance.user).data
 
         return data
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderDetail
+        fields = ['food', 'quantity', 'unit_price']
+        extra_kwargs = {'unit_price': {'read_only': True},}
+
+class OrderSerializer(serializers.ModelSerializer):
+    details = OrderDetailSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'table', 'user', 'details', 'status_order', 'total']
+        extra_kwargs = {'user': {'read_only': True},
+                        'total': {'read_only': True}}
+
+    def create(self, validated_data):
+        details_data = validated_data.pop('details')
+
+        for data in details_data:
+            OrderDetail.objects.create(**data)
+
+        return self

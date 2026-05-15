@@ -52,6 +52,14 @@ INSTALLED_APPS = [
     'oauth2_provider'
 ]
 
+REST_FRAMEWORK = {
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
+}
+
+
 AUTH_USER_MODEL = 'restaurant.User'
 
 MIDDLEWARE = [
@@ -132,3 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+CLIENT_ID_REMOVED
+CLIENT_SECRECT = '4wHH42fkCyvmmxr5c2BHWQQLbiZWgBBVLuyZNs2nHOmxx75SXRRo1As8SZIP0ziwgXUFMfYZBomNYo8j0WyatwuFNsYcnX19vepxZ28EFzbhDUowcSN2ba4ZUUWgadKg'

@@ -22,6 +22,7 @@ class Status_Table(models.TextChoices):
 class Status_Order(models.TextChoices):
     SUCCESS = 'SUCCESS', 'Thành công'
     WAITING = 'WAITING', 'Đang chờ'
+    CANCEL = 'CANCEL', 'Hủy'
 
 
 class Rating(models.IntegerChoices):
@@ -97,7 +98,7 @@ class Table(BaseModel):
 class Order(BaseModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
     total = models.DecimalField(max_digits=12, decimal_places=2)
-    table = models.ForeignKey(Table, on_delete=models.PROTECT,related_name='orders')
+    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='orders')
     status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
 
     class Meta:

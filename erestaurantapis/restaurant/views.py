@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
-    UserAnonymousSerializer
-from .models import Category, Food, User, Review
+    UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer
+from .models import Category, Food, User, Review, Order
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -47,13 +47,13 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         return query
 
     def get_permissions(self):
-        if self.action in ['get_reviews', 'rating'] and self.request.method.__eq__('POST'):
+        if self.action in ['get_reviews'] and self.request.method.__eq__('POST'):
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
 
     @action(methods=['GET', 'POST'], url_path='reviews', detail=True)
-    def get_comments(self, request, pk):
+    def get_reviews(self, request, pk):
         if self.request.method.__eq__('POST'):
             s = ReviewSerializer(data={
                 'comment': request.data.get('comment'),
@@ -62,9 +62,9 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 'food': self.get_object().pk
             })
             s.is_valid(raise_exception=True)
-            c = s.save()
+            s.save()
 
-            return Response(ReviewSerializer(c).data, status=status.HTTP_201_CREATED)
+            return Response(s.data, status=status.HTTP_201_CREATED)
 
         comments = self.get_object().reviews.select_related('user').filter(active=True)
 
@@ -76,32 +76,6 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             return p.get_paginated_response(serializer.data)
 
         return Response(ReviewSerializer(comments, many=True).data, status=status.HTTP_200_OK)
-
-    # @action(methods=['POST'], url_path='rating', detail=True)
-    # def rating(self, request, pk):
-    #     food = self.get_object()
-    #
-    #     review, created = Review.objects.get_or_create(
-    #         user=request.user,
-    #         food=food,
-    #         defaults={
-    #             'rating': request.data.get('rating')
-    #         }
-    #     )
-    #
-    #     if not created:
-    #         review.rating = request.data.get('rating')
-    #         review.save()
-    #
-    #     return Response(
-    #         ReviewSerializer(review).data,
-    #         status=status.HTTP_200_OK
-    #     )
-
-
-class FoodDetailViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
-    queryset = Food.objects.filter(active=True)
-    serializer_class = FoodSerializer
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
@@ -124,3 +98,45 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView):
     queryset = Review.objects.filter(active=True)
     serializer_class = ReviewSerializer
     permission_classes = [perms.ReviewOwner]
+
+    @action(methods=['PATCH'], detail=False)
+    def current_review(self, request, pk):
+        review = Review.objects.get(pk=pk)
+        if request.method.__eq__('PATCH'):
+            s = ReviewSerializer(review, data=request.data, partial=True)
+            s.is_valid(raise_exception=True)
+            review = s.save()
+
+        return Response(ReviewSerializer(review).data, status=status.HTTP_200_OK)
+
+class OrderViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
+    queryset = Order.objects.filter(active=True).select_related('user')
+    serializer_class = OrderSerializer
+    permission_classes = [perms.OrderOwner]
+
+    @action(methods=['GET'], url_path='user-orders', detail=False)
+    def order(self, request):
+        orders = Order.objects.filter(user=request.user)
+        return Response(orders, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False, permission_classes=[permissions.IsAuthenticated])
+    def current_order(self, request,pk):
+        order = Order.objects.get(pk=pk)
+        if request.method.__eq__('POST'):
+            s = OrderSerializer(order,data={
+                ''
+            })
+            s.is_valid(raise_exception=True)
+            order = s.save()
+
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
+
+    @action(methods=['PATCH'], detail=False)
+    def update_order(self, request, pk):
+        current_order = Order.objects.filter(status=Order.status_order.WAITING).get(pk=pk)
+        if current_order and request.method.__eq__('PATCH'):
+            s = OrderSerializer(current_order, data=request.data, partial=True)
+            s.is_valid(raise_exception=True)
+            current_order = s.save()
+        return Response(OrderSerializer(current_order).data, status=status.HTTP_200_OK)
