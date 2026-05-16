@@ -17,12 +17,12 @@ class Status_Table(models.TextChoices):
     AVAILABLE = 'AVAILABLE', 'Trống'
     RESERVED = 'RESERVED', 'Đã đặt trước'
     OCCUPIED = 'OCCUPIED', 'Đang có khách'
-    # DIRTY = 'DIRTY', 'Chờ dọn dẹp'
 
 
 class Status_Order(models.TextChoices):
     SUCCESS = 'SUCCESS', 'Thành công'
     WAITING = 'WAITING', 'Đang chờ'
+    CANCEL = 'CANCEL', 'Hủy'
 
 
 class Rating(models.IntegerChoices):
@@ -98,7 +98,7 @@ class Table(BaseModel):
 class Order(BaseModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
     total = models.DecimalField(max_digits=12, decimal_places=2)
-    table = models.ForeignKey(Table, on_delete=models.PROTECT,related_name='orders')
+    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='orders')
     status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
 
     class Meta:
@@ -151,9 +151,9 @@ class Review(BaseModel):
         unique_together = ('user', 'food')
 
 
-class Food_Chef(BaseModel):
-    food = models.ForeignKey(Food, on_delete=models.PROTECT)
-    chef = models.ForeignKey(User, on_delete=models.PROTECT)
+class FoodChef(BaseModel):
+    food = models.ForeignKey(Food, related_name='chefs', on_delete=models.PROTECT)
+    chef = models.ForeignKey(User, related_name='foods', on_delete=models.PROTECT)
 
 
 class Reservation(BaseModel):

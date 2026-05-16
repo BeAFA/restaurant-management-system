@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+
 cloudinary.config(
 CLOUD_NAME_REMOVED
 API_KEY_REMOVED
@@ -45,7 +46,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'restaurant.apps.RestaurantConfig',
+    'ckeditor',
+    'rest_framework',
+    'drf_yasg',
+    'oauth2_provider'
 ]
+
+REST_FRAMEWORK = {
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
+}
+
 
 AUTH_USER_MODEL = 'restaurant.User'
 
@@ -91,6 +104,7 @@ DATABASES = {
     }
 }
 import pymysql
+
 pymysql.install_as_MySQLdb()
 
 # Password validation
@@ -126,3 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+CLIENT_ID_REMOVED
+CLIENT_SECRECT = '4wHH42fkCyvmmxr5c2BHWQQLbiZWgBBVLuyZNs2nHOmxx75SXRRo1As8SZIP0ziwgXUFMfYZBomNYo8j0WyatwuFNsYcnX19vepxZ28EFzbhDUowcSN2ba4ZUUWgadKg'
