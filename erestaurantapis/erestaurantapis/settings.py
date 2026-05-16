@@ -31,10 +31,11 @@ ALLOWED_HOSTS = []
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+
 cloudinary.config(
-  	cloud_name = "dep63vfd9",
-  	api_key = "966523329794472",
-  	api_secret = "gCLkIhTP4UYLv2MnsiCzXzABfjk"
+    cloud_name="dep63vfd9",
+    api_key="966523329794472",
+    api_secret="gCLkIhTP4UYLv2MnsiCzXzABfjk"
 )
 
 INSTALLED_APPS = [
@@ -45,7 +46,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'restaurant.apps.RestaurantConfig',
+    'ckeditor',
+    'rest_framework',
+    'drf_yasg',
+    'oauth2_provider'
 ]
+
+REST_FRAMEWORK = {
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
+}
+
 
 AUTH_USER_MODEL = 'restaurant.User'
 
@@ -91,6 +104,7 @@ DATABASES = {
     }
 }
 import pymysql
+
 pymysql.install_as_MySQLdb()
 
 # Password validation
@@ -126,3 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+CLIENT_ID = '1ouxHr7DA8frF8S7YiWlMTLrJNjDiDNVF5NuR6XI'
+CLIENT_SECRECT = '4wHH42fkCyvmmxr5c2BHWQQLbiZWgBBVLuyZNs2nHOmxx75SXRRo1As8SZIP0ziwgXUFMfYZBomNYo8j0WyatwuFNsYcnX19vepxZ28EFzbhDUowcSN2ba4ZUUWgadKg'
