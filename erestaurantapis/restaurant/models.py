@@ -47,6 +47,7 @@ class User(AbstractUser, BaseModel):
     user_role = models.CharField(choices=UserRole.choices, default=UserRole.CUSTOMER, max_length=20)
     avatar = CloudinaryField(null=True)
     phone = models.CharField(max_length=20, null=True, db_index=True)
+    is_approved = models.BooleanField(default=False)
 
 
 class Category(BaseModel):
@@ -97,7 +98,7 @@ class Table(BaseModel):
 
 class Order(BaseModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
-    total = models.DecimalField(max_digits=12, decimal_places=2)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='orders')
     status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
 
@@ -155,13 +156,16 @@ class FoodChef(BaseModel):
     food = models.ForeignKey(Food, related_name='chefs', on_delete=models.PROTECT)
     chef = models.ForeignKey(User, related_name='foods', on_delete=models.PROTECT)
 
+    class Meta:
+        unique_together = ('food', 'chef')
+
 
 class Reservation(BaseModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='reservations')
     table = models.ForeignKey(Table, on_delete=models.PROTECT, null=False, related_name='reservations')
     serve_time = models.DateTimeField(verbose_name="Thời gian bắt đầu", db_index=True)
     end_time = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian kết thúc", db_index=True)
-    customer_quantity = models.IntegerField()
+    customer_quantity = models.PositiveIntegerField()
 
     @property
     def is_active_now(self):
@@ -176,24 +180,32 @@ class Reservation(BaseModel):
         if self.serve_time and not self.end_time:
             # Cộng thêm 2 tiếng vào thời gian bắt đầu
             self.end_time = self.serve_time + timedelta(hours=2)
+        self.full_clean()
         super().save(*args, **kwargs)
 
     # 3. Logic chặn đặt trùng bàn trong khoảng 2 tiếng đó
     def clean(self):
-        if self.serve_time:
-            # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
-            expected_end_time = self.end_time or (self.serve_time + timedelta(hours=2))
+        if not self.serve_time:
+            return
 
-            # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
-            # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
-            conflicting_reservations = Reservation.objects.filter(
-                table=self.table,
-                serve_time__lt=expected_end_time,
-                end_time__gt=self.serve_time
-            ).exclude(pk=self.pk)  # Loại trừ chính nó nếu là đang sửa (update)
+        if self.serve_time < timezone.now():
+            raise ValidationError("Thời gian đặt bàn không thể ở trong quá khứ.")
 
-            if conflicting_reservations.exists():
-                raise ValidationError(
-                    f"Bàn này đã được đặt trong khoảng từ {self.serve_time.strftime('%H:%M')} "
-                    f"đến {expected_end_time.strftime('%H:%M')}."
-                )
+        # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
+        expected_end_time = self.end_time or (self.serve_time + timedelta(hours=2))
+        # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
+        # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
+        conflicting_reservations = Reservation.objects.filter(
+            table=self.table,
+            serve_time__lt=expected_end_time,
+            end_time__gt=self.serve_time
+        ).exclude(pk=self.pk)  # Loại trừ chính nó nếu là đang sửa (update)
+
+        if conflicting_reservations.exists():
+            raise ValidationError(
+                f"Bàn này đã được đặt trong khoảng từ {self.serve_time.strftime('%H:%M')} "
+                f"đến {expected_end_time.strftime('%H:%M')}."
+            )
+
+    def __str__(self):
+        return f"Đặt bàn {self.id} - {self.user} - Bàn {self.table.id}"
