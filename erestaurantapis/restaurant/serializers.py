@@ -1,5 +1,5 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User, OrderDetail, Order
+from .models import Category, Food, Review, User, OrderDetail, Order, Reservation
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -39,8 +39,9 @@ class UserAnonymousSerializer(serializers.ModelSerializer):
 class UserSerializer(UserAnonymousSerializer):
     class Meta:
         model = UserAnonymousSerializer.Meta.model
-        fields = UserAnonymousSerializer.Meta.fields + ['username','password']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = UserAnonymousSerializer.Meta.fields + ['username','password', 'user_role', 'is_approved']
+        extra_kwargs = {'password': {'write_only': True},
+                        'is_approved': {'read_only': True}}
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -59,6 +60,15 @@ class UserSerializer(UserAnonymousSerializer):
 
         return user
 
+class ChefApproveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'is_approved', 'user_role']
+        extra_kwargs = {'username': {'read_only': True},
+                        'first_name': {'read_only': True},
+                        'last_name': {'read_only': True},
+                        'user_role': {'read_only': True}}
+
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
@@ -76,22 +86,51 @@ class ReviewSerializer(serializers.ModelSerializer):
 class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderDetail
-        fields = ['food', 'quantity', 'unit_price']
-        extra_kwargs = {'unit_price': {'read_only': True},}
+        fields = ['id', 'food', 'quantity', 'unit_price', 'total_price']
+        extra_kwargs = {
+            'unit_price': {'read_only': True},
+            'total_price': {'read_only': True}
+        }
 
 class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'table', 'user', 'details', 'status_order', 'total']
-        extra_kwargs = {'user': {'read_only': True},
-                        'total': {'read_only': True}}
+        fields = ['id', 'table', 'user', 'details', 'status_order', 'total', 'created_date']
+        extra_kwargs = {
+            'user': {'read_only': True},
+            'total': {'read_only': True},
+            'status_order': {'read_only': True}
+        }
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')
 
-        for data in details_data:
-            OrderDetail.objects.create(**data)
+        order = Order.objects.create(**validated_data)
 
-        return self
+        for data in details_data:
+            OrderDetail.objects.create(order=order,**data)
+
+        return order
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+
+        instance.table = validated_data.get('table', instance.table)
+        instance.save()
+
+        if details_data is not None:
+            instance.details.all().delete()
+
+            for data in details_data:
+                OrderDetail.objects.create(order=instance, **data)
+
+        return instance
+
+class ReservationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reservation
+        fields = ['user', 'table', 'serve_time', 'end_time', 'customer_quantity']
+        extra_kwargs = {'user': {'read_only': True},
+                        'end_time': {'read_only': True}}
