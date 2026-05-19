@@ -27,15 +27,16 @@ print(">>> Creating Users...")
 u_admin, _ = User.objects.get_or_create(username='admin_restaurant', defaults={
     'first_name': 'Admin', 'last_name': 'Restaurant',
     'email': 'admin@restaurant.com', 'user_role': UserRole.ADMIN,
-    'phone': '0900000000'
+    'phone': '0900000000', 'is_approved': True
 })
 u_admin.set_password('Admin@123')
 u_admin.save()
 
+# Chef phải được is_approved=True mới hoạt động đúng
 u_chef1, _ = User.objects.get_or_create(username='chef_john', defaults={
     'first_name': 'John', 'last_name': 'Smith',
     'email': 'john.chef@restaurant.com', 'user_role': UserRole.CHEF,
-    'phone': '0911111111'
+    'phone': '0911111111', 'is_approved': True
 })
 u_chef1.set_password('Chef@123')
 u_chef1.save()
@@ -43,7 +44,7 @@ u_chef1.save()
 u_chef2, _ = User.objects.get_or_create(username='chef_emily', defaults={
     'first_name': 'Emily', 'last_name': 'Brown',
     'email': 'emily.chef@restaurant.com', 'user_role': UserRole.CHEF,
-    'phone': '0922222222'
+    'phone': '0922222222', 'is_approved': True
 })
 u_chef2.set_password('Chef@123')
 u_chef2.save()
@@ -51,7 +52,7 @@ u_chef2.save()
 u1, _ = User.objects.get_or_create(username='customer_alice', defaults={
     'first_name': 'Alice', 'last_name': 'Nguyen',
     'email': 'alice@gmail.com', 'user_role': UserRole.CUSTOMER,
-    'phone': '0933333333'
+    'phone': '0933333333', 'is_approved': True
 })
 u1.set_password('User@123')
 u1.save()
@@ -59,7 +60,7 @@ u1.save()
 u2, _ = User.objects.get_or_create(username='customer_bob', defaults={
     'first_name': 'Bob', 'last_name': 'Tran',
     'email': 'bob@gmail.com', 'user_role': UserRole.CUSTOMER,
-    'phone': '0944444444'
+    'phone': '0944444444', 'is_approved': True
 })
 u2.set_password('User@123')
 u2.save()
@@ -67,7 +68,7 @@ u2.save()
 u3, _ = User.objects.get_or_create(username='customer_carol', defaults={
     'first_name': 'Carol', 'last_name': 'Vo',
     'email': 'carol@gmail.com', 'user_role': UserRole.CUSTOMER,
-    'phone': '0955555555'
+    'phone': '0955555555', 'is_approved': True
 })
 u3.set_password('User@123')
 u3.save()
@@ -75,7 +76,7 @@ u3.save()
 u4, _ = User.objects.get_or_create(username='customer_david', defaults={
     'first_name': 'David', 'last_name': 'Hoang',
     'email': 'david@gmail.com', 'user_role': UserRole.CUSTOMER,
-    'phone': '0966666666'
+    'phone': '0966666666', 'is_approved': True
 })
 u4.set_password('User@123')
 u4.save()
@@ -83,7 +84,7 @@ u4.save()
 u5, _ = User.objects.get_or_create(username='customer_eva', defaults={
     'first_name': 'Eva', 'last_name': 'Dang',
     'email': 'eva@gmail.com', 'user_role': UserRole.CUSTOMER,
-    'phone': '0977777777'
+    'phone': '0977777777', 'is_approved': True
 })
 u5.set_password('User@123')
 u5.save()
@@ -273,6 +274,7 @@ if created5:
     OrderDetail.objects.create(order=o5, food=f13, quantity=2)
     OrderDetail.objects.create(order=o5, food=f3,  quantity=2)
 
+# o6: WAITING — chỉ 1 order WAITING cho mỗi table (UniqueConstraint)
 o6, created6 = Order.objects.get_or_create(
     table=t2, status_order=Status_Order.WAITING,
     defaults={'user': u1, 'total': 0}
@@ -322,38 +324,55 @@ FoodChef.objects.get_or_create(food=f15, chef=u_chef2)
 print("    FoodChefs created successfully!")
 
 # ==================== RESERVATIONS ====================
+# LƯU Ý: Reservation.clean() chặn serve_time trong quá khứ.
+# Chỉ tạo các reservation trong TƯƠNG LAI.
+# Reservation quá khứ phải dùng update() hoặc bulk_create() để bypass clean().
 print(">>> Creating Reservations...")
+
+from django.core.exceptions import ValidationError
 
 now = timezone.now()
 
-Reservation.objects.get_or_create(
-    user=u1, table=t1, serve_time=now - timedelta(days=3, hours=2),
-    defaults={'customer_quantity': 2}
-)
-Reservation.objects.get_or_create(
-    user=u2, table=t2, serve_time=now - timedelta(days=2, hours=3),
-    defaults={'customer_quantity': 4}
-)
-Reservation.objects.get_or_create(
-    user=u3, table=t4, serve_time=now - timedelta(days=1, hours=5),
-    defaults={'customer_quantity': 6}
-)
-Reservation.objects.get_or_create(
-    user=u4, table=t5, serve_time=now + timedelta(days=1, hours=2),
-    defaults={'customer_quantity': 5}
-)
-Reservation.objects.get_or_create(
-    user=u5, table=t6, serve_time=now + timedelta(days=2, hours=1),
-    defaults={'customer_quantity': 7}
-)
-Reservation.objects.get_or_create(
-    user=u1, table=t7, serve_time=now + timedelta(days=3),
-    defaults={'customer_quantity': 8}
-)
-Reservation.objects.get_or_create(
-    user=u2, table=t8, serve_time=now + timedelta(days=5, hours=3),
-    defaults={'customer_quantity': 10}
-)
+# --- Reservation quá khứ: dùng bulk_create để bypass clean() ---
+past_reservations = [
+    Reservation(
+        user=u1, table=t1,
+        serve_time=now - timedelta(days=3, hours=2),
+        end_time=now - timedelta(days=3),
+        customer_quantity=2
+    ),
+    Reservation(
+        user=u2, table=t2,
+        serve_time=now - timedelta(days=2, hours=3),
+        end_time=now - timedelta(days=2, hours=1),
+        customer_quantity=4
+    ),
+    Reservation(
+        user=u3, table=t4,
+        serve_time=now - timedelta(days=1, hours=5),
+        end_time=now - timedelta(days=1, hours=3),
+        customer_quantity=6
+    ),
+]
+for r in past_reservations:
+    if not Reservation.objects.filter(user=r.user, table=r.table, serve_time=r.serve_time).exists():
+        Reservation.objects.bulk_create([r])
+
+# --- Reservation tương lai: dùng get_or_create bình thường ---
+future_reservations = [
+    {'user': u4, 'table': t5, 'serve_time': now + timedelta(days=1, hours=2),  'customer_quantity': 5},
+    {'user': u5, 'table': t6, 'serve_time': now + timedelta(days=2, hours=1),  'customer_quantity': 7},
+    {'user': u1, 'table': t7, 'serve_time': now + timedelta(days=3),           'customer_quantity': 8},
+    {'user': u2, 'table': t8, 'serve_time': now + timedelta(days=5, hours=3),  'customer_quantity': 10},
+]
+for r in future_reservations:
+    try:
+        Reservation.objects.get_or_create(
+            user=r['user'], table=r['table'], serve_time=r['serve_time'],
+            defaults={'customer_quantity': r['customer_quantity']}
+        )
+    except ValidationError as e:
+        print(f"    WARNING: Skipped reservation for {r['user']} - {e}")
 
 print("    Reservations created successfully!")
 
