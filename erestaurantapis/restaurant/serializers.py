@@ -1,5 +1,5 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User, OrderDetail, Order, Reservation
+from .models import Category, Food, Review, User, OrderDetail, Order, Reservation, FoodChef, UserRole
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -31,15 +31,17 @@ class FoodDetailSerializer(FoodSerializer):
         model = FoodSerializer.Meta.model
         fields = FoodSerializer.Meta.fields + ['description', 'category']
 
+
 class UserAnonymousSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'email', 'avatar', 'phone']
 
+
 class UserSerializer(UserAnonymousSerializer):
     class Meta:
         model = UserAnonymousSerializer.Meta.model
-        fields = UserAnonymousSerializer.Meta.fields + ['username','password', 'user_role', 'is_approved']
+        fields = UserAnonymousSerializer.Meta.fields + ['username', 'password', 'user_role', 'is_approved']
         extra_kwargs = {'password': {'write_only': True},
                         'is_approved': {'read_only': True}}
 
@@ -60,6 +62,7 @@ class UserSerializer(UserAnonymousSerializer):
 
         return user
 
+
 class ChefApproveSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -68,6 +71,7 @@ class ChefApproveSerializer(serializers.ModelSerializer):
                         'first_name': {'read_only': True},
                         'last_name': {'read_only': True},
                         'user_role': {'read_only': True}}
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,6 +87,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderDetail
@@ -91,6 +96,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'unit_price': {'read_only': True},
             'total_price': {'read_only': True}
         }
+
 
 class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True)
@@ -110,7 +116,7 @@ class OrderSerializer(serializers.ModelSerializer):
         order = Order.objects.create(**validated_data)
 
         for data in details_data:
-            OrderDetail.objects.create(order=order,**data)
+            OrderDetail.objects.create(order=order, **data)
 
         return order
 
@@ -128,9 +134,35 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ['user', 'table', 'serve_time', 'end_time', 'customer_quantity']
         extra_kwargs = {'user': {'read_only': True},
                         'end_time': {'read_only': True}}
+
+
+class FoodChefSerializer(serializers.ModelSerializer):
+    chef = UserAnonymousSerializer(read_only=True)
+    chef_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(user_role=UserRole.CHEF, is_approved=True),
+        write_only=True,
+        source='chef',
+    )
+    food = FoodSerializer(read_only=True)
+
+    class Meta:
+        model = FoodChef
+        fields = ['id', 'food', 'chef', 'chef_id']
+
+
+
+class FoodComparisonSerializer(serializers.ModelSerializer):
+    avg_rating = serializers.FloatField(read_only=True)
+    review_count = serializers.IntegerField(read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Food
+        fields = ['id', 'dish', 'price', 'illustration', 'description', 'category_name', 'avg_rating', 'review_count']
