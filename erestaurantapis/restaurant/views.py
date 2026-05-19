@@ -1,17 +1,22 @@
 from django.db import transaction
+from django.db.models import Avg, Count, Sum
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.utils import timezone
 from pyexpat.errors import messages
 from rest_framework import viewsets, generics, filters, status, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from datetime import timedelta
 
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
-    UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer
-from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole
+    UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
+    FoodChefSerializer, FoodComparisonSerializer
+from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole, FoodChef, Status_Order, \
+    Status_Table
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -53,7 +58,7 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         return query
 
     def get_permissions(self):
-        if self.action == ['retrieve', 'list', 'get_review'] and self.request.method == permissions.SAFE_METHODS:
+        if self.action == ['retrieve', 'list', 'get_review'] and self.request.method in permissions.SAFE_METHODS:
             return [permissions.AllowAny()]
         if self.action in ['get_reviews'] and self.request.method.__eq__('POST'):
             return [permissions.IsAuthenticated()]
@@ -83,6 +88,127 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             return p.get_paginated_response(serializer.data)
 
         return Response(ReviewSerializer(comments, many=True).data, status=status.HTTP_200_OK)
+
+    @action(methods=['GET', 'POST', 'DELETE'], url_path='chefs', detail=True, permission_classes=[perms.IsAdminRole])
+    def manage_chefs(self, request, pk=None):
+        food = self.get_object()
+        if request.method == 'POST':
+            chef_id = request.data.get('chef_id')
+            chef = get_object_or_404(
+                User,
+                pk=chef_id,
+                user_role=UserRole.CHEF,
+                is_approved=True
+            )
+            food_chef, created = FoodChef.objects.update_or_create(
+                food=food,
+                chef=chef,
+                defaults={'active': True}
+            )
+
+            if not created and not food_chef.active:
+                food_chef.active = True
+
+            food_chef.save()
+
+            message = 'Đã gán đầu bếp cho món ăn' if created else 'Đã kích hoạt lại đầu bếp cho món ăn'
+            return Response(
+                {
+                    'message': message,
+                    'data': FoodChefSerializer(food_chef).data
+                },
+                status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            )
+
+        if request.method == 'DELETE':
+            chef_id = request.data.get('chef_id')
+            food_chef = get_object_or_404(
+                FoodChef,
+                food=food,
+                chef_id=chef_id,
+                active=True
+            )
+            food_chef.active = False
+            food_chef.save()
+            return Response(
+                {'message': 'Đã xóa đầu bếp khỏi món ăn'},
+                status=status.HTTP_200_OK
+            )
+
+        food_chefs = FoodChef.objects.filter(
+            food=food,
+            active=True
+        ).select_related('chef')
+
+        return Response(
+            FoodChefSerializer(food_chefs, many=True).data,
+            status=status.HTTP_200_OK
+        )
+
+    @action(methods=['GET'], url_path='compare', detail=False, permission_classes=[permissions.AllowAny])
+    def compare_food(self, request):
+        ids_param = request.query_params.get('ids', '')
+
+        if not ids_param:
+            return Response({'error': 'Hãy chọn những món bạn muốn so sánh!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            food_ids = [int(id.strip()) for id in ids_param.split(',')]
+        except ValueError:
+            return Response({'error': 'Danh sách món không hợp lệ, vui lòng chọn lại!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if len(food_ids) < 2:
+            return Response(
+                {'error': 'Cần ít nhất 2 món để so sánh'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(food_ids) > 3:
+            return Response(
+                {'error': 'Chỉ so sánh tối đa 3 món cùng lúc'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Tách 2 query để phân biệt rõ 2 trường hợp
+        foods_all = Food.objects.filter(id__in=food_ids)  # không filter active
+        foods_active = foods_all.filter(active=True)
+
+        # TH1: id không tồn tại trong DB
+        found_ids = set(foods_all.values_list('id', flat=True))
+        not_exist_ids = set(food_ids) - found_ids
+        if not_exist_ids:
+            return Response(
+                {'error': f'Không tìm thấy món ăn với IDs: {not_exist_ids}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # TH2: tồn tại nhưng đang bị ẩn (active=False)
+        active_ids = set(foods_active.values_list('id', flat=True))
+        inactive_foods = foods_all.exclude(id__in=active_ids)
+        if inactive_foods.exists():
+            inactive_names = list(inactive_foods.values_list('dish', flat=True))
+            return Response(
+                {'error': f'Các món sau đang không hoạt động: {inactive_names}'},
+                # ví dụ: "Các món sau đang không hoạt động: ['Phở bò', 'Bún bò']"
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        foods = foods_active.select_related('category').annotate(
+            avg_rating=Avg('reviews__rating'),
+            review_count=Count('reviews')
+        )
+
+        categories = foods.values_list('category_id', flat=True).distinct()
+        if categories.count() > 1:
+            return Response(
+                {'error': 'Chỉ có thể so sánh các món ăn cùng danh mục!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            FoodComparisonSerializer(foods, many=True).data,
+            status=status.HTTP_200_OK
+        )
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
@@ -115,7 +241,8 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        action = "đã duyệt" if chef.is_approved == True else "từ chối"
+        chef.refresh_from_db()
+        action = "đã duyệt" if chef.is_approved else "từ chối"
 
         return Response({
             'messages': f'Đã {action} tài khoản đầu bếp {chef.first_name + " " + chef.last_name}',
@@ -163,7 +290,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
 
     @action(methods=['GET'], url_path='current_order', detail=False)
     def current_order(self, request):
-        order = Order.objects.filter(user=request.user, status_order=Order.status_order.WAITING).first()
+        order = Order.objects.filter(user=request.user, status_order=Status_Order.WAITING).first()
         if not order:
             return Response({'message': 'Không có order nào đang chờ cả'}, status=status.HTTP_404_NOT_FOUND)
         return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
@@ -171,7 +298,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
     @transaction.atomic
     def partial_update(self, request, pk=None):
         order = self.get_object()
-        if order.status_order != Order.status_order.WAITING:
+        if order.status_order != Status_Order.WAITING:
             return Response(
                 {'error': 'Bạn không có order nào có thể chỉnh sửa được cả'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -188,14 +315,56 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
     def cancel(self, request, pk):
         order = get_object_or_404(Order, pk=pk, user=request.user)
 
-        if order.status_order != Order.status_order.WAITING:
+        if order.status_order != Status_Order.WAITING:
             return Response({'error': 'Bạn không thể hủy order này'}, status=status.HTTP_400_BAD_REQUEST)
 
-        order.status_order = Order.status_order.CANCELED
+        order.status_order = Status_Order.CANCEL
         order.active = False
         order.save()
 
         return Response({'message': 'Đã hủy order'}, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    @action(
+        methods=['POST'],
+        detail=True,
+        permission_classes=[perms.OrderOwner]
+    )
+    def payment(self, request, pk=None):
+        order = get_object_or_404(
+            Order,
+            pk=pk,
+            user=request.user
+        )
+
+        # Chỉ thanh toán order đang chờ
+        if order.status_order != Status_Order.WAITING:
+            return Response(
+                {'error': 'Order này không thể thanh toán'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Kiểm tra order có món không
+        if not order.details.exists():
+            return Response(
+                {'error': 'Order chưa có món ăn nào'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Thanh toán
+        order.status_order = Status_Order.SUCCESS
+        order.save()
+
+        order.table.status_table = Status_Table.AVAILABLE
+        order.table.save()
+
+        return Response(
+            {
+                'message': 'Thanh toán thành công',
+                'order': OrderSerializer(order).data
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.DestroyAPIView):
@@ -282,3 +451,120 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
             raise ValidationError('Không thể hủy đặt bàn đã bắt đầu')
         instance.active = False
         instance.save()
+
+
+class StatisticViewSet(viewsets.ViewSet):
+    @action(methods=['GET'], url_path='chef_stats', detail=False, permission_classes=[perms.IsApprovedChef])
+    def chef_statistics(self, request):
+        period = request.query_params.get('period', 'month')
+
+        trunc_map = {
+            'day': TruncDay,
+            'week': TruncWeek,
+            'month': TruncMonth
+        }
+
+        if period not in trunc_map:
+            return Response(
+                {'error': 'period phải là day, week hoặc month'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        TruncFunc = trunc_map[period]
+
+        chef_food_ids = FoodChef.objects.filter(
+            chef=request.user,
+            active=True
+        ).values_list('food_id', flat=True)
+
+        order_stats = OrderDetail.objects.filter(
+            food_id__in=chef_food_ids,
+            order__status_order='SUCCESS'
+        ).annotate(
+            period=TruncFunc('created_date')
+        ).values('period').annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('total_price'),
+            order_count=Count('order', distinct=True)
+        ).order_by('period')
+
+        food_stats = OrderDetail.objects.filter(
+            food_id__in=chef_food_ids,
+            order__status_order='SUCCESS'
+        ).values(
+            'food__id',
+            'food__dish'
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('total_price'),
+            avg_rating=Avg('food__reviews__rating')
+        ).order_by('-total_revenue')
+
+        return Response({
+            'period_stats': list(order_stats),
+            'food_stats': list(food_stats)
+        }, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], url_path='admin_stats', detail=False,
+            permission_classes=[perms.IsAdminRole])
+    def admin_statistics(self, request):
+        period = request.query_params.get('period', 'month')
+
+        trunc_map = {
+            'day': TruncDay,
+            'week': TruncWeek,
+            'month': TruncMonth
+        }
+        TruncFunc = trunc_map.get(period, TruncMonth)
+
+        # Tổng quan hệ thống
+        overview = {
+            'total_foods': Food.objects.filter(active=True).count(),
+            'total_users': User.objects.filter(is_active=True).count(),
+            'total_orders': Order.objects.filter(active=True).count(),
+            'total_reservations': Reservation.objects.filter(active=True).count(),
+
+            # Chờ duyệt — Admin cần biết có bao nhiêu đầu bếp chờ xử lý
+            'pending_chefs': User.objects.filter(
+                user_role=UserRole.CHEF,
+                is_approved=False,
+                is_active=True
+            ).count(),
+        }
+
+        # Doanh thu theo thời gian
+        revenue_stats = Order.objects.filter(
+            status_order='SUCCESS'
+        ).annotate(
+            period=TruncFunc('created_date')
+        ).values('period').annotate(
+            total_revenue=Sum('total'),
+            order_count=Count('id')
+        ).order_by('period')
+
+        # Top 10 món ăn được đặt nhiều nhất
+        top_foods = OrderDetail.objects.filter(
+            order__status_order='SUCCESS'
+        ).values(
+            'food__id',
+            'food__dish',
+            'food__category__name'  # Tên category qua double JOIN
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('total_price')
+        ).order_by('-total_quantity')[:10]  # Lấy 10 món đầu
+
+        # Thống kê đặt bàn theo ngày
+        reservation_stats = Reservation.objects.filter(
+            active=True
+        ).annotate(
+            period=TruncFunc('serve_time')
+        ).values('period').annotate(
+            count=Count('id')
+        ).order_by('period')
+
+        return Response({
+            'overview': overview,
+            'revenue_stats': list(revenue_stats),
+            'top_foods': list(top_foods),
+            'reservation_stats': list(reservation_stats)
+        }, status=status.HTTP_200_OK)
