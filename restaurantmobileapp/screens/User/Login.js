@@ -1,9 +1,9 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import { useContext, useState } from "react";
-import Apis, { authApis, endpoints } from "../../configs/Apis";
+import Apis, { authApis, endpoints, CLIENT_ID, CLIENT_SECRET } from "../../configs/Apis";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { MyUserContext } from "../../configs/Contexts";
 import Style from './Style'; // Nhớ trỏ đúng đường dẫn của bạn
 
@@ -28,6 +28,7 @@ const Login = () => {
 
 
     const validate = () => {
+        setErr(null);
         if (!user.username)
             setErr('Vui lòng nhập tên đăng nhập');
         else if (!user.password)
@@ -35,91 +36,58 @@ const Login = () => {
         else
             return true;
     }
-    // const login = async () => {
-    // if (validate()) {
-    //     try {
-    //         setLoading(true);
 
-    //         // THAY 2 BIẾN NÀY BẰNG MÃ THẬT BẠN COPY Ở BƯỚC 1
-    //         const clientId = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G';
-    //         const clientSecret = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu';
-
-    //         // Cách an toàn nhất trong React Native: Tự ghép chuỗi (URL encoded string)
-    //         // Dùng encodeURIComponent để tránh lỗi nếu pass/user có ký tự đặc biệt (@, #, khoảng trắng...)
-    //         const payload = `client_id=${clientId}&client_secret=${clientSecret}&grant_type=password&username=${encodeURIComponent(user.username)}&password=${encodeURIComponent(user.password)}`;
-
-    //         // Gửi API
-    //         let res = await Apis.post(endpoints['login'], payload, {
-    //             headers: {
-    //                 'Content-Type': 'application/x-www-form-urlencoded'
-    //             }
-    //         });
-
-    //         // Nếu qua được đoạn trên là thành công!
-    //         await AsyncStorage.setItem('token', res.data.access_token);
-
-    //         setTimeout(async () => {
-    //             let u = await authApis(res.data.access_token).get(endpoints['current-user']);
-    //             dispatch({
-    //                 "type": "LOGIN",
-    //                 "payload": u.data
-    //             });
-    //         }, 500);
-
-    //     } catch (ex) {
-    //         console.error("Lỗi chi tiết từ Server:", ex.response?.data || ex.message);
-    //         if (ex.response?.data?.error === 'invalid_grant') {
-    //             setErr("Sai tên đăng nhập hoặc mật khẩu!");
-    //         } else {
-    //             setErr("Đăng nhập thất bại. Vui lòng kiểm tra lại!");
-    //         }
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
     const login = async () => {
-        if (validate()) {
-            try {
-                setLoading(true);
+        if (!validate()) return;
 
-                // KHÔNG dùng new FormData() ở đây nữa
-                // Tạo một object thuần túy
-                const payload = {
-                    username: user.username,
-                    password: user.password,
-                    client_id: 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G', // Nhớ thay bằng client_id thật nếu có
-                    client_secret: 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu', // Nhớ thay bằng client_secret thật nếu có
-                    grant_type: 'password'
-                };
+        try {
+            setLoading(true);
 
-                let res = await Apis.post(endpoints['login'], payload, {
-                    headers: {
-                        // Ép kiểu dữ liệu về form-urlencoded chuẩn OAuth2
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
+            const params = new URLSearchParams();
+            params.append('username', user.username);
+            params.append('password', user.password);
+            params.append('client_id', CLIENT_ID);
+            params.append('client_secret', CLIENT_SECRET);
+            params.append('grant_type', 'password');
 
-                await AsyncStorage.setItem('token', res.data.access_token);
+            const res = await Apis.post(endpoints['login'], params.toString(), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
 
-                // ... Phần code còn lại của bạn giữ nguyên ...
-                let u = await authApis(res.data.access_token).get(endpoints['current-user']);
+            await SecureStore.setItemAsync('token', res.data.access_token);
 
-                dispatch({
-                    "type": "LOGIN",
-                    "payload": u.data
-                });
+            const currentUser = await authApis(res.data.access_token)
+                .get(endpoints['current-user']);
 
-            } catch (ex) {
-                console.error("Lỗi chi tiết:", ex.response?.data || ex.message);
-                setErr("Đăng nhập thất bại!");
-            } finally {
-                setLoading(false);
-            }
+            dispatch({
+                type: 'LOGIN',
+                payload: currentUser.data,
+            });
+
+            // nav.navigate('home');
+
+        } catch (ex) {
+            if (ex.response) {
+            console.log("LỖI SERVER - STATUS:", ex.response.status);
+            console.log("LỖI SERVER - DATA:", JSON.stringify(ex.response.data));
+        } else if (ex.request) {
+            console.log("LỖI NETWORK - Không nhận được response");
+            console.log("LỖI NETWORK - Message:", ex.message);
+            console.log("LỖI NETWORK - Request:", JSON.stringify(ex.request));
+            setErr("Không kết nối được server!");
+        } else {
+            console.log("LỖI CODE:", ex.message);
+            setErr("Lỗi ứng dụng: " + ex.message);
+        }
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
-        <View style={[Style.container, {paddingTop: 80}]}>
+        <View style={[Style.container, { paddingTop: 80 }]}>
 
             {/* Khu vực Logo và Lời chào */}
             <View style={Style.headerContainer}>
@@ -168,6 +136,5 @@ const Login = () => {
             </View>
         </View>
     );
-
 };
 export default Login;

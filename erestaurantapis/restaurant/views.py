@@ -153,7 +153,9 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             return Response({'error': 'Hãy chọn những món bạn muốn so sánh!'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            food_ids = [int(id.strip()) for id in ids_param.split(',')]
+            food_ids = list(dict.fromkeys(
+                int(id.strip()) for id in ids_param.split(',')
+            ))
         except ValueError:
             return Response({'error': 'Danh sách món không hợp lệ, vui lòng chọn lại!'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -193,9 +195,13 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        foods = foods_active.select_related('category').annotate(
+        foods = foods_active.select_related(
+            'category'
+        ).prefetch_related(
+            'food_ingredients__ingredient'
+        ).annotate(
             avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
+            review_count=Count('reviews', distinct=True)
         )
 
         categories = foods.values_list('category_id', flat=True).distinct()

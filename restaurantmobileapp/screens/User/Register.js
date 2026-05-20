@@ -17,11 +17,11 @@ const Register = () => {
         field: 'last_name',
         title: 'Họ và tên lót',
         icon: 'text',
-    },{
+    }, {
         field: 'email',
         title: 'Email',
         icon: 'text',
-    },{
+    }, {
         field: 'phone',
         title: 'Số điện thoại',
         icon: 'phone',
@@ -59,68 +59,88 @@ const Register = () => {
     }
 
     const validate = () => {
-        if (!user.username)
-            setErr('Vui lòng nhập tên đăng nhập');
-        else if (!user.password || !user.confirm || user.password !== user.confirm)
-            setErr('Mật khẩu KHÔNG khớp!');
-        else {
-            setErr(null); // Xóa lỗi nếu đã hợp lệ
-            return true;
+        setErr(null);
+        if (!user.first_name) {
+            setErr('Vui lòng nhập tên');
+            return false;
         }
+        if (!user.username) {
+            setErr('Vui lòng nhập tên đăng nhập');
+            return false;
+        }
+        if (!user.password) {
+            setErr('Vui lòng nhập mật khẩu');
+            return false;
+        }
+        if (user.password !== user.confirm) {
+            setErr('Mật khẩu KHÔNG khớp!');
+            return false;
+        }
+        return true;
     }
 
     const register = async () => {
-        if (validate()) {
-            let form = new FormData();
+        if (!validate()) return;
 
-            try {
-                setLoading(true);
+        const form = new FormData();
 
-                for (var key of Object.keys(user)) {
-                    if (key !== 'confirm') {
-                        if (key === 'avatar') {
-                            form.append(key, {
-                                uri: user.avatar.uri,
-                                name: user.avatar.fileName,
-                                type: "image/jpeg" // user.avatar.type // 
-                            });
-                        } else {
-                            form.append(key, user[key]);
-                        }
-                    }
+        try {
+            setLoading(true);
+
+            for (const key of Object.keys(user)) {
+                if (key === 'confirm') continue;
+
+                if (key === 'avatar') {
+                    form.append('avatar', {
+                        uri: user.avatar.uri,
+                        name: user.avatar.fileName || 'avatar.jpg',
+                        type: user.avatar.mimeType || 'image/jpeg',
+                    });
+                } else {
+                    form.append(key, user[key]);
                 }
-
-                let res = await Apis.post(endpoints['register'], form, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                })
-                if (res.status === 201)
-                    nav.navigate('login');
-                else
-                    alert("Hệ thống đang có lỗi!");
-            } catch (ex) {
-                console.error(ex);
-            } finally {
-                setLoading(false);
             }
+
+            const res = await Apis.post(endpoints['register'], form, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (res.status === 201) {
+                alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                nav.navigate('login');
+            }
+
+        } catch (ex) {
+            const data = ex.response?.data;
+            if (data) {
+                const firstError = Object.values(data)[0];
+                setErr(Array.isArray(firstError) ? firstError[0] : firstError);
+            } else {
+                setErr('Đăng ký thất bại, vui lòng thử lại!');
+            }
+            console.error(ex.response?.data);
+        } finally {
+            setLoading(false);
         }
     }
 
+
     return (
-        <View style={[Style.container, {paddingLeft: 0, paddingRight: 0}]}>
+        <View style={[Style.container, { paddingLeft: 0, paddingRight: 0 }]}>
             {/* Dùng ScrollView để chống tràn màn hình khi mở bàn phím */}
             <View style={Style.headerContainer}>
-                    <Text style={Style.titleText}>Tham gia DK Restaurant</Text>
-                    <Text style={Style.subText}>Tạo tài khoản để khám phá hàng ngàn món ngon</Text>
-                </View>
+                <Text style={Style.titleText}>Tham gia DK Restaurant</Text>
+                <Text style={Style.subText}>Tạo tài khoản để khám phá hàng ngàn món ngon</Text>
+            </View>
 
-                <HelperText style={Style.errorText} type="error" visible={!!err}>
-                    {err}
-                </HelperText>
+            <HelperText style={Style.errorText} type="error" visible={!!err}>
+                {err}
+            </HelperText>
             <ScrollView contentContainerStyle={Style.scrollContent}>
 
-                
+
 
                 <View style={Style.formContainer}>
                     {userInfo.map(u => (
@@ -129,40 +149,40 @@ const Register = () => {
                             key={u.field}
                             onChangeText={(t) => setUser({ ...user, [u.field]: t })}
                             style={Style.input}
-                        label={u.title}
-                        placeholder={`Nhập ${u.title.toLowerCase()}`}
-                        secureTextEntry={u.secureTextEntry}
-                        mode="outlined" // Kiểu viền bao quanh
-                        outlineColor="#E0E0E0"
-                        activeOutlineColor="#FF6347" // Màu viền cam khi gõ
-                        right={<TextInput.Icon icon={u.icon} color="#FF6347" />}
-                    />
-                ))}
+                            label={u.title}
+                            placeholder={`Nhập ${u.title.toLowerCase()}`}
+                            secureTextEntry={u.secureTextEntry}
+                            mode="outlined" // Kiểu viền bao quanh
+                            outlineColor="#E0E0E0"
+                            activeOutlineColor="#FF6347" // Màu viền cam khi gõ
+                            right={<TextInput.Icon icon={u.icon} color="#FF6347" />}
+                        />
+                    ))}
 
-                {/* Khu vực chọn ảnh đại diện được thiết kế lại */}
-                <TouchableOpacity style={Style.avatarPickerBtn} onPress={picker}>
-                    {/* Dùng icon camera của react-native-paper nếu bạn muốn, ở đây dùng text cho đơn giản */}
-                    <Text style={Style.avatarPickerText}>📸 Chọn ảnh đại diện</Text>
-                </TouchableOpacity>
+                    {/* Khu vực chọn ảnh đại diện được thiết kế lại */}
+                    <TouchableOpacity style={Style.avatarPickerBtn} onPress={picker}>
+                        {/* Dùng icon camera của react-native-paper nếu bạn muốn, ở đây dùng text cho đơn giản */}
+                        <Text style={Style.avatarPickerText}>📸 Chọn ảnh đại diện</Text>
+                    </TouchableOpacity>
 
-                {user.avatar && (
-                    <Image source={{ uri: user.avatar.uri }} style={Style.avatarPreview} />
-                )}
+                    {user.avatar && (
+                        <Image source={{ uri: user.avatar.uri }} style={Style.avatarPreview} />
+                    )}
 
-                <Button
-                    loading={loading}
-                    disabled={loading}
-                    mode="contained"
-                    onPress={register}
-                    style={Style.primaryButton}
-                    labelStyle={Style.buttonLabel}
-                >
-                    Đăng ký ngay
-                </Button>
+                    <Button
+                        loading={loading}
+                        disabled={loading}
+                        mode="contained"
+                        onPress={register}
+                        style={Style.primaryButton}
+                        labelStyle={Style.buttonLabel}
+                    >
+                        Đăng ký ngay
+                    </Button>
                 </View>
             </ScrollView>
         </View>
-        
+
     );
 }
 
