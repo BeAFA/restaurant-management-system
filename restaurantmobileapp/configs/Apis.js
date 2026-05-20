@@ -7,6 +7,8 @@ export const endpoints = {
     'register': '/users/',
     'login': '/o/token/',
     'current-user': '/users/current_user/',
+    'top_dishes': '/foods/top_dishes/',
+    'dish_detail': (dishId) => `/foods/${dishId}/`,
 }
 
 CLIENT_ID_REMOVED

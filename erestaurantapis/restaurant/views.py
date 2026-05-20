@@ -216,6 +216,31 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             status=status.HTTP_200_OK
         )
 
+    @action(methods=['GET'], url_path='top_dishes', detail=False, permission_classes=[AllowAny])
+    def top_dishes(self, request):
+        """
+        API lấy danh sách 10 món ăn bán chạy nhất dành cho màn hình Home của Mobile
+        Đường dẫn gọi: /api/foods/top-dishes/
+        """
+        # 1. Tìm ra danh sách 10 ID của món ăn có số lượng bán nhiều nhất từ các đơn hàng THÀNH CÔNG
+        top_ids = list(OrderDetail.objects.filter(
+            order__status_order='SUCCESS'
+        ).values('food_id').annotate(
+            total_quantity=Sum('quantity')
+        ).order_by('-total_quantity').values_list('food_id', flat=True)[:10])
+
+        # 2. Lấy các đối tượng Food từ DB dựa theo danh sách ID trên và phải còn hoạt động (active=True)
+        foods = Food.objects.filter(id__in=top_ids, active=True)
+
+        # 3. Mẹo nhỏ: Vì bộ lọc `id__in` của Django sẽ làm đảo lộn thứ tự bán chạy,
+        # ta dùng Python để sắp xếp lại danh sách Food theo đúng thứ tự chuẩn của top_ids ban đầu.
+        food_dict = {f.id: f for f in foods}
+        sorted_foods = [food_dict[f_id] for f_id in top_ids if f_id in food_dict]
+
+        # 4. Đi qua bộ chuyển đổi dữ liệu (FoodSerializer) để biến thành JSON và trả về cho App
+        serializer = FoodSerializer(sorted_foods, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
