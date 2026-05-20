@@ -9,12 +9,14 @@ import { MyUserContext } from "./configs/Contexts";
 import { useContext, useReducer } from "react";
 import MyUserReducer from "./reducers/MyUserReducer";
 import Profile from "./screens/User/Profile";
+import FoodDetail from "./screens/Home/FoodDetail";
 
 const Stack = createNativeStackNavigator();
 const StackNavigator = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name="index" component={Home} options={{title: 'Màn hình chính', headerShown: false }} />
+      <Stack.Screen name="dish_detail" component={FoodDetail} options={{title: 'Chi tiết món ăn'}} />
     </Stack.Navigator>
   );
 }

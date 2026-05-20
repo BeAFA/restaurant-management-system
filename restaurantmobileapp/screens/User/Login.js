@@ -5,7 +5,7 @@ import Apis, { authApis, endpoints, CLIENT_ID, CLIENT_SECRET } from "../../confi
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
 import { MyUserContext } from "../../configs/Contexts";
-import Style from './Style'; // Nhớ trỏ đúng đường dẫn của bạn
+import Style from './Style';
 
 const Login = () => {
     const userInfo = [{
