@@ -1,11 +1,11 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
-import { useContext, useState } from "react";
+import { useState, useContext } from "react";
 CLIENT_ID_REMOVED
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
-import { MyUserContext } from "../../configs/Contexts";
 import Style from './Style';
+import UserContext from "../../contexts/UserContext";
 
 const Login = () => {
     const userInfo = [{
@@ -23,7 +23,7 @@ const Login = () => {
     const [err, setErr] = useState(null);
     const nav = useNavigation();
     const [loading, setLoading] = useState(false);
-    const [, dispatch] = useContext(MyUserContext);
+    const { dispatchUser } = useContext(UserContext);
 
 
 
@@ -59,9 +59,9 @@ CLIENT_SECRET_REMOVED
             await SecureStore.setItemAsync('token', res.data.access_token);
 
             const currentUser = await authApis(res.data.access_token)
-                .get(endpoints['current-user']);
+                .get(endpoints['current_user']);
 
-            dispatch({
+            dispatchUser({
                 type: 'LOGIN',
                 payload: currentUser.data,
             });

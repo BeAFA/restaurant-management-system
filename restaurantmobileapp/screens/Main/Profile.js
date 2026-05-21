@@ -1,16 +1,14 @@
 import { Image, Text, View, ScrollView } from "react-native";
 import { useContext } from "react";
-import { MyUserContext } from "../../configs/Contexts";
 import { Button, List } from "react-native-paper";
-import Style from "./Style"; 
+import Style from "../User/Style"; 
+import UserContext from "../../contexts/UserContext";
 
 const Profile = () => {
-    const [user, dispatch] = useContext(MyUserContext);
+    const { user, logout } = useContext(UserContext);
 
     // Ghép tên và họ, nếu không có thì hiển thị mặc định
-    const fullName = (user.first_name || user.last_name) 
-        ? `${user.first_name || ''} ${user.last_name || ''}`.trim() 
-        : 'Người dùng DK Restaurant';
+    const fullName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'Người dùng DK Restaurant';
 
     return (
         <View style={Style.container}>
@@ -83,7 +81,7 @@ const Profile = () => {
                     icon="logout"
                     style={Style.logoutButton}
                     labelStyle={Style.logoutText}
-                    onPress={() => dispatch({"type": "LOGOUT"})}
+                    onPress={logout}
                 >
                     Đăng xuất
                 </Button>
