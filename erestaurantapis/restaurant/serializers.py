@@ -20,9 +20,10 @@ class FoodIllustrationSerializer(serializers.ModelSerializer):
 
 
 class FoodSerializer(FoodIllustrationSerializer):
+    avg_rating = serializers.FloatField(read_only=True)
     class Meta:
         model = Food
-        fields = ['id', 'dish', 'price', 'time', 'illustration']
+        fields = ['id', 'dish', 'price', 'time', 'illustration', 'avg_rating']
 
 
 class FoodDetailSerializer(FoodSerializer):
@@ -77,7 +78,7 @@ class ChefApproveSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'user', 'food', 'comment', 'rating']
+        fields = ['id', 'user', 'food', 'comment', 'rating', 'created_date']
         extra_kwargs = {'food': {'read_only': True},
                         'user': {'read_only': True}}
 

@@ -5,7 +5,8 @@ import { List, Searchbar } from "react-native-paper";
 import Styles from "../../styles/Styles";
 import Header from "../../components/Header";
 import { useNavigation } from "@react-navigation/native";
-import MyItem from "../../components/MyItem";
+import SimpleFood from "../../components/SimpleFood";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
     const [categories, setCategories] = useState([]);
@@ -43,14 +44,14 @@ const Home = () => {
     }
 
     return (
-        // Toàn bộ màn hình được bao bởi ScrollView để có thể cuộn lên xuống
-        <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#fff' }]}>
 
-            {/* 1. Tiêu đề ứng dụng */}
-            <Text style={Styles.headerTitle}>DK Restaurant</Text>
+        <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#f2f4f6' }]}>
 
-            {/* 2. Thanh tìm kiếm */}
-            <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} />
+            <SafeAreaView edges={["top"]}>
+                <Text style={Styles.headerTitle}>DK Restaurant</Text>
+                <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} />
+            </SafeAreaView>
+
 
             {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Danh mục</Text>
@@ -73,17 +74,16 @@ const Home = () => {
                 )}
             />
 
-            {/* 4. KHU VỰC TOP 10 MÓN BÁN CHẠY */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, marginTop: 10 }}>
                 Top 10 Món Bán Chạy 🔥
             </Text>
 
             <View style={{ marginBottom: 30 }}>
                 {topDishes.map((dish) => (
-                    <MyItem
+                    <SimpleFood
                         key={dish.id}
                         item={dish}
-                        next={() => navigation.navigate('dish_detail', { dishId: dish.id })}
+                        next={() => navigation.navigate('food_detail', { foodId: dish.id })}
                     />
                 ))}
             </View>

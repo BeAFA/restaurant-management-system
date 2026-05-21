@@ -45,7 +45,9 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         return FoodSerializer
 
     def get_queryset(self):
-        query = self.queryset
+        query = self.queryset.annotate(
+            avg_rating=Avg('reviews__rating')
+        )
 
         q = self.request.query_params.get('q')
 
@@ -172,7 +174,7 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             )
 
         # Tách 2 query để phân biệt rõ 2 trường hợp
-        foods_all = Food.objects.filter(id__in=food_ids)  # không filter active
+        foods_all = Food.objects.filter(id__in=food_ids)
         foods_active = foods_all.filter(active=True)
 
         # TH1: id không tồn tại trong DB
@@ -218,11 +220,6 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
 
     @action(methods=['GET'], url_path='top_dishes', detail=False, permission_classes=[AllowAny])
     def top_dishes(self, request):
-        """
-        API lấy danh sách 10 món ăn bán chạy nhất dành cho màn hình Home của Mobile
-        Đường dẫn gọi: /api/foods/top-dishes/
-        """
-        # 1. Tìm ra danh sách 10 ID của món ăn có số lượng bán nhiều nhất từ các đơn hàng THÀNH CÔNG
         top_ids = list(OrderDetail.objects.filter(
             order__status_order='SUCCESS'
         ).values('food_id').annotate(
@@ -230,7 +227,8 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         ).order_by('-total_quantity').values_list('food_id', flat=True)[:10])
 
         # 2. Lấy các đối tượng Food từ DB dựa theo danh sách ID trên và phải còn hoạt động (active=True)
-        foods = Food.objects.filter(id__in=top_ids, active=True)
+        foods = Food.objects.filter(id__in=top_ids, active=True).annotate(
+            avg_rating=Avg('reviews__rating'), )
 
         # 3. Mẹo nhỏ: Vì bộ lọc `id__in` của Django sẽ làm đảo lộn thứ tự bán chạy,
         # ta dùng Python để sắp xếp lại danh sách Food theo đúng thứ tự chuẩn của top_ids ban đầu.
@@ -240,6 +238,18 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         # 4. Đi qua bộ chuyển đổi dữ liệu (FoodSerializer) để biến thành JSON và trả về cho App
         serializer = FoodSerializer(sorted_foods, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # top_foods = Food.objects.filter(
+    #     active=True,
+    #     order_details__order__status_order='SUCCESS'
+    # ).annotate(
+    #     total_quantity=Sum('order_details__quantity'),
+    #     avg_rating=Avg('reviews__rating'),
+    # ).order_by('-total_quantity')[:10]
+    #
+    # serializer = FoodSerializer(top_foods, many=True)
+    #
+    # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
