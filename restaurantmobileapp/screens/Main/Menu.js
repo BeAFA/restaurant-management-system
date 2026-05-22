@@ -6,6 +6,7 @@ import { Chip } from "react-native-paper";
 import Style from "./Style";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Header from "../../components/Header";
+import SimpleFood from "../../components/SimpleFood";
 
 const Menu = () => {
     const [categories, setCategories] = useState([]);
@@ -22,7 +23,8 @@ const Menu = () => {
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [maxTime, setMaxTime] = useState(''); // Ví dụ: '15', '30'
-    const [appliedFilters, setAppliedFilters] = useState({ min: '', max: '', time: '' });
+    const [minRating, setMinRating] = useState('');
+    const [appliedFilters, setAppliedFilters] = useState({ min: '', max: '', time: '', rating: '' });
 
     const nav = useNavigation();
 
@@ -137,6 +139,8 @@ const Menu = () => {
         return foods.filter(item => {
             const price = parseFloat(item.price);
             const time = parseInt(item.time, 10);
+            const rating = Number(item.avg_rating ?? 0);
+            
 
             // Dùng appliedFilters thay cho các state rời rạc
             if (appliedFilters.min !== '') {
@@ -148,6 +152,9 @@ const Menu = () => {
             if (appliedFilters.time !== '') {
                 if (time > parseInt(appliedFilters.time, 10)) return false;
             }
+            if(appliedFilters.rating !== '') {
+                if(rating < parseFloat(appliedFilters.rating)) return false;
+            }
 
             return true;
         });
@@ -156,13 +163,14 @@ const Menu = () => {
     const applyFilters = () => {
         const min = parseFloat(minPrice);
         const max = parseFloat(maxPrice);
+        const rating = parseFloat(minRating);
 
         if (minPrice && min < 0) { alert("Giá tối thiểu phải >= 0"); return; }
         if (maxPrice && max < 0) { alert("Giá tối đa không hợp lệ"); return; }
         if (minPrice && maxPrice && min > max) { alert("Min không thể lớn hơn Max"); return; }
 
         // Đẩy dữ liệu nháp vào bản chính thức để FlatList bắt đầu lọc
-        setAppliedFilters({ min: minPrice, max: maxPrice, time: maxTime });
+        setAppliedFilters({ min: minPrice, max: maxPrice, time: maxTime, rating: minRating });
         setShowFilter(false);
     };
 
@@ -171,8 +179,9 @@ const Menu = () => {
         setMinPrice('');
         setMaxPrice('');
         setMaxTime('');
+        setMinRating('');
         // Xóa bản chính thức để khôi phục danh sách
-        setAppliedFilters({ min: '', max: '', time: '' });
+        setAppliedFilters({ min: '', max: '', time: '', rating: '' });
     };
 
     useEffect(() => {
@@ -204,25 +213,16 @@ const Menu = () => {
     );
 
     const renderFoodItem = ({ item }) => (
-        <TouchableOpacity
-            style={Style.foodCard}
-            // Truyền id của món ăn sang màn hình chi tiết (giả sử tên màn hình là 'FoodDetail')
-            onPress={() => nav.navigate('food_detail', { foodId: item.id })}
-        >
-            <Image
-                source={{ uri: item.illustration || 'https://phutungnhapkhauchinhhang.com/wp-content/uploads/2020/06/default-thumbnail.jpg' }}
-                style={Style.foodImage}
+        <View>
+            <SimpleFood
+                item={item}
+                next={() => nav.navigate('menu', {
+                    screen: 'food_detail',
+                    initial: false,
+                    params: { foodId: item.id }
+                })}
             />
-            <View style={Style.foodInfo}>
-                <Text style={Style.foodName} numberOfLines={1}>{item.dish}</Text>
-                {item.description && <Text style={Style.metaText} numberOfLines={1}>{item.description}</Text>}
-                <View style={Style.foodMeta}>
-                    <Ionicons name="time-outline" size={16} color="#888" />
-                    <Text style={Style.metaText}>{item.time} phút</Text>
-                </View>
-                <Text style={Style.price}>{parseFloat(item.price).toFixed(2)}$</Text>
-            </View>
-        </TouchableOpacity>
+        </View>
     );
 
     return (
@@ -312,10 +312,25 @@ const Menu = () => {
                                 <TouchableOpacity
                                     key={time}
                                     style={[Style.timeBtn, maxTime === time && Style.timeBtnActive]}
-                                    onPress={() => setMaxTime(maxTime === time ? '' : time)} // Bấm lần 2 để bỏ chọn
+                                    onPress={() => setMaxTime(maxTime === time ? '' : time)}
                                 >
                                     <Text style={[Style.timeBtnText, maxTime === time && Style.timeBtnTextActive]}>
                                         &lt; {time} phút
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={Style.filterLabel}>Đánh giá</Text>
+                        <View style={Style.timeRow}>
+                            {['1', '2', '3', '4', '5'].map(rating => (
+                                <TouchableOpacity
+                                    key={rating}
+                                    style={[Style.timeBtn, minRating === rating && Style.timeBtnActive]}
+                                    onPress={() => setMinRating(minRating === rating ? '' : rating)}
+                                >
+                                    <Text style={[Style.timeBtnText, minRating === rating && Style.timeBtnTextActive]}>
+                                        &ge; {rating} ⭐
                                     </Text>
                                 </TouchableOpacity>
                             ))}
