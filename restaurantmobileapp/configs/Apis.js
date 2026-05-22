@@ -27,7 +27,7 @@ export const endpoints = {
     'reservations': '/reservations/',
     'current_reservation': '/reservations/current_reservation/',
     'reservation_detail': (id) => `/reservations/${id}/`,
-    'tables': '/tables/',
+    'available_tables': '/reservations/available_tables/',
 
     // === REVIEWS ===
     'current_review': '/reviews/current_review/',
