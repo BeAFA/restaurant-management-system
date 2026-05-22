@@ -207,7 +207,7 @@ const Menu = () => {
         <TouchableOpacity
             style={Style.foodCard}
             // Truyền id của món ăn sang màn hình chi tiết (giả sử tên màn hình là 'FoodDetail')
-            onPress={() => nav.navigate('dish_detail', { dishId: item.id })}
+            onPress={() => nav.navigate('food_detail', { foodId: item.id })}
         >
             <Image
                 source={{ uri: item.illustration || 'https://phutungnhapkhauchinhhang.com/wp-content/uploads/2020/06/default-thumbnail.jpg' }}
