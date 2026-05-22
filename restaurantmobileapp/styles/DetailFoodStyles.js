@@ -34,16 +34,18 @@ export default StyleSheet.create({
         shadowRadius: 4,
     },
     leftNav: {
+        marginTop: 20,
         left: 20,
     },
     rightNav: {
+        marginTop: 20,
         right: 20,
     },
     // Khối thông tin dưới ảnh
     infoContainer: {
         paddingHorizontal: 20,
         paddingTop: 24,
-        paddingBottom: 100, // Tạo khoảng trống để không bị nút Bottom Bar che mất khi cuộn
+        paddingBottom: 100,
     },
     headerRow: {
         flexDirection: 'row',

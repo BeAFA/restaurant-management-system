@@ -20,9 +20,11 @@ class FoodIllustrationSerializer(serializers.ModelSerializer):
 
 
 class FoodSerializer(FoodIllustrationSerializer):
+    avg_rating = serializers.FloatField(read_only=True)
+
     class Meta:
         model = Food
-        fields = ['id', 'dish', 'price', 'time', 'illustration']
+        fields = ['id', 'dish', 'price', 'time', 'illustration', 'avg_rating']
 
 
 class FoodDetailSerializer(FoodSerializer):
