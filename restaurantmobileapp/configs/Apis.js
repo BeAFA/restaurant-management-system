@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.164:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     'categories': '/categories/',
@@ -9,6 +9,12 @@ export const endpoints = {
     'current-user': '/users/current_user/',
     'top_dishes': '/foods/top_dishes/',
     'dish_detail': (dishId) => `/foods/${dishId}/`,
+    'food': (categoryId) => `/foods/?category_id=${categoryId}`,
+    'tables': '/tables/',
+    'current_reservation': '/reservations/current_reservation/',
+    'current_reservation_create': '/reservations/current_reservation/', // Method POST
+    'current_reservation_partial_update': '/reservations/current_reservation/', // Method PATCH
+    'reservation_delete': (id) => `/reservations/${id}/`,
 }
 
 CLIENT_ID_REMOVED

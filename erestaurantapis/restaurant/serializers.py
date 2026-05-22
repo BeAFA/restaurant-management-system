@@ -1,5 +1,5 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User, OrderDetail, Order, Reservation, FoodChef, UserRole, Ingredient, \
+from .models import Category, Food, Review, User, OrderDetail, Order, Table, Reservation, FoodChef, UserRole, Ingredient, \
     FoodIngredient
 
 
@@ -134,6 +134,11 @@ class OrderSerializer(serializers.ModelSerializer):
                 OrderDetail.objects.create(order=instance, **data)
 
         return instance
+
+class TableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table
+        fields = ['id', 'slot', 'status_table']
 
 
 class ReservationSerializer(serializers.ModelSerializer):
