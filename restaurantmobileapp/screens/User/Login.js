@@ -1,12 +1,11 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
-import { useContext, useState } from "react";
+import { useState, useContext } from "react";
 import Apis, { authApis, endpoints, CLIENT_ID, CLIENT_SECRET } from "../../configs/Apis";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
-import { MyUserContext } from "../../configs/Contexts";
 import Style from './Style';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserContext from "../../contexts/UserContext";
 
 const Login = () => {
     const userInfo = [{
@@ -24,7 +23,7 @@ const Login = () => {
     const [err, setErr] = useState(null);
     const nav = useNavigation();
     const [loading, setLoading] = useState(false);
-    const [, dispatch] = useContext(MyUserContext);
+    const { dispatchUser } = useContext(UserContext);
 
 
 
@@ -60,9 +59,9 @@ const Login = () => {
             await SecureStore.setItemAsync('token', res.data.access_token);
 
             const currentUser = await authApis(res.data.access_token)
-                .get(endpoints['current-user']);
+                .get(endpoints['current_user']);
 
-            dispatch({
+            dispatchUser({
                 type: 'LOGIN',
                 payload: currentUser.data,
             });
@@ -86,49 +85,6 @@ const Login = () => {
             setLoading(false);
         }
     }
-
-    // const login = async () => {
-    //     if (validate()) {
-    //         try {
-    //             setLoading(true);
-
-    //             // KHÔNG dùng new FormData() ở đây nữa
-    //             // Tạo một object thuần túy
-    //             const payload = {
-    //                 username: user.username,
-    //                 password: user.password,
-    //                 client_id: CLIENT_ID, // Nhớ thay bằng client_id thật nếu có
-    //                 client_secret: CLIENT_SECRET, // Nhớ thay bằng client_secret thật nếu có
-    //                 grant_type: 'password'
-    //             };
-
-    //             let res = await Apis.post(endpoints['login'], payload, {
-    //                 headers: {
-    //                     // Ép kiểu dữ liệu về form-urlencoded chuẩn OAuth2
-    //                     'Content-Type': 'application/x-www-form-urlencoded'
-    //                 }
-    //             });
-
-    //             await AsyncStorage.setItem('token', res.data.access_token);
-
-    //             // ... Phần code còn lại của bạn giữ nguyên ...
-    //             let u = await authApis(res.data.access_token).get(endpoints['current-user']);
-
-    //             dispatch({
-    //                 "type": "LOGIN",
-    //                 "payload": u.data
-    //             });
-
-    //         } catch (ex) {
-    //             console.error("Lỗi chi tiết:", ex.response?.data || ex.message);
-    //             setErr("Đăng nhập thất bại!");
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     }
-    // }
-
-    
 
     return (
         <View style={[Style.container, { paddingTop: 80 }]}>
