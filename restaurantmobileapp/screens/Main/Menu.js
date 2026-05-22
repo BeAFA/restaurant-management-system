@@ -16,6 +16,7 @@ const Menu = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(1); // Thêm State quản lý trang
     const [showFilter, setShowFilter] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
 
     // State cho Bộ lọc
     const [minPrice, setMinPrice] = useState('');
@@ -45,6 +46,8 @@ const Menu = () => {
     // 3. Kỹ thuật Reset Page: Đưa về trang 1 nếu người dùng đổi từ khóa tìm kiếm hoặc đổi Category
     useEffect(() => {
         setPage(1);
+        setHasMore(true);
+        setFoods([]);
     }, [searchQuery, activeCategory.id]);
 
     // 4. Kỹ thuật Debounce & Theo dõi thay đổi
@@ -65,14 +68,12 @@ const Menu = () => {
         try {
             setLoading(true);
 
-            let url = endpoints['food'](activeCategory.id);
+            let url = '';
 
-            // Các tham số cũ
-            if (searchQuery) {
-                url = `${url}&q=${searchQuery}`;
-            }
-            if (page) {
-                url = `${url}&page=${page}`;
+            if (activeCategory.id) {
+                url = endpoints['category_foods'](activeCategory.id);
+            } else {
+                url = endpoints['foods'];
             }
 
 
@@ -80,16 +81,38 @@ const Menu = () => {
             // In ra log để tự kiểm tra xem URL đã nối chuẩn chưa
             console.log("URL gọi API:", url);
 
-            const res = await Apis.get(url);
+            const res = await Apis.get(url, {
+                params: {
+                    page: page,
+                    q: searchQuery,
+                }
+            });
+
+            const foodData = Array.isArray(res.data.results)
+                ? res.data.results
+                : Array.isArray(res.data)
+                    ? res.data
+                    : [];
 
             if (page === 1) {
-                setFoods(res.data.results);
+                setFoods(foodData);
             } else if (page > 1) {
-                setFoods(prev => [...prev, ...res.data.results]);
+                setFoods(prev => {
+                    const newFoods = [...prev, ...foodData];
+
+                    const uniqueFoods = newFoods.filter(
+                        (item, index, self) =>
+                            index === self.findIndex(f => f.id === item.id)
+                    );
+
+                    return uniqueFoods;
+                });
             }
 
-            if (res.data.next === null) {
-                setPage(0);
+            if (Array.isArray(res.data)) {
+                setHasMore(false);
+            } else if (res.data.next === null) {
+                setHasMore(false);
             }
 
         } catch (ex) {
@@ -105,8 +128,8 @@ const Menu = () => {
     // 6. Hàm kích hoạt khi cuộn đến cuối danh sách
     const loadMore = () => {
         // CHỈ load thêm khi: page đang mở (>0), không bị kẹt loading, VÀ màn hình đã có dữ liệu
-        if (page > 0 && !loading && foods.length > 0) {
-            setPage(page + 1);
+        if (hasMore && !loading && foods.length > 0) {
+            setPage(prev => prev + 1);
         }
     };
 
@@ -224,7 +247,7 @@ const Menu = () => {
                 <FlatList
                     data={categories}
                     renderItem={renderCategoryItem}
-                    keyExtractor={item => item.id.toString()}
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
                 />
@@ -233,7 +256,7 @@ const Menu = () => {
             <FlatList
                 data={getFilteredFoods()}
                 renderItem={renderFoodItem}
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={(item, index) => `${item.id}-${index}`}
                 contentContainerStyle={Style.listContainer}
                 showsVerticalScrollIndicator={false}
                 // Thêm 3 thuộc tính cực kỳ quan trọng cho Infinite Scroll

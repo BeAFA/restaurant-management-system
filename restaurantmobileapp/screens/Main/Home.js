@@ -5,13 +5,15 @@ import { List, Searchbar } from "react-native-paper";
 import Styles from "../../styles/Styles";
 import Header from "../../components/Header";
 import { useNavigation } from "@react-navigation/native";
-import MyItem from "../../components/MyItem";
+import SimpleFood from "../../components/SimpleFood";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Style from "./Style";
 
 const Home = () => {
     const [categories, setCategories] = useState([]);
     const [topDishes, setTopDishes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const nav = useNavigation();
+    const navigation = useNavigation();
 
     const fetchData = async () => {
         try {
@@ -33,13 +35,6 @@ const Home = () => {
         fetchData();
     }, []);
 
-    const handleCategoryPress = (item) => {
-        nav.navigate('menu', {
-            screen: 'menu_index', // Đi vào trang danh sách Menu
-            params: { categoryFromHome: item } // Truyền nguyên Object danh mục sang
-        });
-    };
-
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -49,9 +44,22 @@ const Home = () => {
         );
     }
 
+    const handleCategoryPress = (item) => {
+        navigation.navigate('menu', {
+            screen: 'menu_index',
+            params: { categoryFromHome: item }
+        });
+    };
+
     return (
-        // Toàn bộ màn hình được bao bởi ScrollView để có thể cuộn lên xuống
-        <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#fff' }]}>
+
+        <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#f2f4f6' }]}>
+
+            <SafeAreaView edges={["top"]}>
+                <Text style={Styles.headerTitle}>DK Restaurant</Text>
+                <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} />
+            </SafeAreaView>
+
 
             {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Danh mục</Text>
@@ -74,20 +82,19 @@ const Home = () => {
                 )}
             />
 
-            {/* 4. KHU VỰC TOP 10 MÓN BÁN CHẠY */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, marginTop: 10 }}>
                 Top 10 Món Bán Chạy 🔥
             </Text>
 
             <View style={{ marginBottom: 30 }}>
                 {topDishes.map((dish) => (
-                    <MyItem
+                    <SimpleFood
                         key={dish.id}
                         item={dish}
-                        next={() => nav.navigate('menu', {
-                            screen: 'dish_detail',
+                        next={() => navigation.navigate('menu', {
+                            screen: 'food_detail',
                             initial: false,
-                            params: { dishId: dish.id }
+                            params: { foodId: dish.id }
                         })}
                     />
                 ))}

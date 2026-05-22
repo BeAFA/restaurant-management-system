@@ -3,13 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Moda
 import DateTimePicker from '@react-native-community/datetimepicker'; // Cần cài thư viện này
 import Apis, { endpoints } from "../../configs/Apis";
 import Style from './Style';
-import { MyUserContext } from "../../configs/Contexts";
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import UserContext from '../../contexts/UserContext';
 
 const Reservation = () => {
     const nav = useNavigation();
-    const [user,] = useContext(MyUserContext);
+    const user = useContext(UserContext);
 
     const [loading, setLoading] = useState(true);
     const [currentBooking, setCurrentBooking] = useState(null);
@@ -30,7 +30,7 @@ const Reservation = () => {
         if (user !== null) {
             checkCurrentReservation();
             // THÊM DÒNG NÀY: Tải danh sách bàn ngay khi vừa vào màn hình
-            loadTables(serveTime, endTime); 
+            loadTables(serveTime, endTime);
         } else {
             setLoading(false);
         }
@@ -41,12 +41,12 @@ const Reservation = () => {
     const loadTables = async (start, end) => {
         try {
             const url = `${endpoints['tables']}?serve_time=${start.toISOString()}&end_time=${end.toISOString()}`;
-            
+
             // 1. In ra đường dẫn URL để xem Mobile có nối đúng tham số không
             console.log("👉 Đang gọi API URL:", url);
 
             const res = await Apis.get(url);
-            
+
             // 2. In ra số lượng và danh sách bàn nhận được
             const tables = res.data.results || res.data;
             console.log(`✅ Lấy thành công ${tables.length} bàn trống:`, tables);
@@ -93,7 +93,7 @@ const Reservation = () => {
         setLoading(true);
         try {
             // 1. Lấy token từ SecureStore thay vì AsyncStorage
-            const token = await SecureStore.getItemAsync('token'); 
+            const token = await SecureStore.getItemAsync('token');
 
             const payload = {
                 table: selectedTable.id,
@@ -110,7 +110,7 @@ const Reservation = () => {
                     'Authorization': `Bearer ${token}` // Lưu ý: Nếu Backend dùng JWT, đôi khi chữ này là 'JWT ${token}'
                 }
             });
-            
+
             setCurrentBooking(res.data);
             Alert.alert("Thành công", "Bạn đã đặt bàn thành công!");
 
@@ -120,9 +120,9 @@ const Reservation = () => {
 
             if (error.response) {
                 if (error.response.status === 400) {
-                    const errorMsg = error.response.data.non_field_errors 
-                                     || error.response.data.message 
-                                     || JSON.stringify(error.response.data); 
+                    const errorMsg = error.response.data.non_field_errors
+                        || error.response.data.message
+                        || JSON.stringify(error.response.data);
                     Alert.alert("Không thể đặt bàn", errorMsg);
                 } else if (error.response.status === 401 || error.response.status === 403) {
                     Alert.alert("Lỗi xác thực", "Bạn cần đăng nhập lại để thực hiện tính năng này.");
@@ -141,13 +141,36 @@ const Reservation = () => {
     // ... (Giữ nguyên hàm handleCancelReservation cũ)
 
     if (user === null) {
-        // ... (Giữ nguyên màn hình chặn đăng nhập)
+        return (
+            <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={Style.headerTitle}>Yêu Cầu Đăng Nhập</Text>
+                <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
+                    Tính năng đặt bàn dành riêng cho thành viên. Vui lòng đăng nhập để tiếp tục!
+                </Text>
+                <TouchableOpacity style={Style.primaryButton} onPress={() => nav.navigate('account_tab')}>
+                    <Text style={Style.buttonLabel}>Đi đến Đăng nhập</Text>
+                </TouchableOpacity>
+            </View>
+        );
     }
 
     if (loading) return <ActivityIndicator size="large" color="#FF6347" style={{ flex: 1, backgroundColor: '#FFF5E5' }} />;
 
     if (currentBooking) {
-        // ... (Giữ nguyên giao diện Vé đặt bàn - Trạng thái 2)
+        return (
+            <View style={Style.container}>
+                <Text style={Style.headerTitle}>Vé Đặt Bàn Của Bạn</Text>
+                <View style={Style.ticketCard}>
+                    <Text style={Style.infoText}>Bàn số: {currentBooking.table}</Text>
+                    <Text style={Style.infoText}>Số khách: {currentBooking.customer_quantity} người</Text>
+                    <Text style={Style.infoText}>Thời gian đến: {new Date(currentBooking.serve_time).toLocaleString()}</Text>
+
+                    <TouchableOpacity style={Style.cancelBtn} onPress={handleCancelReservation}>
+                        <Text style={Style.cancelBtnText}>Hủy Đặt Bàn</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
     }
 
     // LỌC BÀN: Chỉ lấy những bàn có slot >= customerQuantity
@@ -171,7 +194,7 @@ const Reservation = () => {
                         minimumDate={new Date()}
                         onChange={(event, date) => {
                             setShowDatePicker(false);
-                            
+
                             if (event.type === 'set' && date) {
                                 // KIỂM TRA 1: Chặn chọn giờ quá khứ (đề phòng minimumDate của Android bị lỗi giờ/phút)
                                 if (date < new Date()) {
@@ -180,19 +203,19 @@ const Reservation = () => {
                                 }
 
                                 setServeTime(date);
-                                
+
                                 let newEndTime = endTime;
                                 // KIỂM TRA 2: Nếu giờ đến vượt qua giờ trả bàn
                                 if (date >= endTime) {
                                     Alert.alert(
-                                        "Đã điều chỉnh giờ", 
+                                        "Đã điều chỉnh giờ",
                                         "Giờ đến bạn chọn đang trễ hơn giờ trả bàn hiện tại. Hệ thống đã tự động dời giờ trả bàn lên 2 tiếng để phù hợp."
                                     );
                                     newEndTime = new Date(date.getTime() + 2 * 60 * 60 * 1000);
                                     setEndTime(newEndTime);
                                 }
-                                
-                                loadTables(date, newEndTime); 
+
+                                loadTables(date, newEndTime);
                             }
                         }}
                     />
@@ -207,15 +230,15 @@ const Reservation = () => {
                     <DateTimePicker
                         value={endTime}
                         mode="datetime"
-                        minimumDate={serveTime} 
+                        minimumDate={serveTime}
                         onChange={(event, date) => {
                             setShowEndPicker(false);
-                            
+
                             if (event.type === 'set' && date) {
                                 // KIỂM TRA 3: Bắt buộc giờ trả bàn phải SAU giờ đến
                                 if (date <= serveTime) {
                                     Alert.alert(
-                                        "Lỗi logic", 
+                                        "Lỗi logic",
                                         "Giờ trả bàn không thể nằm trước hoặc bằng giờ đến! Vui lòng chọn lại."
                                     );
                                     return; // Từ chối cho cập nhật state, giữ nguyên giờ cũ
@@ -225,14 +248,14 @@ const Reservation = () => {
                                 const durationInHours = (date.getTime() - serveTime.getTime()) / (1000 * 60 * 60);
                                 if (durationInHours > 5) {
                                     Alert.alert(
-                                        "Vượt quá giới hạn", 
+                                        "Vượt quá giới hạn",
                                         "Nhà hàng chỉ hỗ trợ giữ bàn tối đa 5 tiếng trên ứng dụng. Nếu bạn muốn tổ chức tiệc cả ngày, vui lòng liên hệ hotline."
                                     );
                                     return;
                                 }
 
                                 setEndTime(date);
-                                loadTables(serveTime, date); 
+                                loadTables(serveTime, date);
                             }
                         }}
                     />
