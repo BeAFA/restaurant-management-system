@@ -11,7 +11,7 @@ r.register('reviews', ReviewViewSet, basename='review')
 r.register('orders', OrderViewSet, basename='order')
 r.register('reservations', ReservationViewSet, basename='reservation')
 r.register('statistics', StatisticViewSet, basename='statistics')
-r.register(r'tables', TableViewSet, basename='tables')
+r.register('tables', TableViewSet, basename='tables')
 
 
 urlpatterns = [
