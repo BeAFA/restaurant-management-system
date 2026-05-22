@@ -2,8 +2,9 @@ from django.db import transaction
 from django.db.models import Avg, Count, Sum
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from pyexpat.errors import messages
-from rest_framework import viewsets, generics, filters, status, permissions, parsers
+from rest_framework import viewsets, generics, filters, status, permissions, parsers, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -11,12 +12,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from datetime import timedelta
 
+
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
     UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
-    FoodChefSerializer, FoodComparisonSerializer
+    FoodChefSerializer, FoodComparisonSerializer, TableSerializer
 from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole, FoodChef, Status_Order, \
-    Status_Table
+    Status_Table, Table
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -153,7 +155,9 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             return Response({'error': 'Hãy chọn những món bạn muốn so sánh!'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            food_ids = [int(id.strip()) for id in ids_param.split(',')]
+            food_ids = list(dict.fromkeys(
+                int(id.strip()) for id in ids_param.split(',')
+            ))
         except ValueError:
             return Response({'error': 'Danh sách món không hợp lệ, vui lòng chọn lại!'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -193,9 +197,13 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        foods = foods_active.select_related('category').annotate(
+        foods = foods_active.select_related(
+            'category'
+        ).prefetch_related(
+            'food_ingredients__ingredient'
+        ).annotate(
             avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
+            review_count=Count('reviews', distinct=True)
         )
 
         categories = foods.values_list('category_id', flat=True).distinct()
@@ -209,6 +217,31 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             FoodComparisonSerializer(foods, many=True).data,
             status=status.HTTP_200_OK
         )
+
+    @action(methods=['GET'], url_path='top_dishes', detail=False, permission_classes=[AllowAny])
+    def top_dishes(self, request):
+        """
+        API lấy danh sách 10 món ăn bán chạy nhất dành cho màn hình Home của Mobile
+        Đường dẫn gọi: /api/foods/top-dishes/
+        """
+        # 1. Tìm ra danh sách 10 ID của món ăn có số lượng bán nhiều nhất từ các đơn hàng THÀNH CÔNG
+        top_ids = list(OrderDetail.objects.filter(
+            order__status_order='SUCCESS'
+        ).values('food_id').annotate(
+            total_quantity=Sum('quantity')
+        ).order_by('-total_quantity').values_list('food_id', flat=True)[:10])
+
+        # 2. Lấy các đối tượng Food từ DB dựa theo danh sách ID trên và phải còn hoạt động (active=True)
+        foods = Food.objects.filter(id__in=top_ids, active=True)
+
+        # 3. Mẹo nhỏ: Vì bộ lọc `id__in` của Django sẽ làm đảo lộn thứ tự bán chạy,
+        # ta dùng Python để sắp xếp lại danh sách Food theo đúng thứ tự chuẩn của top_ids ban đầu.
+        food_dict = {f.id: f for f in foods}
+        sorted_foods = [food_dict[f_id] for f_id in top_ids if f_id in food_dict]
+
+        # 4. Đi qua bộ chuyển đổi dữ liệu (FoodSerializer) để biến thành JSON và trả về cho App
+        serializer = FoodSerializer(sorted_foods, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
@@ -365,6 +398,28 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
             },
             status=status.HTTP_200_OK
         )
+
+
+class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Table.objects.all()
+    serializer_class = TableSerializer
+
+    def get_queryset(self):
+        queryset = Table.objects.filter(status_table='AVAILABLE')
+        start_str = self.request.query_params.get('serve_time')
+        end_str = self.request.query_params.get('end_time')
+
+        if start_str and end_str:
+            start = parse_datetime(start_str)
+            end = parse_datetime(end_str)
+            if start and end:
+                # Logic overlap: Bàn bị bận nếu (Lịch cũ bắt đầu < Kết thúc mới) AND (Lịch cũ kết thúc > Bắt đầu mới)
+                busy_table_ids = Reservation.objects.filter(
+                    serve_time__lt=end,
+                    end_time__gt=start
+                ).values_list('table_id', flat=True)
+                queryset = queryset.exclude(id__in=busy_table_ids)
+        return queryset
 
 
 class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.DestroyAPIView):

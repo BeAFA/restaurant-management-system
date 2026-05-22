@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet, FoodViewSet, UserViewSet, ReviewViewSet, OrderViewSet, ReservationViewSet, \
-    StatisticViewSet
+    StatisticViewSet, TableViewSet
 
 r = DefaultRouter()
 r.register('categories', CategoryViewSet, basename='category')
@@ -11,6 +11,7 @@ r.register('reviews', ReviewViewSet, basename='review')
 r.register('orders', OrderViewSet, basename='order')
 r.register('reservations', ReservationViewSet, basename='reservation')
 r.register('statistics', StatisticViewSet, basename='statistics')
+r.register(r'tables', TableViewSet, basename='tables')
 
 
 urlpatterns = [

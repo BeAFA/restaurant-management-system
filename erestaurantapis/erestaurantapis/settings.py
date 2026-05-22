@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-!++2btq48$id0+kouoe5c!z_=go(*(3u!ld+ssbei5s1!mzgd1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.131']
+ALLOWED_HOSTS = ['192.168.1.160']
 
 # Application definition
 
@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'ckeditor',
     'rest_framework',
     'drf_yasg',
-    'oauth2_provider'
+    'oauth2_provider',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -59,10 +60,13 @@ REST_FRAMEWORK = {
     )
 }
 
+# OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
+
 
 AUTH_USER_MODEL = 'restaurant.User'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,6 +75,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'erestaurantapis.urls'
 
@@ -99,7 +105,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'restaurantdb',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'Apocalypse123@',
         'HOST': ''
     }
 }
@@ -141,6 +147,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
-CLIENT_ID = '1ouxHr7DA8frF8S7YiWlMTLrJNjDiDNVF5NuR6XI'
-CLIENT_SECRECT = '4wHH42fkCyvmmxr5c2BHWQQLbiZWgBBVLuyZNs2nHOmxx75SXRRo1As8SZIP0ziwgXUFMfYZBomNYo8j0WyatwuFNsYcnX19vepxZ28EFzbhDUowcSN2ba4ZUUWgadKg'
+# CLIENT_ID = '1ouxHr7DA8frF8S7YiWlMTLrJNjDiDNVF5NuR6XI'
+# CLIENT_SECRECT = '4wHH42fkCyvmmxr5c2BHWQQLbiZWgBBVLuyZNs2nHOmxx75SXRRo1As8SZIP0ziwgXUFMfYZBomNYo8j0WyatwuFNsYcnX19vepxZ28EFzbhDUowcSN2ba4ZUUWgadKg'
+CLIENT_ID = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G'
+CLIENT_SECRET = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu'

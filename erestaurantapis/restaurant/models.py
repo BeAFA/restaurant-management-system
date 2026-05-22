@@ -61,7 +61,7 @@ class Food(BaseModel):
     dish = models.CharField(max_length=255, db_index=True)
     description = models.TextField(null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    time = models.DateTimeField()
+    time = models.PositiveIntegerField(default=0)
     illustration = CloudinaryField(null=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='foods')
 
@@ -80,16 +80,16 @@ class Ingredient(BaseModel):
 
 
 class FoodIngredient(BaseModel):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
-    food = models.ForeignKey(Food, on_delete=models.PROTECT)
+    ingredients = models.ForeignKey(Ingredient, on_delete=models.PROTECT, related_name='ingredients')
+    food = models.ForeignKey(Food, on_delete=models.PROTECT, related_name='food_ingredients')
     notes = models.TextField(null=True)
 
     class Meta:
-        unique_together = ('ingredient', 'food')
+        unique_together = ('ingredients', 'food')
 
 
 class Table(BaseModel):
-    slot = models.IntegerField()
+    slot = models.PositiveIntegerField()
     status_table = models.CharField(choices=Status_Table.choices, default=Status_Table.AVAILABLE, max_length=20)
 
     def __str__(self):
@@ -125,7 +125,7 @@ class Order(BaseModel):
 class OrderDetail(BaseModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='details')
     food = models.ForeignKey(Food, on_delete=models.PROTECT)
-    quantity = models.IntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
