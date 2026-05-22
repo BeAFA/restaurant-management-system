@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.164:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     'categories': '/categories/',
@@ -9,10 +9,16 @@ export const endpoints = {
     'current-user': '/users/current_user/',
     'top_dishes': '/foods/top_dishes/',
     'dish_detail': (dishId) => `/foods/${dishId}/`,
+    'food': (categoryId) => `/foods/?category_id=${categoryId}`,
+    'tables': '/tables/',
+    'current_reservation': '/reservations/current_reservation/',
+    'current_reservation_create': '/reservations/current_reservation/', // Method POST
+    'current_reservation_partial_update': '/reservations/current_reservation/', // Method PATCH
+    'reservation_delete': (id) => `/reservations/${id}/`,
 }
 
-export const CLIENT_ID = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G';
-export const CLIENT_SECRET = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu';
+export const CLIENT_ID = 'P5hDvWGq9E88U4U4XfuuqfYEuiEWELYaEOrGU3wL';
+export const CLIENT_SECRET = 'wvyuEeZQP9DiWtkMZHaMG3OTxhLyaWM9EYsdstwHPi7BZqlAg2TiOMCxSGuOZSlqVqtIUvGSOG5xUjnKYCfmV7fPLc4bqdIFAeLDeLF1EREo4AIpfDNHQFsUOcFToEqI';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

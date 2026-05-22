@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
 import { MyUserContext } from "../../configs/Contexts";
 import Style from './Style';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
     const userInfo = [{
@@ -85,6 +86,49 @@ const Login = () => {
             setLoading(false);
         }
     }
+
+    // const login = async () => {
+    //     if (validate()) {
+    //         try {
+    //             setLoading(true);
+
+    //             // KHÔNG dùng new FormData() ở đây nữa
+    //             // Tạo một object thuần túy
+    //             const payload = {
+    //                 username: user.username,
+    //                 password: user.password,
+    //                 client_id: CLIENT_ID, // Nhớ thay bằng client_id thật nếu có
+    //                 client_secret: CLIENT_SECRET, // Nhớ thay bằng client_secret thật nếu có
+    //                 grant_type: 'password'
+    //             };
+
+    //             let res = await Apis.post(endpoints['login'], payload, {
+    //                 headers: {
+    //                     // Ép kiểu dữ liệu về form-urlencoded chuẩn OAuth2
+    //                     'Content-Type': 'application/x-www-form-urlencoded'
+    //                 }
+    //             });
+
+    //             await AsyncStorage.setItem('token', res.data.access_token);
+
+    //             // ... Phần code còn lại của bạn giữ nguyên ...
+    //             let u = await authApis(res.data.access_token).get(endpoints['current-user']);
+
+    //             dispatch({
+    //                 "type": "LOGIN",
+    //                 "payload": u.data
+    //             });
+
+    //         } catch (ex) {
+    //             console.error("Lỗi chi tiết:", ex.response?.data || ex.message);
+    //             setErr("Đăng nhập thất bại!");
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     }
+    // }
+
+    
 
     return (
         <View style={[Style.container, { paddingTop: 80 }]}>

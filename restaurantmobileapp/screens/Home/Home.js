@@ -11,7 +11,7 @@ const Home = () => {
     const [categories, setCategories] = useState([]);
     const [topDishes, setTopDishes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation();
+    const nav = useNavigation();
 
     const fetchData = async () => {
         try {
@@ -33,6 +33,13 @@ const Home = () => {
         fetchData();
     }, []);
 
+    const handleCategoryPress = (item) => {
+        nav.navigate('menu', {
+            screen: 'menu_index', // Đi vào trang danh sách Menu
+            params: { categoryFromHome: item } // Truyền nguyên Object danh mục sang
+        });
+    };
+
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -45,12 +52,6 @@ const Home = () => {
     return (
         // Toàn bộ màn hình được bao bởi ScrollView để có thể cuộn lên xuống
         <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#fff' }]}>
-
-            {/* 1. Tiêu đề ứng dụng */}
-            <Text style={Styles.headerTitle}>DK Restaurant</Text>
-
-            {/* 2. Thanh tìm kiếm */}
-            <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} />
 
             {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Danh mục</Text>
@@ -67,7 +68,7 @@ const Home = () => {
                         borderRadius: 20,
                         marginRight: 10,
                         marginBottom: 20
-                    }}>
+                    }} onPress={() => handleCategoryPress(item)}>
                         <Text style={{ fontWeight: '500' }}>{item.name}</Text>
                     </TouchableOpacity>
                 )}
@@ -83,7 +84,11 @@ const Home = () => {
                     <MyItem
                         key={dish.id}
                         item={dish}
-                        next={() => navigation.navigate('dish_detail', { dishId: dish.id })}
+                        next={() => nav.navigate('menu', {
+                            screen: 'dish_detail',
+                            initial: false,
+                            params: { dishId: dish.id }
+                        })}
                     />
                 ))}
             </View>
