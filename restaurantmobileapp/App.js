@@ -61,7 +61,7 @@ const MenuStackNavigator = () => {
     return (
         <Stack.Navigator>
             <Stack.Screen name="menu_index" component={Menu} options={{ title: 'Thực đơn', headerShown: false }} />
-            <Stack.Screen name="food_detail" component={FoodDetail} options={{ title: 'Chi tiết món ăn' }} />
+            <Stack.Screen name="food_detail" component={FoodDetail} options={{ title: 'Chi tiết món ăn', headerShown: false }} />
         </Stack.Navigator>
     );
 }
