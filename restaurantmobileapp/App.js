@@ -110,12 +110,11 @@ const TabNavigator = () => {
 
 
             {user === null ? (
-                // NẾU CHƯA ĐĂNG NHẬP: Hiển thị 1 Tab duy nhất là "Tài khoản"
                 <Tab.Screen
                     name="account_tab"
                     component={AccountStackNavigator}
                     options={{
-                        title: 'Tài khoản', // Đổi tên hiển thị trên thanh Bottom Tab
+                        title: 'Tài khoản',
                         headerShown: false,
                         tabBarIcon: () => <Icon source="account" size={20} />
                     }}

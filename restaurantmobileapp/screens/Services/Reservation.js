@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Modal, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker'; // Cần cài thư viện này
-import Apis, { endpoints } from "../../configs/Apis";
+import Apis, { authApis, endpoints } from "../../configs/Apis";
 import Style from './Style';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
@@ -9,7 +9,7 @@ import UserContext from '../../contexts/UserContext';
 
 const Reservation = () => {
     const nav = useNavigation();
-    const user = useContext(UserContext);
+    const {user} = useContext(UserContext);
 
     const [loading, setLoading] = useState(true);
     const [currentBooking, setCurrentBooking] = useState(null);
@@ -27,10 +27,10 @@ const Reservation = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
-        if (user !== null) {
+        if (user) {
             checkCurrentReservation();
             // THÊM DÒNG NÀY: Tải danh sách bàn ngay khi vừa vào màn hình
-            loadTables(serveTime, endTime);
+            loadTables(serveTime, endTime, customerQuantity);
         } else {
             setLoading(false);
         }
@@ -38,23 +38,27 @@ const Reservation = () => {
 
 
     // Lấy danh sách toàn bộ bàn từ server
-    const loadTables = async (start, end) => {
+    const loadTables = async (start, end, quantity = 0) => {
         try {
-            const url = `${endpoints['tables']}?serve_time=${start.toISOString()}&end_time=${end.toISOString()}`;
+            const token = await SecureStore.getItemAsync('token');
 
-            // 1. In ra đường dẫn URL để xem Mobile có nối đúng tham số không
-            console.log("👉 Đang gọi API URL:", url);
+            const url =
+                `${endpoints['available_tables']}` +
+                `?serve_time=${start.toISOString()}` +
+                `&end_time=${end.toISOString()}` +
+                `&customer_quantity=${quantity}`;
 
-            const res = await Apis.get(url);
+            console.log("👉 URL:", url);
 
-            // 2. In ra số lượng và danh sách bàn nhận được
+            const res = await authApis(token).get(url);
+
             const tables = res.data.results || res.data;
-            console.log(`✅ Lấy thành công ${tables.length} bàn trống:`, tables);
 
             setAllTables(tables);
             setSelectedTable(null);
+
         } catch (error) {
-            console.log("❌ Lỗi tải danh sách bàn:", error);
+            console.log("❌ Lỗi tải bàn:", error);
         }
     };
 
@@ -140,7 +144,7 @@ const Reservation = () => {
 
     // ... (Giữ nguyên hàm handleCancelReservation cũ)
 
-    if (user === null) {
+    if (!user) {
         return (
             <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Text style={Style.headerTitle}>Yêu Cầu Đăng Nhập</Text>
@@ -215,7 +219,7 @@ const Reservation = () => {
                                     setEndTime(newEndTime);
                                 }
 
-                                loadTables(date, newEndTime);
+                                loadTables(date, newEndTime, customerQuantity);
                             }
                         }}
                     />
@@ -255,7 +259,7 @@ const Reservation = () => {
                                 }
 
                                 setEndTime(date);
-                                loadTables(serveTime, date);
+                                loadTables(serveTime, date, customerQuantity);
                             }
                         }}
                     />
@@ -269,7 +273,11 @@ const Reservation = () => {
                     value={customerQuantity}
                     onChangeText={(text) => {
                         setCustomerQuantity(text);
-                        setSelectedTable(null); // Reset bàn đã chọn khi đổi số lượng
+                        setSelectedTable(null);
+
+                        const qty = parseInt(text) || 0;
+
+                        loadTables(serveTime, endTime, qty);
                     }}
                 />
 

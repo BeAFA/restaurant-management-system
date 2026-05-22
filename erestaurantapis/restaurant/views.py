@@ -12,7 +12,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from datetime import timedelta
 
-
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
     UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
@@ -464,6 +463,58 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
             # GET
         return Response(
             ReservationSerializer(reservation).data,
+            status=status.HTTP_200_OK
+        )
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='available_tables',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def available_tables(self, request):
+        start_str = request.query_params.get('serve_time')
+        end_str = request.query_params.get('end_time')
+        customer_quantity = request.query_params.get('customer_quantity')
+
+        if not start_str or not end_str:
+            return Response(
+                {'error': 'Thiếu serve_time hoặc end_time'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        start = parse_datetime(start_str)
+        end = parse_datetime(end_str)
+
+        if not start or not end:
+            return Response(
+                {'error': 'Datetime không hợp lệ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        queryset = Table.objects.filter(
+            status_table=Status_Table.AVAILABLE
+        )
+
+        # Filter sức chứa
+        if customer_quantity:
+            queryset = queryset.filter(
+                slot__gte=int(customer_quantity)
+            )
+
+        # Các bàn bị trùng lịch
+        busy_table_ids = Reservation.objects.filter(
+            active=True,
+            serve_time__lt=end,
+            end_time__gt=start
+        ).values_list('table_id', flat=True)
+
+        tables = queryset.exclude(
+            id__in=busy_table_ids
+        )
+
+        return Response(
+            TableSerializer(tables, many=True).data,
             status=status.HTTP_200_OK
         )
 
