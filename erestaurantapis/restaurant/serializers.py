@@ -1,5 +1,6 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User, OrderDetail, Order, Reservation, FoodChef, UserRole
+from .models import Category, Food, Review, User, OrderDetail, Order, Table, Reservation, FoodChef, UserRole, Ingredient, \
+    FoodIngredient
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -134,6 +135,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return instance
 
+class TableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table
+        fields = ['id', 'slot', 'status_table']
+
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -157,12 +163,21 @@ class FoodChefSerializer(serializers.ModelSerializer):
         fields = ['id', 'food', 'chef', 'chef_id']
 
 
+class FoodIngredientSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='ingredients.name', read_only=True)
+
+    class Meta:
+        model = FoodIngredient
+        fields = ['id', 'name']
+
 
 class FoodComparisonSerializer(serializers.ModelSerializer):
     avg_rating = serializers.FloatField(read_only=True)
     review_count = serializers.IntegerField(read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
+    ingredients = FoodIngredientSerializer(read_only=True, many=True, source='food_ingredients')
 
     class Meta:
         model = Food
-        fields = ['id', 'dish', 'price', 'illustration', 'description', 'category_name', 'avg_rating', 'review_count']
+        fields = ['id', 'dish', 'price', 'illustration', 'time', 'ingredients', 'description', 'category_name',
+                  'avg_rating', 'review_count']

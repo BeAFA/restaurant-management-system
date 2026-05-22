@@ -110,68 +110,68 @@ base_time = timezone.now()
 
 f1, _ = Food.objects.get_or_create(dish='Fresh Spring Rolls', category=cat1, defaults={
     'description': 'Fresh rolls with shrimp, pork, vermicelli and herbs wrapped in rice paper',
-    'price': 45000, 'time': base_time
+    'price': 45000, 'time': 10
 })
 f2, _ = Food.objects.get_or_create(dish='Crispy Fried Spring Rolls', category=cat1, defaults={
     'description': 'Golden fried rolls filled with pork, wood ear mushrooms and glass noodles',
-    'price': 55000, 'time': base_time
+    'price': 55000, 'time': 10
 })
 f3, _ = Food.objects.get_or_create(dish='Crab and Corn Soup', category=cat1, defaults={
     'description': 'Smooth crab soup with quail eggs and sweet corn',
-    'price': 40000, 'time': base_time
+    'price': 40000, 'time': 10
 })
 
 f4, _ = Food.objects.get_or_create(dish='Broken Rice with Grilled Pork', category=cat2, defaults={
     'description': 'Saigon-style broken rice with grilled pork chop, shredded pork skin and egg cake',
-    'price': 75000, 'time': base_time
+    'price': 75000, 'time': 10
 })
 f5, _ = Food.objects.get_or_create(dish='Spicy Beef Noodle Soup', category=cat2, defaults={
     'description': 'Central Vietnamese spicy noodle soup with beef, pork knuckle and lemongrass',
-    'price': 65000, 'time': base_time
+    'price': 65000, 'time': 10
 })
 f6, _ = Food.objects.get_or_create(dish='Traditional Beef Pho', category=cat2, defaults={
     'description': 'Classic beef pho with 12-hour slow-cooked bone broth and fresh herbs',
-    'price': 70000, 'time': base_time
+    'price': 70000, 'time': 20
 })
 f7, _ = Food.objects.get_or_create(dish='Braised Catfish in Clay Pot', category=cat2, defaults={
     'description': 'Catfish braised in caramel sauce with black pepper and chili',
-    'price': 85000, 'time': base_time
+    'price': 85000, 'time': 20
 })
 
 f8, _ = Food.objects.get_or_create(dish='Three-Color Bean Dessert', category=cat3, defaults={
     'description': 'Layered dessert with mung bean, red bean, jelly and coconut cream',
-    'price': 30000, 'time': base_time
+    'price': 30000, 'time': 20
 })
 f9, _ = Food.objects.get_or_create(dish='Caramel Flan', category=cat3, defaults={
     'description': 'Silky smooth caramel custard pudding',
-    'price': 35000, 'time': base_time
+    'price': 35000, 'time': 20
 })
 
 f10, _ = Food.objects.get_or_create(dish='Fresh Orange Juice', category=cat4, defaults={
     'description': 'Freshly squeezed orange juice, no added sugar',
-    'price': 35000, 'time': base_time
+    'price': 35000, 'time': 20
 })
 f11, _ = Food.objects.get_or_create(dish='Iced Lemon Tea', category=cat4, defaults={
     'description': 'Cold-brewed black tea with fresh lemon slices',
-    'price': 20000, 'time': base_time
+    'price': 20000, 'time': 30
 })
 
 f12, _ = Food.objects.get_or_create(dish='Grilled Beef in Wild Pepper Leaves', category=cat5, defaults={
     'description': 'Minced beef with lemongrass wrapped in wild pepper leaves grilled over charcoal',
-    'price': 95000, 'time': base_time
+    'price': 95000, 'time': 30
 })
 f13, _ = Food.objects.get_or_create(dish='Grilled Shrimp with Chili Salt', category=cat5, defaults={
     'description': 'Fresh tiger prawns grilled with green chili salt',
-    'price': 120000, 'time': base_time
+    'price': 120000, 'time': 30
 })
 
 f14, _ = Food.objects.get_or_create(dish='Thai Seafood Hot Pot', category=cat6, defaults={
     'description': 'Spicy and sour Thai-style hot pot with fresh shrimp, squid, fish and vegetables',
-    'price': 250000, 'time': base_time
+    'price': 250000, 'time': 30
 })
 f15, _ = Food.objects.get_or_create(dish='Beef Vinegar Hot Pot', category=cat6, defaults={
     'description': 'Tangy vinegar-based hot pot with thinly sliced fresh beef and rice paper',
-    'price': 220000, 'time': base_time
+    'price': 220000, 'time': 30
 })
 
 print("    Foods created successfully!")
