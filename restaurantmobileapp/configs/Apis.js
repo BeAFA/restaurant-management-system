@@ -1,24 +1,51 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.160:8000/';
+const BASE_URL = 'http://172.20.10.8:8000/';
 
 export const endpoints = {
+    // === CATEGORIES ===
     'categories': '/categories/',
+    'category_detail': (id) => `/categories/${id}/`,
+    'category_foods': (id) => `/categories/${id}/foods/`,
+
+    // === FOODS ===
+    'foods': '/foods/',
+    'foods_compare': '/foods/compare/',
+    'top_dishes': '/foods/top_dishes/',
+    'food_detail': (foodId) => `/foods/${foodId}/`,
+    'food_chefs': (id) => `/foods/${id}/chefs/`,
+    'food_reviews': (id) => `/foods/${id}/reviews/`,
+
+    // === ORDERS ===
+    'orders': '/orders/',
+    'current_order': '/orders/current_order/',
+    'order_detail': (id) => `/orders/${id}/`,
+    'order_cancel': (id) => `/orders/${id}/cancel/`,
+    'order_payment': (id) => `/orders/${id}/payment/`,
+
+    // === RESERVATIONS (Đặt bàn) ===
+    'reservations': '/reservations/',
+    'current_reservation': '/reservations/current_reservation/',
+    'reservation_detail': (id) => `/reservations/${id}/`,
+
+    // === REVIEWS ===
+    'current_review': '/reviews/current_review/',
+    'review_detail': (id) => `/reviews/${id}/`,
+
+    // === STATISTICS (Thống kê) ===
+    'admin_stats': '/statistics/admin_stats/',
+    'chef_stats': '/statistics/chef_stats/',
+
+    // === USERS ===
     'register': '/users/',
     'login': '/o/token/',
-    'current-user': '/users/current_user/',
-    'top_dishes': '/foods/top_dishes/',
-    'dish_detail': (dishId) => `/foods/${dishId}/`,
-    'food': (categoryId) => `/foods/?category_id=${categoryId}`,
-    'tables': '/tables/',
-    'current_reservation': '/reservations/current_reservation/',
-    'current_reservation_create': '/reservations/current_reservation/', // Method POST
-    'current_reservation_partial_update': '/reservations/current_reservation/', // Method PATCH
-    'reservation_delete': (id) => `/reservations/${id}/`,
+    'current_user': '/users/current_user/',
+    'pending_chefs': '/users/pending_chefs/',
+    'approve_chef': (id) => `/users/${id}/approve/`,
 }
 
-export const CLIENT_ID = 'P5hDvWGq9E88U4U4XfuuqfYEuiEWELYaEOrGU3wL';
-export const CLIENT_SECRET = 'wvyuEeZQP9DiWtkMZHaMG3OTxhLyaWM9EYsdstwHPi7BZqlAg2TiOMCxSGuOZSlqVqtIUvGSOG5xUjnKYCfmV7fPLc4bqdIFAeLDeLF1EREo4AIpfDNHQFsUOcFToEqI';
+export const CLIENT_ID = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G';
+export const CLIENT_SECRET = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu';
 
 const Apis = axios.create({
     baseURL: BASE_URL,
