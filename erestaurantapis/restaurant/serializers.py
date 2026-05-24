@@ -79,7 +79,7 @@ class ChefApproveSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'user', 'food', 'comment', 'rating']
+        fields = ['id', 'user', 'food', 'comment', 'rating', 'created_date']
         extra_kwargs = {'food': {'read_only': True},
                         'user': {'read_only': True}}
 
