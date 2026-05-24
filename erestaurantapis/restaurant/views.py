@@ -2,8 +2,9 @@ from django.db import transaction
 from django.db.models import Avg, Count, Sum
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from pyexpat.errors import messages
-from rest_framework import viewsets, generics, filters, status, permissions, parsers
+from rest_framework import viewsets, generics, filters, status, permissions, parsers, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -14,9 +15,9 @@ from datetime import timedelta
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
     UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
-    FoodChefSerializer, FoodComparisonSerializer
+    FoodChefSerializer, FoodComparisonSerializer, TableSerializer
 from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole, FoodChef, Status_Order, \
-    Status_Table
+    Status_Table, Table
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -408,6 +409,28 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
         )
 
 
+class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Table.objects.all()
+    serializer_class = TableSerializer
+
+    def get_queryset(self):
+        queryset = Table.objects.filter(status_table='AVAILABLE')
+        start_str = self.request.query_params.get('serve_time')
+        end_str = self.request.query_params.get('end_time')
+
+        if start_str and end_str:
+            start = parse_datetime(start_str)
+            end = parse_datetime(end_str)
+            if start and end:
+                # Logic overlap: Bàn bị bận nếu (Lịch cũ bắt đầu < Kết thúc mới) AND (Lịch cũ kết thúc > Bắt đầu mới)
+                busy_table_ids = Reservation.objects.filter(
+                    serve_time__lt=end,
+                    end_time__gt=start
+                ).values_list('table_id', flat=True)
+                queryset = queryset.exclude(id__in=busy_table_ids)
+        return queryset
+
+
 class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.DestroyAPIView):
     serializer_class = ReservationSerializer
     filter_backends = (filters.OrderingFilter, filters.SearchFilter)
@@ -450,6 +473,58 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
             # GET
         return Response(
             ReservationSerializer(reservation).data,
+            status=status.HTTP_200_OK
+        )
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='available_tables',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def available_tables(self, request):
+        start_str = request.query_params.get('serve_time')
+        end_str = request.query_params.get('end_time')
+        customer_quantity = request.query_params.get('customer_quantity')
+
+        if not start_str or not end_str:
+            return Response(
+                {'error': 'Thiếu serve_time hoặc end_time'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        start = parse_datetime(start_str)
+        end = parse_datetime(end_str)
+
+        if not start or not end:
+            return Response(
+                {'error': 'Datetime không hợp lệ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        queryset = Table.objects.filter(
+            status_table=Status_Table.AVAILABLE
+        )
+
+        # Filter sức chứa
+        if customer_quantity:
+            queryset = queryset.filter(
+                slot__gte=int(customer_quantity)
+            )
+
+        # Các bàn bị trùng lịch
+        busy_table_ids = Reservation.objects.filter(
+            active=True,
+            serve_time__lt=end,
+            end_time__gt=start
+        ).values_list('table_id', flat=True)
+
+        tables = queryset.exclude(
+            id__in=busy_table_ids
+        )
+
+        return Response(
+            TableSerializer(tables, many=True).data,
             status=status.HTTP_200_OK
         )
 
