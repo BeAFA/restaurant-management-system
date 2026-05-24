@@ -22,7 +22,7 @@ class OrderDetailInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'table', 'total', 'status_order', 'created_date']
+    list_display = ['id', 'user', 'total', 'status_order', 'created_date']
     list_filter = ['status_order', 'created_date']
     search_fields = ['user__username', 'user__phone']
     inlines = [OrderDetailInline]  # Tích hợp Inline

@@ -8,6 +8,7 @@ import Styles from "../../styles/DetailFoodStyles";
 import CartContext from "../../contexts/CartContext";
 import Reviews from "../../components/SimpleReviews";
 import UserContext from "../../contexts/UserContext";
+import TableContext from "../../contexts/TableContext";
 
 
 const formatPlainString = (htmlString) => {
@@ -23,6 +24,7 @@ const FoodDetail = ({ route }) => {
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation();
     const { user } = useContext(UserContext);
+    const { table } = useContext(TableContext);
 
 
     const loadFood = async () => {
@@ -49,7 +51,12 @@ const FoodDetail = ({ route }) => {
 
     const handleAddToCart = () => {
         if (!user) {
-            navigation.navigate("login");
+            navigation.navigate("account_tab");
+            return;
+        }
+
+        if (!table) {
+            navigation.navigate("table_entry");
             return;
         }
 
@@ -91,20 +98,22 @@ const FoodDetail = ({ route }) => {
                                     <MaterialIcons name="chevron-left" size={24} color="#FFF" />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart")}>
-                                    <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
-                                    {cart.length > 0 && (
-                                        <View style={{
-                                            position: 'absolute', top: -5, right: -5,
-                                            backgroundColor: 'red', borderRadius: 10,
-                                            width: 18, height: 18, justifyContent: 'center', alignItems: 'center'
-                                        }}>
-                                            <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>
-                                                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </TouchableOpacity>
+                                {user && (
+                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart")}>
+                                        <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
+                                        {cart.length > 0 && (
+                                            <View style={{
+                                                position: 'absolute', top: -5, right: -5,
+                                                backgroundColor: 'red', borderRadius: 10,
+                                                width: 18, height: 18, justifyContent: 'center', alignItems: 'center'
+                                            }}>
+                                                <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>
+                                                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
                             </View>
 
                             <View style={Styles.infoContainer}>
@@ -146,11 +155,23 @@ const FoodDetail = ({ route }) => {
 
             {food && (
                 <View style={Styles.bottomBar}>
-                    <TouchableOpacity style={Styles.addToCartButton}
-                        onPress={handleAddToCart}
-                    >
-                        <Text style={Styles.addToCartText}>Add to cart</Text>
-                    </TouchableOpacity>
+                    {!table ? (
+                        <>
+                            <TouchableOpacity
+                                style={Styles.addToCartButton}
+                                onPress={() => navigation.navigate("table_entry")}
+                            >
+                                <Text style={Styles.addToCartText}>Chọn bàn</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <TouchableOpacity
+                            style={Styles.addToCartButton}
+                            onPress={handleAddToCart}
+                        >
+                            <Text style={Styles.addToCartText}>Add to cart (Bàn {table.id})</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
         </View>

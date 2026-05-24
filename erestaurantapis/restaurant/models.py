@@ -1,3 +1,4 @@
+import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -23,6 +24,18 @@ class Status_Order(models.TextChoices):
     SUCCESS = 'SUCCESS', 'Thành công'
     WAITING = 'WAITING', 'Đang chờ'
     CANCEL = 'CANCEL', 'Hủy'
+
+
+class Status_Reservation(models.TextChoices):
+    CONFIRMED = 'CONFIRMED', 'Đã xác nhận'
+    CHECKED_IN = 'CHECKED_IN', 'Đã tới'
+    COMPLETED = 'COMPLETED', 'Hoàn tất'
+    CANCELLED = 'CANCELLED', 'Đã hủy'
+
+
+class Status_Session(models.TextChoices):
+    OPEN = 'OPEN', 'Đang hoạt động'
+    CLOSED = 'CLOSED', 'Đã đóng'
 
 
 class Rating(models.IntegerChoices):
@@ -96,20 +109,95 @@ class Table(BaseModel):
         return f"Bàn {self.id} ({self.slot} chỗ)"
 
 
-class Order(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='orders')
-    status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
+class Reservation(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='reservations')
+    table = models.ForeignKey(Table, on_delete=models.PROTECT, null=False, related_name='reservations')
+    serve_time = models.DateTimeField(verbose_name="Thời gian bắt đầu", db_index=True)
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian kết thúc", db_index=True)
+    customer_quantity = models.PositiveIntegerField()
+    status_reservation = models.CharField(
+        max_length=20,
+        choices=Status_Reservation.choices,
+        default=Status_Reservation.CONFIRMED
+    )
+
+    @property
+    def is_active_now(self):
+        # Kiểm tra xem thời điểm HIỆN TẠI có đang nằm trong khung giờ đặt bàn hay không
+        now = timezone.now()
+        if self.serve_time and self.end_time:
+            return self.serve_time <= now <= self.end_time
+        return False
+
+    # 2. Tự động tính end_time trước khi lưu vào Database
+    def save(self, *args, **kwargs):
+        if self.serve_time and not self.end_time:
+            # Cộng thêm 2 tiếng vào thời gian bắt đầu
+            self.end_time = self.serve_time + timedelta(minutes=30)
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    # 3. Logic chặn đặt trùng bàn trong khoảng 2 tiếng đó
+    def clean(self):
+        if not self.serve_time:
+            return
+
+        if self.serve_time < timezone.now():
+            raise ValidationError("Thời gian đặt bàn không thể ở trong quá khứ.")
+
+        # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
+        expected_end_time = self.end_time or (self.serve_time + timedelta(hours=1))
+        # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
+        # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
+        conflicting_reservations = Reservation.objects.filter(
+            table=self.table,
+            serve_time__lt=expected_end_time,
+            end_time__gt=self.serve_time
+        ).exclude(pk=self.pk)  # Loại trừ chính nó nếu là đang sửa (update)
+
+        if conflicting_reservations.exists():
+            raise ValidationError(
+                f"Bàn này đã được đặt trong khoảng từ {self.serve_time.strftime('%H:%M')} "
+                f"đến {expected_end_time.strftime('%H:%M')}."
+            )
+
+    def __str__(self):
+        return f"Đặt bàn {self.id} - {self.user} - Bàn {self.table.id}"
+
+
+class DiningSession(BaseModel):
+    reservation = models.OneToOneField(Reservation, on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name='session')
+    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='sessions')
+    customer = models.ForeignKey(User, on_delete=models.PROTECT, related_name='sessions')
+    session_code = models.CharField(max_length=20, unique=True)
+    status_session = models.CharField(choices=Status_Session.choices, default=Status_Session.OPEN, max_length=20)
+    opened_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['table'],
-                condition=models.Q(status_order='WAITING'),
-                name='unique_active_table'
+                condition=models.Q(status_session='OPEN'),
+                name='unique_open_session_per_table'
             )
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.session_code:
+            random_number = random.randint(100000, 999999)
+            self.session_code = f"TB{self.table.id}-{random_number}"
+
+        super().save(*args, **kwargs)
+
+
+class Order(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    session = models.ForeignKey(DiningSession, on_delete=models.PROTECT, related_name='orders'
+                                )
+    status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
 
     def update_total(self):
         # Tính tổng tất cả total_price của các OrderDetail thuộc Order này
@@ -119,7 +207,7 @@ class Order(BaseModel):
         Order.objects.filter(pk=self.pk).update(total=total_sum)
 
     def __str__(self):
-        return f"Đơn hàng {self.id} - Bàn {self.table.id} ({self.total} VNĐ)"
+        return f"Đơn hàng {self.id} - Bàn {self.session.table.id}"
 
 
 class OrderDetail(BaseModel):
@@ -158,54 +246,3 @@ class FoodChef(BaseModel):
 
     class Meta:
         unique_together = ('food', 'chef')
-
-
-class Reservation(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='reservations')
-    table = models.ForeignKey(Table, on_delete=models.PROTECT, null=False, related_name='reservations')
-    serve_time = models.DateTimeField(verbose_name="Thời gian bắt đầu", db_index=True)
-    end_time = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian kết thúc", db_index=True)
-    customer_quantity = models.PositiveIntegerField()
-
-    @property
-    def is_active_now(self):
-        # Kiểm tra xem thời điểm HIỆN TẠI có đang nằm trong khung giờ đặt bàn hay không
-        now = timezone.now()
-        if self.serve_time and self.end_time:
-            return self.serve_time <= now <= self.end_time
-        return False
-
-    # 2. Tự động tính end_time trước khi lưu vào Database
-    def save(self, *args, **kwargs):
-        if self.serve_time and not self.end_time:
-            # Cộng thêm 2 tiếng vào thời gian bắt đầu
-            self.end_time = self.serve_time + timedelta(hours=2)
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-    # 3. Logic chặn đặt trùng bàn trong khoảng 2 tiếng đó
-    def clean(self):
-        if not self.serve_time:
-            return
-
-        if self.serve_time < timezone.now():
-            raise ValidationError("Thời gian đặt bàn không thể ở trong quá khứ.")
-
-        # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
-        expected_end_time = self.end_time or (self.serve_time + timedelta(hours=2))
-        # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
-        # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
-        conflicting_reservations = Reservation.objects.filter(
-            table=self.table,
-            serve_time__lt=expected_end_time,
-            end_time__gt=self.serve_time
-        ).exclude(pk=self.pk)  # Loại trừ chính nó nếu là đang sửa (update)
-
-        if conflicting_reservations.exists():
-            raise ValidationError(
-                f"Bàn này đã được đặt trong khoảng từ {self.serve_time.strftime('%H:%M')} "
-                f"đến {expected_end_time.strftime('%H:%M')}."
-            )
-
-    def __str__(self):
-        return f"Đặt bàn {self.id} - {self.user} - Bàn {self.table.id}"

@@ -17,7 +17,7 @@ from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, F
     UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
     FoodChefSerializer, FoodComparisonSerializer, TableSerializer
 from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole, FoodChef, Status_Order, \
-    Status_Table, Table
+    Status_Table, Table, DiningSession, Status_Reservation, Status_Session
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -384,16 +384,25 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
         order.status_order = Status_Order.SUCCESS
         order.save()
 
-        order.table.status_table = Status_Table.AVAILABLE
-        order.table.save()
+        session = order.session
 
-        return Response(
-            {
-                'message': 'Thanh toán thành công',
-                'order': OrderSerializer(order).data
-            },
-            status=status.HTTP_200_OK
-        )
+        waiting_orders = session.orders.filter(
+            status_order=Status_Order.WAITING
+        ).exists()
+
+        if not waiting_orders:
+            session.status_session = Status_Session.CLOSED
+            session.closed_at = timezone.now()
+            session.save()
+
+            session.table.status_table = Status_Table.AVAILABLE
+            session.table.save()
+
+            if session.reservation:
+                session.reservation.status_reservation = (
+                    Status_Reservation.COMPLETED
+                )
+                session.reservation.save()
 
 
 class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -670,4 +679,54 @@ class StatisticViewSet(viewsets.ViewSet):
             'revenue_stats': list(revenue_stats),
             'top_foods': list(top_foods),
             'reservation_stats': list(reservation_stats)
+        }, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    @action(
+        methods=['POST'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def check_in(self, request, pk=None):
+        reservation = self.get_object()
+
+        if reservation.status_reservation != Status_Reservation.CONFIRMED:
+            return Response(
+                {'error': 'Reservation không hợp lệ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        now = timezone.now()
+
+        # check đúng giờ
+        if now < reservation.serve_time - timedelta(minutes=30):
+            return Response(
+                {'error': 'Chưa tới giờ check-in'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if now > reservation.end_time:
+            return Response(
+                {'error': 'Reservation đã hết hạn'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # update reservation
+        reservation.status_reservation = Status_Reservation.CHECKED_IN
+        reservation.save()
+
+        # update table
+        reservation.table.status_table = Status_Table.OCCUPIED
+        reservation.table.save()
+
+        # tạo session
+        session = DiningSession.objects.create(
+            reservation=reservation,
+            table=reservation.table,
+            customer=reservation.user
+        )
+
+        return Response({
+            'message': 'Check-in thành công',
+            'session_code': session.session_code
         }, status=status.HTTP_200_OK)

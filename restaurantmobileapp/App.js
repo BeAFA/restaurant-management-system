@@ -7,6 +7,11 @@ import Cart from "./screens/Main/Cart";
 import Menu from "./screens/Main/Menu";
 import Reservation from "./screens/Services/Reservation";
 import Account from "./screens/User/Account";
+import TableSelection from "./screens/Services/TableSelection";
+import QRScanner from "./screens/Services/CameraTableSelection";
+import TableEntryScreen from "./screens/Services/TableEntryScreen";
+import TableSelectionWalkIn from "./screens/Services/TableSelectionWalkIn";
+import ReservationForm from "./screens/Services/Reservation";
 
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -22,73 +27,114 @@ import AppProvider from "./providers/AppProvider";
 import UserContext from "./contexts/UserContext";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-const Stack = createNativeStackNavigator();
 
-const StackNavigator = () => {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen
-                name="index"
-                component={Home}
-                options={{
-                    title: "Màn hình chính",
-                    headerShown: false
-                }}
-            />
+const HomeStack = createNativeStackNavigator();
+const MenuStack = createNativeStackNavigator();
+const AccountStack = createNativeStackNavigator();
+const CartStack = createNativeStackNavigator();
 
-            <Stack.Screen
-                name="food_detail"
-                component={FoodDetail}
-                options={{
-                    title: "Chi tiết món ăn",
-                    headerShown: false
-                }}
-            />
+const tableScreens = (Stack) => (
+    <>
+        <Stack.Screen
+            name="table_entry"
+            component={TableEntryScreen}
+            options={{ headerShown: false, title: "Chọn hình thức" }}
+        />
+        <Stack.Screen
+            name="table_selection_walkin"
+            component={TableSelectionWalkIn}
+            options={{ headerShown: false, title: "Chọn bàn" }}
+        />
+        <Stack.Screen
+            name="reservation_form"
+            component={ReservationForm}
+            options={{ headerShown: false, title: "Đặt bàn trước" }}
+        />
+        <Stack.Screen
+            name="camera_table_selection"
+            component={QRScanner}
+            options={{ headerShown: false, title: "Quét QR bàn" }}
+        />
+    </>
+);
 
-            <Stack.Screen
-                name="login"
-                component={Login}
-                options={{
-                    title: "Đăng nhập",
-                    headerShown: false
-                }}
-            />
-        </Stack.Navigator>
-    );
-};
+const StackNavigator = () => (
+    <HomeStack.Navigator>
+        <HomeStack.Screen
+            name="index"
+            component={Home}
+            options={{ headerShown: false }}
+        />
+        <HomeStack.Screen
+            name="food_detail"
+            component={FoodDetail}
+            options={{ headerShown: false }}
+        />
+        <HomeStack.Screen
+            name="cart"
+            component={Cart}
+            options={{ headerShown: false }}
+        />
+        <HomeStack.Screen
+            name="login"
+            component={Login}
+            options={{ headerShown: false }}
+        />
+        {tableScreens(HomeStack)}
+    </HomeStack.Navigator>
+);
 
-const MenuStackNavigator = () => {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen name="menu_index" component={Menu} options={{ title: 'Thực đơn', headerShown: false }} />
-            <Stack.Screen name="food_detail" component={FoodDetail} options={{ title: 'Chi tiết món ăn', headerShown: false }} />
-        </Stack.Navigator>
-    );
-}
+const MenuStackNavigator = () => (
+    <MenuStack.Navigator>
+        <MenuStack.Screen
+            name="menu_index"
+            component={Menu}
+            options={{ headerShown: false }}
+        />
+        <MenuStack.Screen
+            name="food_detail"
+            component={FoodDetail}
+            options={{ headerShown: false }}
+        />
+        <MenuStack.Screen
+            name="cart"
+            component={Cart}
+            options={{ headerShown: false }}
+        />
+        {tableScreens(MenuStack)}
+    </MenuStack.Navigator>
+);
 
-const AccountStackNavigator = () => {
-    return (
-        <Stack.Navigator>
-            {/* Màn hình mặc định khi ấn vào Tab Tài khoản */}
-            <Stack.Screen
-                name="account_index"
-                component={Account}
-                options={{ title: 'Tài khoản', headerShown: false }}
-            />
-            {/* Các màn hình con */}
-            <Stack.Screen
-                name="login"
-                component={Login}
-                options={{ title: 'Đăng nhập' }}
-            />
-            <Stack.Screen
-                name="register"
-                component={Register}
-                options={{ title: 'Đăng ký' }}
-            />
-        </Stack.Navigator>
-    );
-}
+const CartStackNavigator = () => (
+    <CartStack.Navigator>
+        <CartStack.Screen
+            name="cart_index"
+            component={Cart}
+            options={{ headerShown: false }}
+        />
+        {tableScreens(CartStack)}
+    </CartStack.Navigator>
+);
+
+const AccountStackNavigator = () => (
+    <AccountStack.Navigator>
+        <AccountStack.Screen
+            name="account_index"
+            component={Account}
+            options={{ headerShown: false }}
+        />
+        <AccountStack.Screen
+            name="login"
+            component={Login}
+            options={{ title: "Đăng nhập" }}
+        />
+        <AccountStack.Screen
+            name="register"
+            component={Register}
+            options={{ title: "Đăng ký" }}
+        />
+    </AccountStack.Navigator>
+);
 
 const Tab = createBottomTabNavigator();
 
@@ -103,10 +149,22 @@ const TabNavigator = () => {
             }}
         >
 
-            <Tab.Screen name="home" component={StackNavigator} options={{ title: 'Màn hình chính', tabBarIcon: () => <Icon source="home" size={20} /> }} />
-
-            <Tab.Screen name="menu" component={MenuStackNavigator} options={{ headerShown: false, tabBarIcon: () => <Icon source="menu" size={20} /> }} />
-            <Tab.Screen name="reservation" component={Reservation} options={{ headerShown: false, title: 'Đặt bàn', tabBarIcon: () => <Icon source="calendar" size={20} /> }} />
+            <Tab.Screen
+                name="home"
+                component={StackNavigator}
+                options={{
+                    title: "Trang chủ",
+                    tabBarIcon: () => <Icon source="home" size={20} />,
+                }}
+            />
+            <Tab.Screen
+                name="menu"
+                component={MenuStackNavigator}
+                options={{
+                    title: "Thực đơn",
+                    tabBarIcon: () => <Icon source="menu" size={20} />,
+                }}
+            />
 
 
             {user === null ? (
@@ -122,19 +180,19 @@ const TabNavigator = () => {
             ) : (
                 <>
                     <Tab.Screen
-                        name="cart"
-                        component={Cart}
+                        name="cart_tab"
+                        component={CartStackNavigator}       // dùng Stack, không phải Cart trực tiếp
                         options={{
-                            tabBarIcon: () =>
-                                <Icon source="cart" size={20} />
+                            title: "Giỏ hàng",
+                            tabBarIcon: () => <Icon source="cart" size={20} />,
                         }}
                     />
                     <Tab.Screen
                         name="profile"
                         component={Profile}
                         options={{
-                            tabBarIcon: () =>
-                                <Icon source="account" size={20} />
+                            title: "Hồ sơ",
+                            tabBarIcon: () => <Icon source="account" size={20} />,
                         }}
                     />
                 </>

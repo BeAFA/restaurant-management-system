@@ -108,6 +108,14 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    clearCartButton: {
+        flex: 1,
+        backgroundColor: '#FF5733',
+        height: 50,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     addToCartText: {
         color: '#FFFFFF',
         fontSize: 16,

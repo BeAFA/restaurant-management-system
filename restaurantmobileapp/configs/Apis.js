@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.95:8000/';
+const BASE_URL = 'http://192.168.1.198:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -45,8 +45,8 @@ export const endpoints = {
     'approve_chef': (id) => `/users/${id}/approve/`,
 }
 
-export const CLIENT_ID = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G';
-export const CLIENT_SECRET = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu';
+export const CLIENT_ID = 'IQONTPMlavhP7bR9HFHXb7EArLkz6C6FVJOhyjXd';
+export const CLIENT_SECRET = 'J9yParzZt5xYX1JxMtWtSaQXXAt2Z8z6EQa7qZWKZoc3yLqgNQHioZdA3bo5OMS4xqAml5XuouG9kLsbpvQzHcixQhQiltPrzx7NwizKI710qwXWd3JTazNGDeE4uULQ';
 
 const Apis = axios.create({
     baseURL: BASE_URL,
