@@ -91,7 +91,7 @@ const FoodDetail = ({ route }) => {
                                     <MaterialIcons name="chevron-left" size={24} color="#FFF" />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={handleAddToCart}>
+                                <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart")}>
                                     <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
                                     {cart.length > 0 && (
                                         <View style={{

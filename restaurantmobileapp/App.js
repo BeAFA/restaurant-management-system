@@ -4,6 +4,9 @@ import Login from "./screens/User/Login";
 import Profile from "./screens/Main/Profile";
 import FoodDetail from "./screens/Foods/FoodDetail";
 import Cart from "./screens/Main/Cart";
+import Menu from "./screens/Main/Menu";
+import Reservation from "./screens/Services/Reservation";
+import Account from "./screens/User/Account";
 
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -41,7 +44,7 @@ const StackNavigator = () => {
                     headerShown: false
                 }}
             />
-            
+
             <Stack.Screen
                 name="login"
                 component={Login}
@@ -53,6 +56,39 @@ const StackNavigator = () => {
         </Stack.Navigator>
     );
 };
+
+const MenuStackNavigator = () => {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen name="menu_index" component={Menu} options={{ title: 'Thực đơn', headerShown: false }} />
+            <Stack.Screen name="food_detail" component={FoodDetail} options={{ title: 'Chi tiết món ăn', headerShown: false }} />
+        </Stack.Navigator>
+    );
+}
+
+const AccountStackNavigator = () => {
+    return (
+        <Stack.Navigator>
+            {/* Màn hình mặc định khi ấn vào Tab Tài khoản */}
+            <Stack.Screen
+                name="account_index"
+                component={Account}
+                options={{ title: 'Tài khoản', headerShown: false }}
+            />
+            {/* Các màn hình con */}
+            <Stack.Screen
+                name="login"
+                component={Login}
+                options={{ title: 'Đăng nhập' }}
+            />
+            <Stack.Screen
+                name="register"
+                component={Register}
+                options={{ title: 'Đăng ký' }}
+            />
+        </Stack.Navigator>
+    );
+}
 
 const Tab = createBottomTabNavigator();
 
@@ -67,54 +103,40 @@ const TabNavigator = () => {
             }}
         >
 
-            <Tab.Screen
-                name="home"
-                component={StackNavigator}
-                options={{
-                    title: "Màn hình chính",
-                    tabBarIcon: () =>
-                        <Icon source="home" size={20} />
-                }}
-            />
+            <Tab.Screen name="home" component={StackNavigator} options={{ title: 'Màn hình chính', tabBarIcon: () => <Icon source="home" size={20} /> }} />
+
+            <Tab.Screen name="menu" component={MenuStackNavigator} options={{ headerShown: false, tabBarIcon: () => <Icon source="menu" size={20} /> }} />
+            <Tab.Screen name="reservation" component={Reservation} options={{ headerShown: false, title: 'Đặt bàn', tabBarIcon: () => <Icon source="calendar" size={20} /> }} />
+
 
             {user === null ? (
+                <Tab.Screen
+                    name="account_tab"
+                    component={AccountStackNavigator}
+                    options={{
+                        title: 'Tài khoản',
+                        headerShown: false,
+                        tabBarIcon: () => <Icon source="account" size={20} />
+                    }}
+                />
+            ) : (
                 <>
                     <Tab.Screen
-                        name="register"
-                        component={Register}
+                        name="cart"
+                        component={Cart}
                         options={{
                             tabBarIcon: () =>
-                                <Icon source="account-plus" size={20} />
+                                <Icon source="cart" size={20} />
                         }}
                     />
-
                     <Tab.Screen
-                        name="login"
-                        component={Login}
+                        name="profile"
+                        component={Profile}
                         options={{
                             tabBarIcon: () =>
                                 <Icon source="account" size={20} />
                         }}
                     />
-                </>
-            ) : (
-                <>
-                <Tab.Screen
-                    name="cart"
-                    component={Cart}
-                    options={{
-                        tabBarIcon: () =>
-                            <Icon source="cart" size={20} />
-                    }}
-                />
-                <Tab.Screen
-                    name="profile"
-                    component={Profile}
-                    options={{
-                        tabBarIcon: () =>
-                            <Icon source="account" size={20} />
-                    }}
-                />
                 </>
             )}
 
@@ -126,13 +148,13 @@ export default function App() {
 
     return (
         <SafeAreaProvider>
-                <AppProvider>
+            <AppProvider>
 
-                    <NavigationContainer>
-                        <TabNavigator />
-                    </NavigationContainer>
+                <NavigationContainer>
+                    <TabNavigator />
+                </NavigationContainer>
 
-                </AppProvider>
+            </AppProvider>
         </SafeAreaProvider>
     );
 }

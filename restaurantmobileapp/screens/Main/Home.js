@@ -7,6 +7,7 @@ import Header from "../../components/Header";
 import { useNavigation } from "@react-navigation/native";
 import SimpleFood from "../../components/SimpleFood";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Style from "./Style";
 
 const Home = () => {
     const [categories, setCategories] = useState([]);
@@ -43,6 +44,13 @@ const Home = () => {
         );
     }
 
+    const handleCategoryPress = (item) => {
+        navigation.navigate('menu', {
+            screen: 'menu_index',
+            params: { categoryFromHome: item }
+        });
+    };
+
     return (
 
         <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#f2f4f6' }]}>
@@ -68,7 +76,7 @@ const Home = () => {
                         borderRadius: 20,
                         marginRight: 10,
                         marginBottom: 20
-                    }}>
+                    }} onPress={() => handleCategoryPress(item)}>
                         <Text style={{ fontWeight: '500' }}>{item.name}</Text>
                     </TouchableOpacity>
                 )}
@@ -83,7 +91,11 @@ const Home = () => {
                     <SimpleFood
                         key={dish.id}
                         item={dish}
-                        next={() => navigation.navigate('food_detail', { foodId: dish.id })}
+                        next={() => navigation.navigate('menu', {
+                            screen: 'food_detail',
+                            initial: false,
+                            params: { foodId: dish.id }
+                        })}
                     />
                 ))}
             </View>

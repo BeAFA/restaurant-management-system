@@ -200,5 +200,52 @@ export default StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#FF6347',
+    },
+    //6. TRANG ACCOUNT (Hub Đăng nhập / Đăng ký)
+    accountContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        backgroundColor: '#FFF5E5', // Đồng bộ màu nền chung
+    },
+    accountTitle: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FF6347', // Màu cam đỏ chủ đạo
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    accountSubtitle: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 40,
+        paddingHorizontal: 10,
+        lineHeight: 24,
+    },
+    accountLoginBtn: {
+        backgroundColor: '#FF6347', 
+        paddingVertical: 15,
+        borderRadius: 25, // Bo góc đồng bộ với primaryButton
+        alignItems: 'center',
+        marginBottom: 15,
+        elevation: 3,
+    },
+    accountLoginText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    accountRegisterBtn: {
+        backgroundColor: '#FFE394', // Màu vàng nhạt phụ trợ
+        paddingVertical: 15,
+        borderRadius: 25,
+        alignItems: 'center',
+        elevation: 2,
+    },
+    accountRegisterText: {
+        color: '#FF6347',
+        fontSize: 18,
+        fontWeight: 'bold',
     }
 });
