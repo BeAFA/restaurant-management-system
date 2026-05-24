@@ -1,6 +1,7 @@
 from rest_framework import serializers, viewsets
-from .models import Category, Food, Review, User, OrderDetail, Order, Table, Reservation, FoodChef, UserRole, Ingredient, \
-    FoodIngredient
+from .models import Category, Food, Review, User, OrderDetail, Order, Table, Reservation, FoodChef, UserRole, \
+    Ingredient, \
+    FoodIngredient, DiningSession, Status_Session
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -103,10 +104,13 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True)
+    session_code = serializers.CharField(write_only=True)
+    table = serializers.CharField(source='session.table.id')
+
 
     class Meta:
         model = Order
-        fields = ['id', 'table', 'user', 'details', 'status_order', 'total', 'created_date']
+        fields = ['id', 'table', 'user', 'details', 'status_order', 'total', 'created_date', 'session_code']
         extra_kwargs = {
             'user': {'read_only': True},
             'total': {'read_only': True},
@@ -136,6 +140,36 @@ class OrderSerializer(serializers.ModelSerializer):
                 OrderDetail.objects.create(order=instance, **data)
 
         return instance
+
+    def validate(self, attrs):
+        session_code = attrs.pop('session_code')
+
+        session = DiningSession.objects.filter(
+            session_code=session_code,
+            status_session=Status_Session.OPEN
+        ).first()
+
+        if not session:
+            raise serializers.ValidationError(
+                'Session không hợp lệ'
+            )
+
+        attrs['session'] = session
+
+        return attrs
+
+    def create(self, validated_data):
+        details_data = validated_data.pop('details')
+
+        order = Order.objects.create(**validated_data)
+
+        for data in details_data:
+            OrderDetail.objects.create(
+                order=order,
+                **data
+            )
+
+        return order
 
 class TableSerializer(serializers.ModelSerializer):
     class Meta:
