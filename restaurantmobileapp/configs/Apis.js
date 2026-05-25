@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.95:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -30,7 +30,7 @@ export const endpoints = {
     'available_tables': '/reservations/available_tables/',
 
     // === REVIEWS ===
-    'current_review': '/reviews/current_review/',
+    'current_review': (id) => `/reviews/${id}/current_review/`,
     'review_detail': (id) => `/reviews/${id}/`,
 
     // === STATISTICS (Thống kê) ===
@@ -45,8 +45,8 @@ export const endpoints = {
     'approve_chef': (id) => `/users/${id}/approve/`,
 }
 
-export const CLIENT_ID = 'L3eugdz7Hbmtoz5NQS4foy2wE9YML1ekrnG3Wg6G';
-export const CLIENT_SECRET = 'vufr8kfJ8bbzVPH82x21KYgpdi03GYItM6hGqulql9rntYHIl0102wsfpBbeCLn2Ihdq4DoBixBcmIig1kxb4o6wPILwL4pVdm1U5SKu3DfVXzAU5Xm0BHOPawQH9ydu';
+export const CLIENT_ID = '9081sQec8FUDZVrWDSD3BK3eK82Uc8qCzEZNQeTZ';
+export const CLIENT_SECRET = 'nWErYbvMTTdbuQG47RVskEjxwwaJi8xmAdNLxjiLdVXeu1cddZuDx4w3nbKDOwL2Dyy4rAwRcGdKMuYTcn8yquHIlyg1sduoPrm9YZQVTw1VuwNRcbvDssAR35xsgnOR';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

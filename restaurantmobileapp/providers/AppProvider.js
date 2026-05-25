@@ -11,6 +11,7 @@ import CartReducer, { initialCart } from "../reducers/CartReducer";
 import UserReducer from "../reducers/UserReducer";
 
 import Apis, { endpoints, authApis } from "../configs/Apis";
+import TableContext from "../contexts/TableContext";
 
 export default function AppProvider({ children }) {
 
@@ -29,6 +30,10 @@ export default function AppProvider({ children }) {
         CartReducer,
         initialCart
     );
+
+    const [table, setTable] = useState(null);
+    const [tableSource, setTableSource] = useState(null);
+    const [reservationId, setReservationId] = useState(null);
 
     // ===== LOAD FOODS =====
 
@@ -101,6 +106,8 @@ export default function AppProvider({ children }) {
             console.log(err);
         }
     };
+
+
 
     // ===== APP START =====
 
@@ -187,6 +194,24 @@ export default function AppProvider({ children }) {
         await SecureStore.deleteItemAsync("cart");
     };
 
+    // ===== TABLE FUNCTIONS =====
+    const selectTable = (tableData, source = "walk_in") => {
+        setTable(tableData);
+        setTableSource(source);
+    };
+
+    const selectTableFromReservation = (tableData, resId) => {
+        setTable(tableData);
+        setTableSource("reservation");
+        setReservationId(resId);
+    };
+
+    const clearTable = () => {
+        setTable(null);
+        setTableSource(null);
+        setReservationId(null);
+    };
+
     return (
         <UserContext.Provider value={{
             user,
@@ -213,7 +238,18 @@ export default function AppProvider({ children }) {
                         clearCart
                     }}>
 
-                        {children}
+                        <TableContext.Provider value={{
+                            table,
+                            tableSource,
+                            reservationId,
+                            selectTable,
+                            selectTableFromReservation,
+                            clearTable,
+                        }}>
+
+                            {children}
+
+                        </TableContext.Provider>
 
                     </CartContext.Provider>
 
@@ -221,6 +257,6 @@ export default function AppProvider({ children }) {
 
             </FoodContext.Provider>
 
-        </UserContext.Provider>
+        </UserContext.Provider >
     );
 }
