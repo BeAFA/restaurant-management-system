@@ -114,23 +114,6 @@ export default function AppProvider({ children }) {
         }
     };
 
-    // ===== LOAD FOODS TO COMPARE =====
-
-    const loadFoodsToCompare = async () => {
-        try {
-            let data = await SecureStore.getItemAsync("foods_to_compare");
-
-            if (data)
-                dispatchFoodsToCompare({
-                    type: "LOAD_FOODS_TO_COMPARE",
-                    payload: JSON.parse(data)
-                });
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
-
     // ===== APP START =====
 
     useEffect(() => {
@@ -138,10 +121,6 @@ export default function AppProvider({ children }) {
         loadFoods();
 
         loadCategories();
-
-        loadUser();
-
-        loadCart();
 
     }, []);
 

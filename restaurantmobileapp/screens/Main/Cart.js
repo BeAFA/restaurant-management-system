@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { ActivityIndicator, FlatList, ScrollView, Text, View, TouchableOpacity } from "react-native";
-import Apis, { endpoints } from "../../configs/Apis";
+import Apis, { endpoints, authApis } from "../../configs/Apis";
 import { Card } from 'react-native-paper';
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from '@expo/vector-icons';
@@ -11,10 +11,10 @@ import UserContext from "../../contexts/UserContext";
 import SimpleFood from "../../components/SimpleFood";
 import TableContext from "../../contexts/TableContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as SecureStore from 'expo-secure-store';
 
 const Cart = () => {
     const { cart, dispatchCart, addToCart, clearCart, removeFromCart } = useContext(CartContext);
-    const [food, setFood] = useState([]);
     const navigation = useNavigation();
     const { user } = useContext(UserContext);
     const { table, tableSource, reservationId, clearTable } = useContext(TableContext);

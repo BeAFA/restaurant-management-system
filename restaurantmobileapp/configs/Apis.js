@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.160:8000/';
+const BASE_URL = 'http://192.168.1.170:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -10,7 +10,7 @@ export const endpoints = {
 
     // === FOODS ===
     'foods': '/foods/',
-    'foods_compare': '/foods/compare/',
+    'foods_compare': (ids) => `/foods/compare/?ids=${ids}`,
     'top_dishes': '/foods/top_dishes/',
     'food_detail': (foodId) => `/foods/${foodId}/`,
     'food_chefs': (id) => `/foods/${id}/chefs/`,
@@ -47,8 +47,8 @@ export const endpoints = {
     'approve_chef': (id) => `/users/${id}/approve/`,
 }
 
-export const CLIENT_ID = '9081sQec8FUDZVrWDSD3BK3eK82Uc8qCzEZNQeTZ';
-export const CLIENT_SECRET = 'nWErYbvMTTdbuQG47RVskEjxwwaJi8xmAdNLxjiLdVXeu1cddZuDx4w3nbKDOwL2Dyy4rAwRcGdKMuYTcn8yquHIlyg1sduoPrm9YZQVTw1VuwNRcbvDssAR35xsgnOR';
+export const CLIENT_ID = 'WwE2JnPwXto3RQL9prl7JpIr5ruMay6Wh7zSazmn';
+export const CLIENT_SECRET = 'uOPn4RoUMbFIzIg7s6t7Duj0idpwkz2ZnjUffI3aaoiwIZ6NvjtAxyeJQyuEKcr7NcQ7te8pAbsyThqDWS9We6aNpnVRv1wCYY1JVrRrZ31yZgP3mncVUTi4NgmaXafF';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

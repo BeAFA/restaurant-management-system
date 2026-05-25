@@ -10,6 +10,7 @@ import Reviews from "../../components/SimpleReviews";
 import UserContext from "../../contexts/UserContext";
 import TableContext from "../../contexts/TableContext";
 import FoodCompareContext from "../../contexts/FoodCompareContext";
+import * as SecureStore from "expo-secure-store";
 
 
 const formatPlainString = (htmlString) => {
@@ -197,7 +198,36 @@ const FoodDetail = ({ route }) => {
         addToCart(food);
     };
 
-    
+    const handleCompareFoods = async (food) => {
+        // ✅ Build ids từ context hiện tại + food mới (không gọi addFoodToCompare ở đây)
+        const existingIds = foodsToCompare.map(item => item.id);
+        const uniqueIds = [...new Set([...existingIds, food.id])];
+
+        if (uniqueIds.length < 2) {
+            // Lưu vào context để lần sau chọn thêm
+            addFoodToCompare(food);
+            Alert.alert("Thông báo", "Hãy chọn thêm ít nhất 1 món nữa để so sánh");
+            return;
+        }
+
+        try {
+            const idsParam = uniqueIds.join(",");
+            const res = await Apis.get(endpoints['foods_compare'](idsParam));
+
+            // ✅ Cập nhật context sau khi API thành công
+            addFoodToCompare(food);
+
+            navigation.navigate("food_compare", {
+                comparedFoods: res.data
+            });
+        } catch (error) {
+            Alert.alert(
+                "Lỗi",
+                error?.response?.data?.error || "Không thể so sánh món ăn"
+            );
+        }
+    };
+
 
     useEffect(() => {
         loadFood();
@@ -235,7 +265,7 @@ const FoodDetail = ({ route }) => {
                                 </TouchableOpacity>
 
                                 {user && (
-                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart")}>
+                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart_tab", { screen: "cart_index" })}>
                                         <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
                                         {cart.length > 0 && (
                                             <View style={{
@@ -283,7 +313,7 @@ const FoodDetail = ({ route }) => {
                                     contentContainerStyle={{ paddingBottom: 120 }}>
                                 </FlatList>
 
-                                <TouchableOpacity style={[Styles.compareButton, Styles.leftCompare]} onPress={() => navigation.navigate("food_compare", { foodId: foodsToCompare.id })}>
+                                <TouchableOpacity style={[Styles.compareButton, Styles.leftCompare]} onPress={() => handleCompareFoods(food)}>
                                     <Text style={Styles.compareButtonText}>So sánh món ăn</Text>
                                 </TouchableOpacity>
 
