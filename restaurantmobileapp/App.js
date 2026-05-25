@@ -12,6 +12,7 @@ import QRScanner from "./screens/Services/CameraTableSelection";
 import TableEntryScreen from "./screens/Services/TableEntryScreen";
 import TableSelectionWalkIn from "./screens/Services/TableSelectionWalkIn";
 import ReservationForm from "./screens/Services/Reservation";
+import FoodCompare from "./screens/Foods/FoodCompare";
 
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -66,11 +67,6 @@ const StackNavigator = () => (
             options={{ headerShown: false }}
         />
         <HomeStack.Screen
-            name="food_detail"
-            component={FoodDetail}
-            options={{ headerShown: false }}
-        />
-        <HomeStack.Screen
             name="cart"
             component={Cart}
             options={{ headerShown: false }}
@@ -97,9 +93,9 @@ const MenuStackNavigator = () => (
             options={{ headerShown: false }}
         />
         <MenuStack.Screen
-            name="cart"
-            component={Cart}
-            options={{ headerShown: false }}
+            name="food_compare"
+            component={FoodCompare}
+            options={{ headerShown: false, title: "So sánh món ăn" }}
         />
         {tableScreens(MenuStack)}
     </MenuStack.Navigator>
@@ -181,7 +177,7 @@ const TabNavigator = () => {
                 <>
                     <Tab.Screen
                         name="cart_tab"
-                        component={CartStackNavigator}       // dùng Stack, không phải Cart trực tiếp
+                        component={CartStackNavigator}
                         options={{
                             title: "Giỏ hàng",
                             tabBarIcon: () => <Icon source="cart" size={20} />,

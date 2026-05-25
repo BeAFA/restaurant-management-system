@@ -23,11 +23,13 @@ export const endpoints = {
     'order_cancel': (id) => `/orders/${id}/cancel/`,
     'order_payment': (id) => `/orders/${id}/payment/`,
 
+    // === TABLES ===
+    'tables': '/tables/',
+
     // === RESERVATIONS (Đặt bàn) ===
     'reservations': '/reservations/',
     'current_reservation': '/reservations/current_reservation/',
     'reservation_detail': (id) => `/reservations/${id}/`,
-    'available_tables': '/reservations/available_tables/',
 
     // === REVIEWS ===
     'current_review': (id) => `/reviews/${id}/current_review/`,
