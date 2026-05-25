@@ -233,7 +233,7 @@ class OrderDetail(BaseModel):
 class Review(BaseModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='reviews')
     food = models.ForeignKey(Food, on_delete=models.PROTECT, related_name='reviews')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, blank=True)
     rating = models.IntegerField(choices=Rating.choices, default=Rating.STAR_5)
 
     class Meta:
