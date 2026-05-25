@@ -80,15 +80,16 @@ class ChefApproveSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'user', 'food', 'comment', 'rating']
-        extra_kwargs = {'food': {'read_only': True},
-                        'user': {'read_only': True}}
+        fields = ['id', 'user', 'food', 'comment', 'rating', 'created_date']  # ✅ thêm created_date
+        extra_kwargs = {
+            'food': {'read_only': True},
+            'user': {'read_only': True},
+            'created_date': {'read_only': True},
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-
         data['user'] = UserAnonymousSerializer(instance.user).data
-
         return data
 
 

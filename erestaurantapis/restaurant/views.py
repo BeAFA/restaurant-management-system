@@ -71,13 +71,13 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
     @action(methods=['GET', 'POST'], url_path='reviews', detail=True)
     def get_reviews(self, request, pk):
         if self.request.method.__eq__('POST'):
+
             s = ReviewSerializer(data={
                 'comment': request.data.get('comment'),
                 'rating': request.data.get('rating'),
-                'food': self.get_object().pk
             })
             s.is_valid(raise_exception=True)
-            s.save(user=request.user)
+            s.save(user=request.user, food=self.get_object())
 
             return Response(s.data, status=status.HTTP_201_CREATED)
 
@@ -284,7 +284,7 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [perms.ReviewOwner]
 
-    @action(methods=['PATCH'], detail=False)
+    @action(methods=['PATCH'], detail=True)
     def current_review(self, request, pk):
         review = Review.objects.get(pk=pk)
         if request.method.__eq__('PATCH'):
