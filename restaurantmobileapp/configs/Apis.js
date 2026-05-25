@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.95:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -30,7 +30,7 @@ export const endpoints = {
     'available_tables': '/reservations/available_tables/',
 
     // === REVIEWS ===
-    'current_review': '/reviews/current_review/',
+    'current_review': (id) => `/reviews/${id}/current_review/`,
     'review_detail': (id) => `/reviews/${id}/`,
 
     // === STATISTICS (Thống kê) ===
