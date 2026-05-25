@@ -4,35 +4,27 @@ import {
     ActivityIndicator, Alert, Modal, ScrollView, Platform
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Apis, { authApis, endpoints } from "../../configs/Apis";
+import { authApis, endpoints } from "../../configs/Apis";
 import Style from './Style';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import UserContext from '../../contexts/UserContext';
 import TableContext from '../../contexts/TableContext';
-import CartContext from '../../contexts/CartContext';
 
 const Reservation = () => {
     const nav = useNavigation();
     const { user } = useContext(UserContext);
     const { selectTableFromReservation } = useContext(TableContext);
-    const { cart } = useContext(CartContext);
 
     const [loading, setLoading] = useState(true);
     const [currentBooking, setCurrentBooking] = useState(null);
 
     // ── Thời gian ──────────────────────────────────────────────────────────────
-    // serveTime: ngày + giờ đến (user chọn)
     const [serveTime, setServeTime] = useState(() => {
         const d = new Date();
         d.setSeconds(0, 0);
         return d;
     });
-
-    // endTime: tự động = serveTime + 30 phút (KHÔNG cho user chọn)
-    const getEndTime = (st) => new Date(st.getTime() + 30 * 60 * 1000);
-
-    // Hiển thị picker riêng cho date và time
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -44,22 +36,16 @@ const Reservation = () => {
 
     // ── Khởi tạo ───────────────────────────────────────────────────────────────
     useEffect(() => {
-        if (user) {
-            checkCurrentReservation();
-        } else {
-            setLoading(false);
-        }
+        if (user) checkCurrentReservation();
+        else setLoading(false);
     }, [user]);
 
     // ── API: Kiểm tra đặt bàn hiện tại ─────────────────────────────────────────
     const checkCurrentReservation = async () => {
         try {
-            const res = await Apis.get(endpoints['current_reservation']);
-            if (res.data && Object.keys(res.data).length > 0) {
-                setCurrentBooking(res.data);
-            } else {
-                setCurrentBooking(null);
-            }
+            const token = await SecureStore.getItemAsync('token');       // FIX: dùng authApis
+            const res = await authApis(token).get(endpoints['current_reservation']);
+            setCurrentBooking(res.data ?? null);
         } catch {
             setCurrentBooking(null);
         } finally {
@@ -69,43 +55,36 @@ const Reservation = () => {
 
     // ── API: Tải danh sách bàn trống ────────────────────────────────────────────
     const loadTables = async (start, quantity) => {
+        if (!quantity || Number(quantity) <= 0) { setAllTables([]); return; }
         try {
             const token = await SecureStore.getItemAsync('token');
-            const end = getEndTime(start);
-
-            const url =
-                `${endpoints['available_tables']}` +
-                `?serve_time=${start.toISOString()}&end_time=${end.toISOString()}`
-                    `&customer_quantity=${Number(quantity)}`;
-
-            console.log("👉 URL:", url);
-
-            const res = await authApis(token).get(url);
-            setAllTables(res.data.results || res.data);
+            const params = new URLSearchParams({
+                serve_time: start.toISOString(),
+                customer_quantity: Number(quantity),
+            });
+            const res = await authApis(token).get(`${endpoints['tables']}?${params}`);
+            setAllTables(res.data.results ?? res.data);
             setSelectedTable(null);
-
-        } catch (error) {
-            console.log("❌ Lỗi tải bàn:", error);
+        } catch (e) {
+            console.log('❌ Lỗi tải bàn:', e);
         }
     };
 
     // ── Xử lý chọn ngày ────────────────────────────────────────────────────────
     const onDateChange = (event, selected) => {
-        setShowDatePicker(Platform.OS === 'ios'); // iOS giữ picker; Android tự đóng
+        setShowDatePicker(Platform.OS === 'ios');
         if (event.type === 'dismissed' || !selected) return;
 
-        // Ghép ngày mới vào giờ hiện có của serveTime
         const updated = new Date(serveTime);
         updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
 
-        // Không cho chọn thời điểm trong quá khứ
         if (updated < new Date()) {
             Alert.alert("Lỗi thời gian", "Vui lòng chọn ngày trong tương lai.");
             return;
         }
 
         setServeTime(updated);
-        loadTables(updated, getEndTime(updated), customerQuantity);
+        loadTables(updated, customerQuantity);      // FIX: bỏ getEndTime
     };
 
     // ── Xử lý chọn giờ ─────────────────────────────────────────────────────────
@@ -113,7 +92,6 @@ const Reservation = () => {
         setShowTimePicker(Platform.OS === 'ios');
         if (event.type === 'dismissed' || !selected) return;
 
-        // Ghép giờ mới vào ngày hiện có của serveTime
         const updated = new Date(serveTime);
         updated.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
 
@@ -144,41 +122,32 @@ const Reservation = () => {
         setLoading(true);
         try {
             const token = await SecureStore.getItemAsync('token');
-            const endTime = getEndTime(serveTime);
-
             const payload = {
                 table: selectedTable.id,
                 customer_quantity: Number(customerQuantity),
                 serve_time: serveTime.toISOString(),
-                end_time: endTime.toISOString(),
+                // end_time không gửi — backend tự tính serve_time + 30p
             };
-
             const res = await authApis(token).post(endpoints['current_reservation'], payload);
             setCurrentBooking(res.data);
-
-            // ── Mới: lưu bàn vào TableContext ──────────────────────────────
             selectTableFromReservation(selectedTable, res.data.id);
-            // ───────────────────────────────────────────────────────────────
 
             Alert.alert(
-                "Đặt bàn thành công!",
-                `Bàn ${selectedTable.id} đã được giữ cho bạn.\nBạn có muốn vào gọi món ngay không?`,
+                "Đặt bàn thành công! 🎉",
+                `Bàn ${selectedTable.id} đã được giữ cho bạn.\nBạn có muốn gọi món ngay không?`,
                 [
-                    {
-                        text: "Để sau",
-                        style: "cancel",
-                    },
+                    { text: "Để sau", style: "cancel" },
                     {
                         text: "Gọi món ngay",
-                        onPress: () => nav.navigate("home", {        // chuyển sang HomeStack
-                            screen: "cart",
-                        }),
+                        onPress: () => nav.navigate("home", { screen: "cart" }),
                     },
                 ]
             );
-
         } catch (error) {
-            // ... giữ nguyên phần xử lý lỗi
+            const msg = error?.response?.data
+                ? Object.values(error.response.data).flat().join('\n')
+                : 'Đặt bàn thất bại. Vui lòng thử lại.';
+            Alert.alert("Lỗi", msg);
         } finally {
             setLoading(false);
         }
@@ -212,7 +181,7 @@ const Reservation = () => {
     const formatTime = (d) =>
         d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-    // ── Guards ──────────────────────────────────────────────────────────────────
+    // ── Guard: chưa đăng nhập ───────────────────────────────────────────────────
     if (!user) {
         return (
             <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -231,55 +200,46 @@ const Reservation = () => {
         <ActivityIndicator size="large" color="#FF6347" style={{ flex: 1, backgroundColor: '#FFF5E5' }} />
     );
 
+    // ── Guard: đã có đặt bàn ────────────────────────────────────────────────────
     if (currentBooking) {
-    return (
-        <View style={Style.container}>
-            <Text style={Style.headerTitle}>Vé Đặt Bàn Của Bạn</Text>
-            <View style={Style.ticketCard}>
-                <Text style={Style.infoText}>Bàn số: {currentBooking.table}</Text>
-                <Text style={Style.infoText}>Số khách: {currentBooking.customer_quantity} người</Text>
-                <Text style={Style.infoText}>
-                    Thời gian đến: {new Date(currentBooking.serve_time).toLocaleString('vi-VN')}
-                </Text>
-                <Text style={Style.infoText}>
-                    Kết thúc: {new Date(currentBooking.end_time).toLocaleString('vi-VN')}
-                </Text>
+        return (
+            <View style={Style.container}>
+                <Text style={Style.headerTitle}>Vé Đặt Bàn Của Bạn</Text>
+                <View style={Style.ticketCard}>
+                    <Text style={Style.infoText}>🪑 Bàn số: {currentBooking.table}</Text>
+                    <Text style={Style.infoText}>👥 Số khách: {currentBooking.customer_quantity} người</Text>
+                    <Text style={Style.infoText}>
+                        🕒 Thời gian đến: {new Date(currentBooking.serve_time).toLocaleString('vi-VN')}
+                    </Text>
 
-                {/* ── Mới: nút gọi món ── */}
-                <TouchableOpacity
-                    style={[Style.primaryButton, { marginTop: 12 }]}
-                    onPress={() => {
-                        selectTableFromReservation(
-                            { id: currentBooking.table },
-                            currentBooking.id
-                        );
-                        nav.navigate("home", { screen: "cart" });
-                    }}
-                >
-                    <Text style={Style.buttonLabel}>Gọi món ngay</Text>
-                </TouchableOpacity>
-                {/* ───────────────────── */}
+                    <TouchableOpacity
+                        style={[Style.primaryButton, { marginTop: 12 }]}
+                        onPress={() => {
+                            selectTableFromReservation({ id: currentBooking.table }, currentBooking.id);
+                            nav.navigate("home", { screen: "cart" });
+                        }}
+                    >
+                        <Text style={Style.buttonLabel}>Gọi món ngay</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={Style.cancelBtn} onPress={handleCancelReservation}>
-                    <Text style={Style.cancelBtnText}>Hủy Đặt Bàn</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={Style.cancelBtn} onPress={handleCancelReservation}>
+                        <Text style={Style.cancelBtnText}>Hủy Đặt Bàn</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
-    );
-}
+        );
+    }
 
+    // ── Màn hình đặt bàn mới ────────────────────────────────────────────────────
     const qty = parseInt(customerQuantity) || 0;
-    const filteredTables = allTables.filter(t => t.slot >= qty);
-    const endTime = getEndTime(serveTime);
 
-    // ── Màn hình chính ─────────────────────────────────────────────────────────
     return (
         <ScrollView style={Style.container} showsVerticalScrollIndicator={false}>
             <Text style={Style.headerTitle}>Đặt Bàn Mới</Text>
 
             <View style={Style.formContainer}>
 
-                {/* ── Chọn ngày ── */}
+                {/* Chọn ngày */}
                 <Text style={Style.label}>Chọn ngày:</Text>
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} style={Style.input}>
                     <Text>{formatDate(serveTime)}</Text>
@@ -294,7 +254,7 @@ const Reservation = () => {
                     />
                 )}
 
-                {/* ── Chọn giờ đến ── */}
+                {/* Chọn giờ đến */}
                 <Text style={Style.label}>Chọn giờ đến:</Text>
                 <TouchableOpacity onPress={() => setShowTimePicker(true)} style={Style.input}>
                     <Text>{formatTime(serveTime)}</Text>
@@ -308,16 +268,7 @@ const Reservation = () => {
                     />
                 )}
 
-                {/* ── Hiển thị giờ kết thúc (tự động) ── */}
-                <Text style={Style.label}>Giờ kết thúc (tự động):</Text>
-                <View style={[Style.input, { backgroundColor: '#f0f0f0' }]}>
-                    <Text style={{ color: '#888' }}>
-                        {formatTime(endTime)}{'  '}
-                        <Text style={{ fontSize: 12, color: '#aaa' }}>(+30 phút)</Text>
-                    </Text>
-                </View>
-
-                {/* ── Số lượng khách ── */}
+                {/* Số lượng khách */}
                 <Text style={Style.label}>Số lượng khách:</Text>
                 <TextInput
                     style={Style.input}
@@ -331,26 +282,23 @@ const Reservation = () => {
                     }}
                 />
 
-                {/* ── Danh sách bàn ── */}
+                {/* Danh sách bàn — chỉ hiện khi đã nhập số khách */}
                 {qty > 0 && (
                     <>
                         <Text style={Style.label}>Chọn bàn trống:</Text>
-                        {filteredTables.length === 0 ? (
+                        {allTables.length === 0 ? (
                             <Text style={{ color: 'red', fontStyle: 'italic', marginBottom: 15 }}>
-                                Không có bàn nào đủ sức chứa cho {qty} người.
+                                Không có bàn trống phù hợp cho {qty} người vào khung giờ này.
                             </Text>
                         ) : (
                             <View style={Style.tableGrid}>
-                                {filteredTables.map((table) => {
-                                    const isAvailable = table.status_table === 'AVAILABLE';
+                                {allTables.map((table) => {
                                     const isSelected = selectedTable?.id === table.id;
                                     return (
                                         <TouchableOpacity
                                             key={table.id}
-                                            disabled={!isAvailable}
                                             style={[
                                                 Style.tableBtn,
-                                                !isAvailable && Style.tableBtnDisabled,
                                                 isSelected && Style.tableBtnSelected,
                                             ]}
                                             onPress={() => setSelectedTable(table)}
@@ -359,9 +307,6 @@ const Reservation = () => {
                                                 Bàn {table.id}
                                             </Text>
                                             <Text style={Style.tableSubText}>{table.slot} chỗ</Text>
-                                            {!isAvailable && (
-                                                <Text style={Style.tableStatusText}>(Đã đặt)</Text>
-                                            )}
                                         </TouchableOpacity>
                                     );
                                 })}
@@ -379,7 +324,7 @@ const Reservation = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* ── Modal Xác Nhận ── */}
+            {/* Modal Xác Nhận */}
             <Modal visible={showConfirmModal} transparent animationType="fade">
                 <View style={Style.modalOverlay}>
                     <View style={Style.modalContent}>
@@ -396,12 +341,12 @@ const Reservation = () => {
                                 🕒 Đến lúc: <Text style={{ fontWeight: 'bold' }}>{serveTime.toLocaleString('vi-VN')}</Text>
                             </Text>
                             <Text style={Style.summaryText}>
-                                ⏱ Kết thúc: <Text style={{ fontWeight: 'bold' }}>{endTime.toLocaleString('vi-VN')}</Text>
+                                ⏱ Thời lượng: <Text style={{ fontWeight: 'bold' }}>30 phút</Text>
                             </Text>
                         </View>
 
                         <Text style={Style.warningText}>
-                            Lưu ý: Bàn sẽ được giữ trong 15 phút kể từ giờ nhận bàn.
+                            Lưu ý: Bàn sẽ được giữ trong 30 phút kể từ giờ nhận bàn.
                         </Text>
 
                         <View style={Style.modalActionRow}>

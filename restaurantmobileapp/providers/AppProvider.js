@@ -6,12 +6,15 @@ import UserContext from "../contexts/UserContext";
 import FoodContext from "../contexts/FoodContext";
 import CategoryContext from "../contexts/CategoryContext";
 import CartContext from "../contexts/CartContext";
+import FoodCompareContext from "../contexts/FoodCompareContext";
 
 import CartReducer, { initialCart } from "../reducers/CartReducer";
 import UserReducer from "../reducers/UserReducer";
+import FoodCompareReducer, { initialFoodsToCompare } from "../reducers/FoodCompareReducer";
 
 import Apis, { endpoints, authApis } from "../configs/Apis";
 import TableContext from "../contexts/TableContext";
+import { Alert } from "react-native";
 
 export default function AppProvider({ children }) {
 
@@ -34,6 +37,10 @@ export default function AppProvider({ children }) {
     const [table, setTable] = useState(null);
     const [tableSource, setTableSource] = useState(null);
     const [reservationId, setReservationId] = useState(null);
+    const [foodsToCompare, dispatchFoodsToCompare] = useReducer(
+        FoodCompareReducer,
+        initialFoodsToCompare
+    );
 
     // ===== LOAD FOODS =====
 
@@ -107,6 +114,21 @@ export default function AppProvider({ children }) {
         }
     };
 
+    // ===== LOAD FOODS TO COMPARE =====
+
+    const loadFoodsToCompare = async () => {
+        try {
+            let data = await SecureStore.getItemAsync("foods_to_compare");
+
+            if (data)
+                dispatchFoodsToCompare({
+                    type: "LOAD_FOODS_TO_COMPARE",
+                    payload: JSON.parse(data)
+                });
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
 
     // ===== APP START =====
@@ -194,6 +216,36 @@ export default function AppProvider({ children }) {
         await SecureStore.deleteItemAsync("cart");
     };
 
+    // ===== FOOD COMPARE FUNCTIONS =====
+    const addFoodToCompare = async (food) => {
+        if (foodsToCompare.length >= 3) {
+            Alert.alert("Thông báo", "Bạn chỉ có thể so sánh tối đa 3 món ăn. Vui lòng xóa danh sách so sánh để thêm món mới.");
+            return;
+        }
+        if (foodsToCompare.find(item => item.id === food.id)) {
+            Alert.alert("Thông báo", "Món ăn này đã có trong danh sách so sánh.");
+            return;
+        }
+        dispatchFoodsToCompare({
+            type: "ADD_FOOD_TO_COMPARE",
+            payload: food
+        });
+    };
+
+    const removeFromFoodsToCompare = async (foodId) => {
+        dispatchFoodsToCompare({
+            type: "REMOVE_FOOD_FROM_COMPARE",
+            payload: foodId
+        });
+    };
+
+    const clearFoodsToCompare = async () => {
+        dispatchFoodsToCompare({
+            type: "CLEAR_FOODS_TO_COMPARE"
+        });
+    };
+
+
     // ===== TABLE FUNCTIONS =====
     const selectTable = (tableData, source = "walk_in") => {
         setTable(tableData);
@@ -213,50 +265,58 @@ export default function AppProvider({ children }) {
     };
 
     return (
-        <UserContext.Provider value={{
-            user,
-            dispatchUser,
-            login,
-            logout
+        <FoodCompareContext.Provider value={{
+            foodsToCompare,
+            dispatchFoodsToCompare,
+            addFoodToCompare,
+            removeFromFoodsToCompare,
+            clearFoodsToCompare
         }}>
-
-            <FoodContext.Provider value={{
-                foods,
-                setFoods
+            <UserContext.Provider value={{
+                user,
+                dispatchUser,
+                login,
+                logout
             }}>
 
-                <CategoryContext.Provider value={{
-                    categories,
-                    setCategories
+                <FoodContext.Provider value={{
+                    foods,
+                    setFoods
                 }}>
 
-                    <CartContext.Provider value={{
-                        cart,
-                        dispatchCart,
-                        addToCart,
-                        removeFromCart,
-                        clearCart
+                    <CategoryContext.Provider value={{
+                        categories,
+                        setCategories
                     }}>
 
-                        <TableContext.Provider value={{
-                            table,
-                            tableSource,
-                            reservationId,
-                            selectTable,
-                            selectTableFromReservation,
-                            clearTable,
+                        <CartContext.Provider value={{
+                            cart,
+                            dispatchCart,
+                            addToCart,
+                            removeFromCart,
+                            clearCart
                         }}>
 
-                            {children}
+                            <TableContext.Provider value={{
+                                table,
+                                tableSource,
+                                reservationId,
+                                selectTable,
+                                selectTableFromReservation,
+                                clearTable,
+                            }}>
 
-                        </TableContext.Provider>
+                                {children}
 
-                    </CartContext.Provider>
+                            </TableContext.Provider>
 
-                </CategoryContext.Provider>
+                        </CartContext.Provider>
 
-            </FoodContext.Provider>
+                    </CategoryContext.Provider>
 
-        </UserContext.Provider >
+                </FoodContext.Provider>
+
+            </UserContext.Provider >
+        </FoodCompareContext.Provider>
     );
 }

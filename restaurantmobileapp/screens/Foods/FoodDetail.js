@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { ActivityIndicator, FlatList, ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, Text, View, TouchableOpacity, Modal, Alert } from "react-native";
 import Apis, { endpoints } from "../../configs/Apis";
 import { Card } from 'react-native-paper';
 import { useNavigation } from "@react-navigation/native";
@@ -9,6 +9,7 @@ import CartContext from "../../contexts/CartContext";
 import Reviews from "../../components/SimpleReviews";
 import UserContext from "../../contexts/UserContext";
 import TableContext from "../../contexts/TableContext";
+import FoodCompareContext from "../../contexts/FoodCompareContext";
 
 
 const formatPlainString = (htmlString) => {
@@ -17,7 +18,8 @@ const formatPlainString = (htmlString) => {
 };
 
 const FoodDetail = ({ route }) => {
-    const { cart, dispatchCart, addToCart, clearCart } = useContext(CartContext);
+    const { cart, addToCart } = useContext(CartContext);
+    const { foodsToCompare, addFoodToCompare } = useContext(FoodCompareContext);
     const { foodId } = route.params;
     const [food, setFood] = useState(null);
     const [reviews, setReviews] = useState([]);
@@ -62,6 +64,8 @@ const FoodDetail = ({ route }) => {
 
         addToCart(food);
     };
+
+    
 
     useEffect(() => {
         loadFood();
@@ -137,6 +141,19 @@ const FoodDetail = ({ route }) => {
                                     {formatPlainString(food.description)}
                                 </Text>
 
+                                <Text style={Styles.title}>Nguyên liệu:</Text>
+                                <FlatList
+                                    data={food.ingredients}
+                                    keyExtractor={(item) => item.id.toString()}
+                                    renderItem={({ item }) =>
+                                        <Text item={item}>{formatPlainString(item.name)}</Text>}
+                                    showsVerticalScrollIndicator={true}
+                                    contentContainerStyle={{ paddingBottom: 120 }}>
+                                </FlatList>
+
+                                <TouchableOpacity style={[Styles.compareButton, Styles.leftCompare]} onPress={() => navigation.navigate("food_compare", { foodId: foodsToCompare.id })}>
+                                    <Text style={Styles.compareButtonText}>So sánh món ăn</Text>
+                                </TouchableOpacity>
 
                             </View>
                             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, paddingHorizontal: 20, marginTop: 10 }}>
