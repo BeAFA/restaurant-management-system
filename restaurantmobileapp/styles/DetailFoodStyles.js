@@ -86,6 +86,26 @@ export default StyleSheet.create({
         lineHeight: 22,
         letterSpacing: 0.2,
     },
+
+    // Compare Button
+    compareButton: {
+        backgroundColor: '#0E7468',
+        padding: 8,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3, // Tạo bóng đổ trên Android
+        shadowColor: '#000', // Tạo bóng đổ trên iOS
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    leftCompare: {
+        marginTop: 20,
+        left: 20,
+    },
+
+
     // Thanh mua hàng cố định ở dưới cùng (Bottom Bar)
     bottomBar: {
         position: 'absolute',

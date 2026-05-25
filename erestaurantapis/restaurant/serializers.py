@@ -19,6 +19,12 @@ class FoodIllustrationSerializer(serializers.ModelSerializer):
 
         return data
 
+class FoodIngredientSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='ingredients.name', read_only=True)
+
+    class Meta:
+        model = FoodIngredient
+        fields = ['id', 'name']
 
 class FoodSerializer(FoodIllustrationSerializer):
     avg_rating = serializers.FloatField(read_only=True)
@@ -30,10 +36,11 @@ class FoodSerializer(FoodIllustrationSerializer):
 
 class FoodDetailSerializer(FoodSerializer):
     category = CategorySerializer()
+    ingredients = FoodIngredientSerializer(read_only=True, many=True, source='food_ingredients')
 
     class Meta:
         model = FoodSerializer.Meta.model
-        fields = FoodSerializer.Meta.fields + ['description', 'category']
+        fields = FoodSerializer.Meta.fields + ['description', 'category', 'ingredients']
 
 
 class UserAnonymousSerializer(serializers.ModelSerializer):
@@ -180,9 +187,10 @@ class TableSerializer(serializers.ModelSerializer):
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
-        fields = ['user', 'table', 'serve_time', 'end_time', 'customer_quantity']
+        fields = ['id', 'user', 'table', 'serve_time', 'end_time', 'customer_quantity', 'status_reservation']
         extra_kwargs = {'user': {'read_only': True},
-                        'end_time': {'read_only': True}}
+                        'end_time': {'read_only': True},
+                        'status_reservation': {'read_only': True},}
 
 
 class FoodChefSerializer(serializers.ModelSerializer):
@@ -197,14 +205,6 @@ class FoodChefSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodChef
         fields = ['id', 'food', 'chef', 'chef_id']
-
-
-class FoodIngredientSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='ingredients.name', read_only=True)
-
-    class Meta:
-        model = FoodIngredient
-        fields = ['id', 'name']
 
 
 class FoodComparisonSerializer(serializers.ModelSerializer):

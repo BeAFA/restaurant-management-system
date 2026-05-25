@@ -70,7 +70,7 @@ const TableEntryScreen = () => {
             </View>
 
             {/* QR */}
-            <TouchableOpacity style={[styles.card, styles.qrCard]} onPress={() => navigation.navigate("QRScanner")}>
+            <TouchableOpacity style={[styles.card, styles.qrCard]} onPress={() => navigation.navigate("camera_table_selection")}>
                 <View style={[styles.iconBox, styles.orangeIcon]}>
                     <MaterialIcons name="qr-code-scanner" size={28} color="#D28A22" />
                 </View>

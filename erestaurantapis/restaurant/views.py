@@ -410,20 +410,27 @@ class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = TableSerializer
 
     def get_queryset(self):
-        queryset = Table.objects.filter(status_table='AVAILABLE')
+        queryset = Table.objects.filter(status_table=Status_Table.AVAILABLE)
         start_str = self.request.query_params.get('serve_time')
-        end_str = self.request.query_params.get('end_time')
+        qty = self.request.query_params.get('customer_quantity')
 
-        if start_str and end_str:
+        if start_str:
             start = parse_datetime(start_str)
-            end = parse_datetime(end_str)
-            if start and end:
-                # Logic overlap: Bàn bị bận nếu (Lịch cũ bắt đầu < Kết thúc mới) AND (Lịch cũ kết thúc > Bắt đầu mới)
-                busy_table_ids = Reservation.objects.filter(
+            if start:
+                end = start + timedelta(minutes=30)  # luôn tự tính, không nhận end_time từ client
+                busy_ids = Reservation.objects.filter(
+                    active=True,
                     serve_time__lt=end,
                     end_time__gt=start
                 ).values_list('table_id', flat=True)
-                queryset = queryset.exclude(id__in=busy_table_ids)
+                queryset = queryset.exclude(id__in=busy_ids)
+
+        if qty:
+            try:
+                queryset = queryset.filter(slot__gte=int(qty))
+            except ValueError:
+                pass
+
         return queryset
 
 
@@ -469,58 +476,6 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
             # GET
         return Response(
             ReservationSerializer(reservation).data,
-            status=status.HTTP_200_OK
-        )
-
-    @action(
-        methods=['GET'],
-        detail=False,
-        url_path='available_tables',
-        permission_classes=[permissions.IsAuthenticated]
-    )
-    def available_tables(self, request):
-        start_str = request.query_params.get('serve_time')
-        end_str = request.query_params.get('end_time')
-        customer_quantity = request.query_params.get('customer_quantity')
-
-        if not start_str or not end_str:
-            return Response(
-                {'error': 'Thiếu serve_time hoặc end_time'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        start = parse_datetime(start_str)
-        end = parse_datetime(end_str)
-
-        if not start or not end:
-            return Response(
-                {'error': 'Datetime không hợp lệ'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        queryset = Table.objects.filter(
-            status_table=Status_Table.AVAILABLE
-        )
-
-        # Filter sức chứa
-        if customer_quantity:
-            queryset = queryset.filter(
-                slot__gte=int(customer_quantity)
-            )
-
-        # Các bàn bị trùng lịch
-        busy_table_ids = Reservation.objects.filter(
-            active=True,
-            serve_time__lt=end,
-            end_time__gt=start
-        ).values_list('table_id', flat=True)
-
-        tables = queryset.exclude(
-            id__in=busy_table_ids
-        )
-
-        return Response(
-            TableSerializer(tables, many=True).data,
             status=status.HTTP_200_OK
         )
 
