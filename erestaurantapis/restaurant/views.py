@@ -201,18 +201,18 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         foods = foods_active.select_related(
             'category'
         ).prefetch_related(
-            'food_ingredients__ingredient'
+            'food_ingredients__ingredients'
         ).annotate(
             avg_rating=Avg('reviews__rating'),
             review_count=Count('reviews', distinct=True)
         )
 
-        categories = foods.values_list('category_id', flat=True).distinct()
-        if categories.count() > 1:
-            return Response(
-                {'error': 'Chỉ có thể so sánh các món ăn cùng danh mục!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # categories = foods.values_list('category_id', flat=True).distinct()
+        # if categories.count() > 1:
+        #     return Response(
+        #         {'error': 'Chỉ có thể so sánh các món ăn cùng danh mục!'},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
         return Response(
             FoodComparisonSerializer(foods, many=True).data,
@@ -619,7 +619,7 @@ class StatisticViewSet(viewsets.ViewSet):
         ).values('period').annotate(
             total_revenue=Sum('total'),
             order_count=Count('id')
-        ).order_by('period')
+        ).odrer_by('period')
 
         # Top 10 món ăn được đặt nhiều nhất
         top_foods = OrderDetail.objects.filter(

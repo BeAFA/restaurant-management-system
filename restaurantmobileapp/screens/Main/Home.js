@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Apis, { endpoints } from "../../configs/Apis";
 import { List, Searchbar } from "react-native-paper";
@@ -8,9 +8,11 @@ import { useNavigation } from "@react-navigation/native";
 import SimpleFood from "../../components/SimpleFood";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Style from "./Style";
+import CategoryContext from "../../contexts/CategoryContext";
+import FoodContext from "../../contexts/FoodContext";
 
 const Home = () => {
-    const [categories, setCategories] = useState([]);
+    const { categories } = useContext(CategoryContext)
     const [topDishes, setTopDishes] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation();
@@ -19,11 +21,7 @@ const Home = () => {
         try {
             setLoading(true);
 
-            const [resCategories, resTopDishes] = await Promise.all([
-                Apis.get(endpoints['categories']),
-                Apis.get(endpoints['top_dishes'])
-            ]);
-            setCategories(resCategories.data);
+            const resTopDishes = await Apis.get(endpoints['top_dishes']);
             setTopDishes(resTopDishes.data);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu", error);

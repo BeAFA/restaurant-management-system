@@ -9,7 +9,7 @@ const TableSelection = () => {
 
     const handleSelectTable = (table) => {
         selectTable(table);
-        navigation.navigate("cart");
+        navigation.navigate("cart_tab", { screen: "cart_index" });
     };
 
     return (

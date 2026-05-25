@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.160:8000/';
+const BASE_URL = 'http://192.168.1.170:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -10,7 +10,7 @@ export const endpoints = {
 
     // === FOODS ===
     'foods': '/foods/',
-    'foods_compare': '/foods/compare/',
+    'foods_compare': (ids) => `/foods/compare/?ids=${ids}`,
     'top_dishes': '/foods/top_dishes/',
     'food_detail': (foodId) => `/foods/${foodId}/`,
     'food_chefs': (id) => `/foods/${id}/chefs/`,
