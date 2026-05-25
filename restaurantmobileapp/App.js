@@ -39,17 +39,17 @@ const tableScreens = (Stack) => (
         <Stack.Screen
             name="table_entry"
             component={TableEntryScreen}
-            options={{ headerShown: false, title: "Chọn hình thức" }}
+            options={{ title: "Chọn hình thức" }}
         />
         <Stack.Screen
             name="table_selection_walkin"
             component={TableSelectionWalkIn}
-            options={{ headerShown: false, title: "Chọn bàn" }}
+            options={{  title: "Chọn bàn" }}
         />
         <Stack.Screen
             name="reservation_form"
             component={ReservationForm}
-            options={{ headerShown: false, title: "Đặt bàn trước" }}
+            options={{  title: "Đặt bàn trước" }}
         />
         <Stack.Screen
             name="camera_table_selection"
