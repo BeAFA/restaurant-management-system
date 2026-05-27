@@ -61,26 +61,43 @@ CLIENT_SECRET_REMOVED
             const currentUser = await authApis(res.data.access_token)
                 .get(endpoints['current_user']);
 
+            console.log("Toàn bộ thông tin user:", currentUser.data);
+            console.log("Vai trò của người đăng nhập là:", currentUser.data.user_role);
+
+            // (Tùy chọn) Bạn có thể dùng if-else ở đây nếu muốn hiển thị thông báo chào mừng riêng
+            if (currentUser.data.user_role === 'ADMIN') {
+                console.log("Xin chào Quản trị viên!");
+                // alert("Chào mừng sếp đã quay lại!");
+            } else if (currentUser.data.user_role === 'CHEF') {
+                console.log("Xin chào Đầu bếp!");
+            } else {
+                console.log("Xin chào Khách hàng!");
+            }
+
             dispatchUser({
                 type: 'LOGIN',
                 payload: currentUser.data,
             });
 
+            
+
+
+
             // nav.navigate('home');
 
         } catch (ex) {
             if (ex.response) {
-            console.log("LỖI SERVER - STATUS:", ex.response.status);
-            console.log("LỖI SERVER - DATA:", JSON.stringify(ex.response.data));
-        } else if (ex.request) {
-            console.log("LỖI NETWORK - Không nhận được response");
-            console.log("LỖI NETWORK - Message:", ex.message);
-            console.log("LỖI NETWORK - Request:", JSON.stringify(ex.request));
-            setErr("Không kết nối được server!");
-        } else {
-            console.log("LỖI CODE:", ex.message);
-            setErr("Lỗi ứng dụng: " + ex.message);
-        }
+                console.log("LỖI SERVER - STATUS:", ex.response.status);
+                console.log("LỖI SERVER - DATA:", JSON.stringify(ex.response.data));
+            } else if (ex.request) {
+                console.log("LỖI NETWORK - Không nhận được response");
+                console.log("LỖI NETWORK - Message:", ex.message);
+                console.log("LỖI NETWORK - Request:", JSON.stringify(ex.request));
+                setErr("Không kết nối được server!");
+            } else {
+                console.log("LỖI CODE:", ex.message);
+                setErr("Lỗi ứng dụng: " + ex.message);
+            }
         } finally {
             setLoading(false);
         }

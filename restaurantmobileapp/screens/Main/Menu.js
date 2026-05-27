@@ -65,7 +65,6 @@ const Menu = () => {
         return () => clearTimeout(timer);
     }, [searchQuery, activeCategory.id, page]);
 
-    // 5. Hàm gọi API chính (Tương tự code mẫu của bạn)
     const loadFoods = async () => {
         try {
             setLoading(true);
@@ -80,7 +79,6 @@ const Menu = () => {
 
 
 
-            // In ra log để tự kiểm tra xem URL đã nối chuẩn chưa
             console.log("URL gọi API:", url);
 
             const res = await Apis.get(url, {
