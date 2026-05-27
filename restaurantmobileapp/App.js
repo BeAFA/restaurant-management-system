@@ -27,6 +27,8 @@ import AppProvider from "./providers/AppProvider";
 
 import UserContext from "./contexts/UserContext";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import CreateFood from "./screens/User/Chef/CreateFood";
+import StatisticChef from "./screens/User/Chef/StatisticChef";
 
 
 const HomeStack = createNativeStackNavigator();
@@ -159,6 +161,22 @@ const TabNavigator = () => {
                 options={{
                     title: "Thực đơn",
                     tabBarIcon: () => <Icon source="menu" size={20} />,
+                }}
+            />
+            {/* <Tab.Screen
+                name="create_food"
+                component={CreateFood}
+                options={{
+                    title: "Tạo món ăn",
+                    tabBarIcon: () => <Icon source="plus" size={20} />,
+                }}
+            /> */}
+            <Tab.Screen
+                name="statistic_chef"
+                component={StatisticChef}
+                options={{
+                    title: "Thống kê",
+                    tabBarIcon: () => <Icon source="chart-bar" size={20} />,
                 }}
             />
 
