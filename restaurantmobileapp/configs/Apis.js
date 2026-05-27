@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.170:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -45,10 +45,18 @@ export const endpoints = {
     'current_user': '/users/current_user/',
     'pending_chefs': '/users/pending_chefs/',
     'approve_chef': (id) => `/users/${id}/approve/`,
+
+    // ADMIN
+    // THÊM 3 API MỚI VÀO ĐÂY:
+    'admin_stats': '/statistics/admin_stats/',
+    'chef_stats': '/statistics/chef_stats/',
+    
+    // Dùng arrow function để truyền ID linh hoạt vào URL
+    'check_in': (id) => `/statistics/${id}/check_in/`,
 }
 
-export const CLIENT_ID = 'WwE2JnPwXto3RQL9prl7JpIr5ruMay6Wh7zSazmn';
-export const CLIENT_SECRET = 'uOPn4RoUMbFIzIg7s6t7Duj0idpwkz2ZnjUffI3aaoiwIZ6NvjtAxyeJQyuEKcr7NcQ7te8pAbsyThqDWS9We6aNpnVRv1wCYY1JVrRrZ31yZgP3mncVUTi4NgmaXafF';
+export const CLIENT_ID = '7gLtcXlozWN7XFxk8R5W6uxqV1NlACMIxsMy9gxb';
+export const CLIENT_SECRET = 'Ffv3NFrWkr6ftLzPJCJZqY9yL2myke1WGKIgOSTNRCCxrcMky0sB9bU0owgPPN4RPI3xh0vZgVPESJ9697hPmQXm22AbqCBov7Arv6c3QIJnnkvQ8jwEMvq3zrhhP10v';
 
 const Apis = axios.create({
     baseURL: BASE_URL,
