@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';;
 import Apis, { endpoints } from "../../configs/Apis";
@@ -7,6 +7,7 @@ import Style from "./Style";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Header from "../../components/Header";
 import SimpleFood from "../../components/SimpleFood";
+import { SelectList } from 'react-native-dropdown-select-list'
 
 const Menu = () => {
     const [categories, setCategories] = useState([]);
@@ -18,6 +19,7 @@ const Menu = () => {
     const [page, setPage] = useState(1); // Thêm State quản lý trang
     const [showFilter, setShowFilter] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [chefs, setChefs] = useState([]);
 
     // State cho Bộ lọc
     const [minPrice, setMinPrice] = useState('');
@@ -25,6 +27,7 @@ const Menu = () => {
     const [maxTime, setMaxTime] = useState(''); // Ví dụ: '15', '30'
     const [minRating, setMinRating] = useState('');
     const [appliedFilters, setAppliedFilters] = useState({ min: '', max: '', time: '', rating: '' });
+    const [chefSelected, setChefSelected] = React.useState("");//Chọn đầu bếp
 
     const nav = useNavigation();
 
@@ -50,7 +53,7 @@ const Menu = () => {
         setPage(1);
         setHasMore(true);
         setFoods([]);
-    }, [searchQuery, activeCategory.id]);
+    }, [searchQuery, activeCategory.id, chefSelected]);
 
     // 4. Kỹ thuật Debounce & Theo dõi thay đổi
     useEffect(() => {
@@ -63,7 +66,7 @@ const Menu = () => {
 
         // Clear timeout nếu người dùng gõ ký tự mới trong khoảng 500ms
         return () => clearTimeout(timer);
-    }, [searchQuery, activeCategory.id, page]);
+    }, [searchQuery, activeCategory.id, page, chefSelected]);
 
     // 5. Hàm gọi API chính (Tương tự code mẫu của bạn)
     const loadFoods = async () => {
@@ -87,6 +90,7 @@ const Menu = () => {
                 params: {
                     page: page,
                     q: searchQuery,
+                    chef_id: chefSelected,
                 }
             });
 
@@ -135,12 +139,35 @@ const Menu = () => {
         }
     };
 
+    useEffect(() => {
+        const loadChefs = async () => {
+            try {
+                const res = await Apis.get(endpoints['chef_list']);
+
+                const chefOptions = [
+                    { key: '', value: 'Tất cả đầu bếp' },
+                    ...res.data.map(item => ({
+                        key: item.id.toString(),
+                        value: item.name
+                    }))
+                ];
+
+                setChefs(chefOptions);
+
+            } catch (ex) {
+                console.log("Lỗi load chefs:", ex);
+            }
+        };
+
+        loadChefs();
+    }, []);
+
     const getFilteredFoods = () => {
         return foods.filter(item => {
             const price = parseFloat(item.price);
             const time = parseInt(item.time, 10);
             const rating = Number(item.avg_rating ?? 0);
-            
+
 
             // Dùng appliedFilters thay cho các state rời rạc
             if (appliedFilters.min !== '') {
@@ -152,13 +179,14 @@ const Menu = () => {
             if (appliedFilters.time !== '') {
                 if (time > parseInt(appliedFilters.time, 10)) return false;
             }
-            if(appliedFilters.rating !== '') {
-                if(rating < parseFloat(appliedFilters.rating)) return false;
+            if (appliedFilters.rating !== '') {
+                if (rating < parseFloat(appliedFilters.rating)) return false;
             }
 
             return true;
         });
     };
+
 
     const applyFilters = () => {
         const min = parseFloat(minPrice);
@@ -335,6 +363,16 @@ const Menu = () => {
                                 </TouchableOpacity>
                             ))}
                         </View>
+
+                        <Text style={Style.filterLabel}>Đầu bếp</Text>
+
+                        <SelectList
+                            setSelected={(val) => setChefSelected(val)}
+                            data={chefs}
+                            save="key"
+                            placeholder="Chọn đầu bếp"
+                            search={false}
+                        />
 
                         {/* Mục 3: Nút hành động */}
                         <View style={Style.actionRow}>
