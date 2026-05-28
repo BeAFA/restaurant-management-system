@@ -7,6 +7,8 @@ import Cart from "./screens/Main/Cart";
 import Menu from "./screens/Main/Menu";
 import ReservationForm from "./screens/Services/Reservation"; // Gộp dòng import trùng
 import Account from "./screens/User/Account";
+import AccountSettings from "./screens/User/AccountSetting";
+import ChangePassword from "./screens/User/PasswordSetting";
 import TableSelection from "./screens/Services/TableSelection";
 // import QRScanner from "./screens/Services/CameraTableSelection";
 import TableEntryScreen from "./screens/Services/TableEntryScreen";
@@ -16,6 +18,9 @@ import Dashboard from "./screens/Admin/Dashboard";
 import CheckIn from "./screens/Admin/Checkin";
 import ChefDashboard from "./screens/Admin/ChefDashboard";
 import AdminManage from "./screens/Admin/AdminManage";
+import OrderHistory from "./screens/User/OrderHistory";
+import ChefManageFoods from "./screens/User/Chef/ChefManageFoods";
+import UpdateFood from "./screens/User/Chef/UpdateFood";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -87,7 +92,15 @@ const AccountStackNavigator = () => (
     </Stack.Navigator>
 );
 
-// 2. TẠO TAB NAVIGATOR (Chỉ quản lý thanh điều hướng bên dưới)
+const ProfileStackNavigator = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="profile_index" component={Profile} />
+        <Stack.Screen name="account_settings" component={AccountSettings} options={{ headerShown: true, title: "Cài đặt tài khoản" }} />
+        <Stack.Screen name="change_password" component={ChangePassword} options={{ headerShown: true, title: "Đổi mật khẩu" }} />
+        <Stack.Screen name="order_history" component={OrderHistory} options={{ headerShown: true, title: "Lịch sử đơn hàng" }} />
+    </Stack.Navigator>
+);
+
 const CustomerTabNavigator = () => {
     const { user } = useContext(UserContext);
 
@@ -100,21 +113,18 @@ const CustomerTabNavigator = () => {
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (
                 <>
-                    <Tab.Screen name="cart_index" component={Cart} options={{ title: "Giỏ hàng", tabBarIcon: () => <Icon source="cart" size={20} /> }} />
-                    <Tab.Screen name="profile" component={Profile} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
+                    <Tab.Screen name="cart_tab" component={CartStackNavigator} options={{ title: "Giỏ hàng", tabBarIcon: () => <Icon source="cart" size={20} /> }} />
+                    <Tab.Screen name="profile" component={ProfileStackNavigator} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
                 </>
             )}
         </Tab.Navigator>
     );
 };
 
-// 3. TẠO ROOT NAVIGATOR (Bọc TabNavigator và chứa các màn hình dùng chung)
 const CustomerRootNavigator = () => (
     <Stack.Navigator>
-        {/* Nhúng toàn bộ Tab vào làm 1 màn hình của Stack */}
         <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} options={{ headerShown: false }} />
 
-        {/* ĐỊNH NGHĨA CÁC MÀN HÌNH DÙNG CHUNG Ở ĐÂY (Chỉ 1 lần duy nhất) */}
         <Stack.Screen name="table_entry" component={TableEntryScreen} options={{ title: "Chọn hình thức" }} />
         <Stack.Screen name="table_selection_walkin" component={TableSelectionWalkIn} options={{ title: "Chọn bàn" }} />
         <Stack.Screen name="reservation_form" component={ReservationForm} options={{ title: "Đặt bàn trước" }} />
@@ -123,7 +133,6 @@ const CustomerRootNavigator = () => (
 );
 
 const AdminTabNavigator = () => {
-    // THÊM VÀO ĐÂY
     const { user } = useContext(UserContext);
 
     return (
@@ -152,19 +161,37 @@ const AdminTabNavigator = () => {
                     tabBarIcon: () => <Icon source="view-dashboard" size={20} />
                 }}
             />
+            
+            <Tab.Screen
+                name="statistic_chef"
+                component={StatisticChef}
+                options={{
+                    title: "Thống kê",
+                    tabBarIcon: () => <Icon source="chart-bar" size={20} />,
+                }}
+            />
             {user === null ? (
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (
                 <>
-                    <Tab.Screen name="profile" component={Profile} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
+                    <Tab.Screen name="profile" component={ProfileStackNavigator} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
                 </>
             )}
         </Tab.Navigator>
     );
 };
 
+const ChefFoodManage = () => {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="chef_manage_foods" component={ChefManageFoods} />
+            <Stack.Screen name="create_food" component={CreateFood} options={{ headerShown: true, title: "Tạo món ăn mới" }} />
+            <Stack.Screen name="update_food" component={UpdateFood} options={{ headerShown: true, title: "Cập nhật món ăn" }} />
+        </Stack.Navigator>
+    );
+}
+
 const ChefTabNavigator = () => {
-    // THÊM VÀO ĐÂY
     const { user } = useContext(UserContext);
 
     return (
@@ -178,18 +205,26 @@ const ChefTabNavigator = () => {
                 }}
             />
             <Tab.Screen
-                name="create_food"
-                component={CreateFood}
+                name="menu"
+                component={Menu}
                 options={{
-                    title: "Tạo món ăn",
-                    tabBarIcon: () => <Icon source="plus" size={20} />,
+                    title: "Thực đơn",
+                    tabBarIcon: () => <Icon source="menu" size={20} />
+                }}
+            />
+            <Tab.Screen
+                name="chef_foods_manage"
+                component={ChefFoodManage}
+                options={{
+                    title: "Quản lý món ăn",
+                    tabBarIcon: () => <Icon source="silverware-fork-knife" size={20} />
                 }}
             />
             {user === null ? (
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (
                 <>
-                    <Tab.Screen name="profile" component={Profile} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
+                    <Tab.Screen name="profile" component={ProfileStackNavigator} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
                 </>
             )}
         </Tab.Navigator>

@@ -168,6 +168,42 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             status=status.HTTP_200_OK
         )
 
+    @action(
+        methods=['PATCH', 'DELETE'],  # Hỗ trợ cả 2 phương thức Sửa và Xóa
+        url_path='chef_manage_food',
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def chef_manage_food(self, request, pk=None):
+        user = request.user
+
+        if user.user_role == 'CHEF' and not user.is_approved:
+            return Response(
+                {'error': 'Tài khoản của bạn chưa được duyệt, không thể quản lý món ăn!'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 2. Lấy món ăn từ DB
+        food = self.get_object()
+
+        if request.method == 'DELETE':
+            food.active = False
+            food.save()
+            return Response({'message': 'Đã xóa (ẩn) món ăn thành công!'}, status=status.HTTP_200_OK)
+
+        if request.method == 'PATCH':
+            serializer = FoodCreateSerializer(food, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            updated_food = serializer.save()
+
+            return Response(
+                {
+                    'message': 'Đã cập nhật thông tin món ăn!',
+                    'data': FoodDetailSerializer(updated_food).data
+                },
+                status=status.HTTP_200_OK
+            )
+
     @action(methods=['GET'], url_path='compare', detail=False, permission_classes=[permissions.AllowAny])
     def compare_food(self, request):
         ids_param = request.query_params.get('ids', '')
@@ -285,6 +321,27 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
             u = s.save()
 
         return Response(UserSerializer(u).data, status=status.HTTP_200_OK)
+
+    @action(methods=['PATCH'], url_path='change_password', detail=False,
+            permission_classes=[permissions.IsAuthenticated])
+    def change_password(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        # 1. Kiểm tra mật khẩu cũ có đúng không
+        if not user.check_password(old_password):
+            return Response({'error': 'Mật khẩu hiện tại không chính xác!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Kiểm tra mật khẩu mới
+        if not new_password or len(new_password) < 6:
+            return Response({'error': 'Mật khẩu mới phải có ít nhất 6 ký tự!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Đổi mật khẩu
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Đổi mật khẩu thành công!'}, status=status.HTTP_200_OK)
 
     @action(methods=['GET'], url_path='pending_chefs', detail=False, permission_classes=[perms.IsAdminRole])
     def pending_chefs(self, request):
