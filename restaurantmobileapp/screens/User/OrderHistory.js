@@ -27,7 +27,6 @@ const OrderHistory = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -40,16 +39,16 @@ const OrderHistory = () => {
             [
                 { text: "Không", style: "cancel" },
                 {
-                    text: "Hủy đơn", 
+                    text: "Hủy đơn",
                     style: "destructive",
                     onPress: async () => {
                         try {
                             setActionLoading(orderId);
                             const token = await SecureStore.getItemAsync('token');
-                            
+
                             // Gọi API cancel
                             await authApis(token).delete(`${endpoints['orders']}${orderId}/cancel/`);
-                            
+
                             Alert.alert("Thành công", "Đã hủy đơn hàng!");
                             fetchOrders(); // Tải lại danh sách sau khi hủy
                         } catch (ex) {
@@ -63,18 +62,18 @@ const OrderHistory = () => {
         );
     };
 
-    
+
 
     // Hàm render màu sắc trạng thái
     const getStatusStyle = (status) => {
         switch (status) {
-            case 'WAITING': return { color: '#f39c12', label: 'Đang chờ' }; 
-            case 'SUCCESS': return { color: '#2ecc71', label: 'Đã thanh toán' }; 
+            case 'WAITING': return { color: '#f39c12', label: 'Đang chờ' };
+            case 'SUCCESS': return { color: '#2ecc71', label: 'Đã thanh toán' };
             case 'CANCEL': return { color: '#e74c3c', label: 'Đã hủy' };
             default: return { color: '#95a5a6', label: status };
         }
     };
-
+    
     return (
         <SafeAreaView style={styles.container}>
 
@@ -87,7 +86,7 @@ const OrderHistory = () => {
                     ) : (
                         orders.map((order) => {
                             const statusInfo = getStatusStyle(order.status_order);
-                            
+
                             return (
                                 <Card key={order.id} style={styles.orderCard}>
                                     <List.Accordion
@@ -106,11 +105,10 @@ const OrderHistory = () => {
                                     >
                                         <View style={styles.detailsContainer}>
                                             <Text style={styles.detailTitle}>Chi tiết món ăn:</Text>
-                                            
                                             {order.details && order.details.map((item, index) => (
                                                 <View key={index} style={styles.foodRow}>
                                                     <View style={{ flex: 1 }}>
-                                                        <Text style={styles.foodName}>{item.food?.dish || "Món ăn"}</Text>
+                                                        <Text style={styles.foodName}>{item.dish_name || "Món ăn"}</Text>
                                                         <Text style={styles.foodMeta}>
                                                             {item.unit_price ? item.unit_price.toLocaleString() : 0}đ x {item.quantity}
                                                         </Text>
@@ -120,7 +118,7 @@ const OrderHistory = () => {
                                                     </Text>
                                                 </View>
                                             ))}
-                                            
+
                                             <Text style={styles.dateText}>
                                                 Ngày đặt: {new Date(order.created_date).toLocaleString('vi-VN')}
                                             </Text>
@@ -131,8 +129,8 @@ const OrderHistory = () => {
                                         <>
                                             <Divider />
                                             <Card.Actions style={styles.actions}>
-                                                <Button 
-                                                    mode="contained" 
+                                                <Button
+                                                    mode="contained"
                                                     icon="cancel"
                                                     buttonColor="#e74c3c"
                                                     loading={actionLoading === order.id}
