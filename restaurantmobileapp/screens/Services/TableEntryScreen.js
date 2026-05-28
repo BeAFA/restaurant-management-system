@@ -31,7 +31,7 @@ const TableEntryScreen = () => {
                     <Text style={styles.cardTitle}>Đến trực tiếp</Text>
 
                     <Text style={styles.cardDesc}>
-                        Quét QR bàn hoặc chọn bàn trống ngay bây giờ
+                        Chọn bàn trống ngay bây giờ
                     </Text>
 
                     <View style={styles.badge}>
@@ -63,14 +63,14 @@ const TableEntryScreen = () => {
             </TouchableOpacity>
 
             {/* Divider */}
-            <View style={styles.dividerContainer}>
+            {/* <View style={styles.dividerContainer}>
                 <View style={styles.divider} />
                 <Text style={styles.dividerText}>hoặc</Text>
                 <View style={styles.divider} />
-            </View>
+            </View> */}
 
             {/* QR */}
-            <TouchableOpacity style={[styles.card, styles.qrCard]} onPress={() => navigation.navigate("camera_table_selection")}>
+            {/* <TouchableOpacity style={[styles.card, styles.qrCard]} onPress={() => navigation.navigate("camera_table_selection")}>
                 <View style={[styles.iconBox, styles.orangeIcon]}>
                     <MaterialIcons name="qr-code-scanner" size={28} color="#D28A22" />
                 </View>
@@ -84,7 +84,7 @@ const TableEntryScreen = () => {
                 </View>
 
                 <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Text style={styles.footerText}>
                 Bạn có thể thay đổi bàn bất kỳ lúc nào trong giỏ hàng

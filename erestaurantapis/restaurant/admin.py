@@ -1,3 +1,4 @@
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from .models import User, Category, Food, Table, Order, OrderDetail, Reservation
@@ -37,6 +38,32 @@ class ReservationAdmin(admin.ModelAdmin):
     list_filter = ['serve_time', 'table']
     search_fields = ['user__phone', 'user__username']
     list_select_related = ['user', 'table']
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+
+    list_display = [
+        'id',
+        'username',
+        'email',
+        'phone',
+        'user_role',
+        'is_staff',
+        'is_active'
+    ]
+
+    list_filter = [
+        'user_role',
+        'is_staff',
+        'is_active'
+    ]
+
+    search_fields = [
+        'username',
+        'email',
+        'phone'
+    ]
+
 
 admin.site.register(Category)
 admin.site.register(Food, MyFoodAdmin)

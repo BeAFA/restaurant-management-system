@@ -19,7 +19,6 @@ const Reservation = () => {
     const [loading, setLoading] = useState(true);
     const [currentBooking, setCurrentBooking] = useState(null);
 
-    // ── Thời gian ──────────────────────────────────────────────────────────────
     const [serveTime, setServeTime] = useState(() => {
         const d = new Date();
         d.setSeconds(0, 0);
@@ -28,22 +27,19 @@ const Reservation = () => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
-    // ── Bàn & Form ─────────────────────────────────────────────────────────────
     const [customerQuantity, setCustomerQuantity] = useState('');
     const [selectedTable, setSelectedTable] = useState(null);
     const [allTables, setAllTables] = useState([]);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    // ── Khởi tạo ───────────────────────────────────────────────────────────────
     useEffect(() => {
         if (user) checkCurrentReservation();
         else setLoading(false);
     }, [user]);
 
-    // ── API: Kiểm tra đặt bàn hiện tại ─────────────────────────────────────────
     const checkCurrentReservation = async () => {
         try {
-            const token = await SecureStore.getItemAsync('token');       // FIX: dùng authApis
+            const token = await SecureStore.getItemAsync('token');
             const res = await authApis(token).get(endpoints['current_reservation']);
             setCurrentBooking(res.data ?? null);
         } catch {
@@ -53,7 +49,6 @@ const Reservation = () => {
         }
     };
 
-    // ── API: Tải danh sách bàn trống ────────────────────────────────────────────
     const loadTables = async (start, quantity) => {
         if (!quantity || Number(quantity) <= 0) { setAllTables([]); return; }
         try {
@@ -66,37 +61,43 @@ const Reservation = () => {
             setAllTables(res.data.results ?? res.data);
             setSelectedTable(null);
         } catch (e) {
-            console.log('❌ Lỗi tải bàn:', e);
+            console.log('Lỗi tải bàn:', e);
         }
     };
 
-    // ── Xử lý chọn ngày ────────────────────────────────────────────────────────
+    // Kiểm tra ngày + giờ hợp lệ.
+    // - Nếu ngày chọn là hôm nay: thời gian phải trong tương lai.
+    // - Nếu ngày chọn là ngày mai trở đi: luôn hợp lệ, không cần check giờ.
+    const isDateTimeValid = (dt) => {
+        const now = new Date();
+        const isToday =
+            dt.getFullYear() === now.getFullYear() &&
+            dt.getMonth() === now.getMonth() &&
+            dt.getDate() === now.getDate();
+        if (isToday) return dt > now;
+        return true;
+    };
+
+    const isFutureDate = (dt) => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const chosen = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+        return chosen > today;
+    };
+
     const onDateChange = (event, selected) => {
         setShowDatePicker(Platform.OS === 'ios');
         if (event.type === 'dismissed' || !selected) return;
 
+        // Gộp ngày mới với giờ hiện tại đang chọn
         const updated = new Date(serveTime);
         updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
 
-        if (updated < new Date()) {
-            Alert.alert("Lỗi thời gian", "Vui lòng chọn ngày trong tương lai.");
-            return;
-        }
-
-        setServeTime(updated);
-        loadTables(updated, customerQuantity);      // FIX: bỏ getEndTime
-    };
-
-    // ── Xử lý chọn giờ ─────────────────────────────────────────────────────────
-    const onTimeChange = (event, selected) => {
-        setShowTimePicker(Platform.OS === 'ios');
-        if (event.type === 'dismissed' || !selected) return;
-
-        const updated = new Date(serveTime);
-        updated.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
-
-        if (updated < new Date()) {
-            Alert.alert("Lỗi thời gian", "Vui lòng chọn giờ trong tương lai.");
+        // Chặn chọn ngày trong quá khứ
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (updated < today) {
+            Alert.alert("Lỗi thời gian", "Vui lòng chọn ngày từ hôm nay trở đi.");
             return;
         }
 
@@ -104,7 +105,23 @@ const Reservation = () => {
         loadTables(updated, customerQuantity);
     };
 
-    // ── Xử lý đặt bàn ──────────────────────────────────────────────────────────
+    const onTimeChange = (event, selected) => {
+        setShowTimePicker(Platform.OS === 'ios');
+        if (event.type === 'dismissed' || !selected) return;
+
+        const updated = new Date(serveTime);
+        updated.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+
+        // Chỉ kiểm tra giờ nếu ngày đang chọn là HÔM NAY
+        if (!isFutureDate(updated) && updated <= new Date()) {
+            Alert.alert("Lỗi thời gian", "Hôm nay vui lòng chọn giờ trong tương lai.");
+            return;
+        }
+
+        setServeTime(updated);
+        loadTables(updated, customerQuantity);
+    };
+
     const handlePreSubmit = () => {
         if (!customerQuantity || Number(customerQuantity) <= 0) {
             Alert.alert("Lỗi", "Vui lòng nhập số lượng khách hợp lệ.");
@@ -112,6 +129,11 @@ const Reservation = () => {
         }
         if (!selectedTable) {
             Alert.alert("Lỗi", "Vui lòng chọn một bàn.");
+            return;
+        }
+        // Final check: ngày hôm nay thì giờ phải còn hợp lệ
+        if (!isDateTimeValid(serveTime)) {
+            Alert.alert("Lỗi thời gian", "Thời gian đặt bàn đã qua, vui lòng chọn lại.");
             return;
         }
         setShowConfirmModal(true);
@@ -126,7 +148,6 @@ const Reservation = () => {
                 table: selectedTable.id,
                 customer_quantity: Number(customerQuantity),
                 serve_time: serveTime.toISOString(),
-                // end_time không gửi — backend tự tính serve_time + 30p
             };
             const res = await authApis(token).post(endpoints['current_reservation'], payload);
             setCurrentBooking(res.data);
@@ -134,55 +155,62 @@ const Reservation = () => {
 
             Alert.alert(
                 "Đặt bàn thành công! 🎉",
-                `Bàn ${selectedTable.id} đã được giữ cho bạn.\nBạn có muốn gọi món ngay không?`,
-                [
-                    { text: "Để sau", style: "cancel" },
-                    {
-                        text: "Gọi món ngay",
-                        onPress: () => nav.navigate({ screen: "cart_tab" }),
-                    },
-                ]
+                [{ text: "OK", style: "cancel" }]
             );
         } catch (error) {
-            const msg = error?.response?.data
-                ? Object.values(error.response.data).flat().join('\n')
+            // Backend trả về lỗi conflict reservation hoặc lỗi validation khác
+            const data = error?.response?.data;
+            const msg = data
+                ? Object.values(data).flat().join('\n')
                 : 'Đặt bàn thất bại. Vui lòng thử lại.';
             Alert.alert("Lỗi", msg);
-            console.log('❌ Lỗi đặt bàn:', error.response ?? error);
+            console.log('Lỗi đặt bàn:', error.response ?? error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleCancelReservation = async () => {
-        Alert.alert("Xác nhận", "Bạn có chắc muốn hủy đặt bàn?", [
-            { text: "Không", style: "cancel" },
-            {
-                text: "Hủy đặt bàn", style: "destructive", onPress: async () => {
-                    setLoading(true);
-                    try {
-                        const token = await SecureStore.getItemAsync('token');
-                        await authApis(token).delete(endpoints['current_reservation']);
-                        setCurrentBooking(null);
-                        Alert.alert("Đã hủy", "Đặt bàn của bạn đã được hủy.");
-                    } catch {
-                        Alert.alert("Lỗi", "Không thể hủy đặt bàn. Vui lòng thử lại.");
-                    } finally {
-                        setLoading(false);
-                    }
-                }
-            }
-        ]);
+        Alert.alert(
+            "Xác nhận",
+            "Bạn có chắc muốn hủy đặt bàn?",
+            [
+                { text: "Không", style: "cancel" },
+                {
+                    text: "Hủy đặt bàn",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            const token = await SecureStore.getItemAsync("token");
+                            await authApis(token).delete(
+                                endpoints['reservation_detail'](currentBooking.id)
+                            );
+                            setCurrentBooking(null);
+                            setSelectedTable(null);
+                            setAllTables([]);
+                            setCustomerQuantity("");
+                            Alert.alert("Thành công", "Đặt bàn đã được hủy.");
+                        } catch (error) {
+                            const msg = error?.response?.data
+                                ? Object.values(error.response.data).flat().join("\n")
+                                : "Không thể hủy đặt bàn.";
+                            Alert.alert("Lỗi", msg);
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                },
+            ]
+        );
     };
 
-    // ── Render helpers ──────────────────────────────────────────────────────────
     const formatDate = (d) =>
         d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
 
     const formatTime = (d) =>
         d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-    // ── Guard: chưa đăng nhập ───────────────────────────────────────────────────
     if (!user) {
         return (
             <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -190,12 +218,13 @@ const Reservation = () => {
                 <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
                     Tính năng đặt bàn dành riêng cho thành viên. Vui lòng đăng nhập để tiếp tục!
                 </Text>
-                <TouchableOpacity style={Style.primaryButton} onPress={() => nav.navigate('CustomerTabs', {
-                    screen: 'cart_tab', // Cấp 1: Vào Tab Giỏ hàng
-                    params: {
-                        screen: 'cart_index' // Cấp 2: Vào màn hình index bên trong Stack Giỏ hàng
-                    }
-                })}>
+                <TouchableOpacity
+                    style={Style.primaryButton}
+                    onPress={() => nav.navigate('CustomerTabs', {
+                        screen: 'cart_tab',
+                        params: { screen: 'cart_index' }
+                    })}
+                >
                     <Text style={Style.buttonLabel}>Đi đến Đăng nhập</Text>
                 </TouchableOpacity>
             </View>
@@ -206,7 +235,6 @@ const Reservation = () => {
         <ActivityIndicator size="large" color="#FF6347" style={{ flex: 1, backgroundColor: '#FFF5E5' }} />
     );
 
-    // ── Guard: đã có đặt bàn ────────────────────────────────────────────────────
     if (currentBooking) {
         return (
             <View style={Style.container}>
@@ -223,10 +251,8 @@ const Reservation = () => {
                         onPress={() => {
                             selectTableFromReservation({ id: currentBooking.table }, currentBooking.id);
                             nav.navigate('CustomerTabs', {
-                                screen: 'cart_tab', // Cấp 1: Vào Tab Giỏ hàng
-                                params: {
-                                    screen: 'cart_index' // Cấp 2: Vào màn hình index bên trong Stack Giỏ hàng
-                                }
+                                screen: 'cart_tab',
+                                params: { screen: 'cart_index' }
                             });
                         }}
                     >
@@ -241,7 +267,6 @@ const Reservation = () => {
         );
     }
 
-    // ── Màn hình đặt bàn mới ────────────────────────────────────────────────────
     const qty = parseInt(customerQuantity) || 0;
 
     return (
@@ -265,8 +290,11 @@ const Reservation = () => {
                     />
                 )}
 
-                {/* Chọn giờ đến */}
-                <Text style={Style.label}>Chọn giờ đến:</Text>
+                {/* Chọn giờ — hiển thị ghi chú nếu ngày tương lai */}
+                <Text style={Style.label}>
+                    Chọn giờ đến:
+                    {isFutureDate(serveTime)}
+                </Text>
                 <TouchableOpacity onPress={() => setShowTimePicker(true)} style={Style.input}>
                     <Text>{formatTime(serveTime)}</Text>
                 </TouchableOpacity>
@@ -293,7 +321,7 @@ const Reservation = () => {
                     }}
                 />
 
-                {/* Danh sách bàn — chỉ hiện khi đã nhập số khách */}
+                {/* Danh sách bàn */}
                 {qty > 0 && (
                     <>
                         <Text style={Style.label}>Chọn bàn trống:</Text>
