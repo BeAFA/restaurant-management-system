@@ -10,6 +10,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from datetime import timedelta
+from django.db.models import Q
 
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
@@ -291,7 +292,7 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         serializer.save()
 
         chef.refresh_from_db()
-        action = "đã duyệt" if chef.is_approved else "từ chối"
+        action = "Duyệt" if chef.is_approved else "từ chối"
 
         return Response({
             'messages': f'Đã {action} tài khoản đầu bếp {chef.first_name + " " + chef.last_name}',
@@ -614,87 +615,113 @@ class StatisticViewSet(viewsets.ViewSet):
     @action(methods=['GET'], url_path='chef_stats', detail=False, permission_classes=[perms.IsApprovedChef])
     def chef_statistics(self, request):
         period = request.query_params.get('period', 'month')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
-        trunc_map = {
-            'day': TruncDay,
-            'week': TruncWeek,
-            'month': TruncMonth
-        }
+        # 1. LẤY THAM SỐ VIEW_ALL (Mặc định là false)
+        view_all = request.query_params.get('view_all', 'false').lower() == 'true'
 
-        if period not in trunc_map:
-            return Response(
-                {'error': 'period phải là day, week hoặc month'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        TruncFunc = trunc_map[period]
+        trunc_map = {'day': TruncDay, 'week': TruncWeek, 'month': TruncMonth}
+        TruncFunc = trunc_map.get(period, TruncMonth)
 
-        chef_food_ids = FoodChef.objects.filter(
-            chef=request.user,
-            active=True
-        ).values_list('food_id', flat=True)
+        date_filter = Q()
+        if start_date and end_date:
+            date_filter = Q(order__created_date__range=[start_date, end_date])
 
+        # 2. XỬ LÝ LOGIC VIEW_ALL
+        food_filter = Q()
+        if not view_all:
+            # NẾU VIEW_ALL = FALSE: Chỉ lấy các món do chính đầu bếp này nấu (Logic cũ)
+            chef_food_ids = FoodChef.objects.filter(
+                chef=request.user,
+                active=True
+            ).values_list('food_id', flat=True)
+            food_filter = Q(food_id__in=chef_food_ids)
+        # NẾU VIEW_ALL = TRUE: Biến food_filter rỗng, tự động lấy tất cả món ăn
+
+        # 3. NHÉT CẢ DATE_FILTER VÀ FOOD_FILTER VÀO QUERY
         order_stats = OrderDetail.objects.filter(
-            food_id__in=chef_food_ids,
+            date_filter,
+            food_filter,  # <--- Bổ sung food_filter
             order__status_order='SUCCESS'
         ).annotate(
-            period=TruncFunc('created_date')
+            period=TruncFunc('order__created_date')
         ).values('period').annotate(
             total_quantity=Sum('quantity'),
             total_revenue=Sum('total_price'),
             order_count=Count('order', distinct=True)
         ).order_by('period')
 
-        food_stats = OrderDetail.objects.filter(
-            food_id__in=chef_food_ids,
+        food_stats = list(OrderDetail.objects.filter(
+            date_filter,
+            food_filter,
             order__status_order='SUCCESS'
         ).values(
             'food__id',
             'food__dish'
         ).annotate(
             total_quantity=Sum('quantity'),
-            total_revenue=Sum('total_price'),
-            avg_rating=Avg('food__reviews__rating')
-        ).order_by('-total_revenue')
+            total_revenue=Sum('total_price')
+        ).order_by('-total_revenue'))
 
+        # 2. TRUY VẤN 2: LẤY ĐIỂM ĐÁNH GIÁ TRUNG BÌNH (Bảng Food)
+        # Lấy danh sách ID của các món ăn vừa được thống kê ở trên
+        food_ids = [item['food__id'] for item in food_stats]
+
+        # Truy vấn trực tiếp từ bảng Food để lấy điểm đánh giá, không dính líu tới Order
+        ratings = Food.objects.filter(id__in=food_ids).annotate(
+            avg_rating=Avg('reviews__rating')
+        ).values('id', 'avg_rating')
+
+        # Chuyển kết quả thành một dictionary để tra cứu siêu tốc: { food_id: avg_rating }
+        rating_dict = {item['id']: item['avg_rating'] for item in ratings}
+
+        # 3. GỘP DỮ LIỆU: Lắp điểm đánh giá vào danh sách food_stats ban đầu
+        for item in food_stats:
+            # Lấy điểm từ rating_dict ghép vào, nếu không có ai đánh giá thì trả về None
+            item['avg_rating'] = rating_dict.get(item['food__id'], None)
+
+        # Trả về Response y như cũ
         return Response({
             'period_stats': list(order_stats),
-            'food_stats': list(food_stats)
+            'food_stats': food_stats  # Đã là list rồi nên không cần list() nữa
         }, status=status.HTTP_200_OK)
 
-    @action(methods=['GET'], url_path='admin_stats', detail=False,
-            permission_classes=[perms.IsAdminRole])
+    @action(methods=['GET'], url_path='admin_stats', detail=False, permission_classes=[perms.IsAdminRole])
     def admin_statistics(self, request):
         period = request.query_params.get('period', 'month')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
-        trunc_map = {
-            'day': TruncDay,
-            'week': TruncWeek,
-            'month': TruncMonth
-        }
+        trunc_map = {'day': TruncDay, 'week': TruncWeek, 'month': TruncMonth}
         TruncFunc = trunc_map.get(period, TruncMonth)
 
-        # Tổng quan hệ thống
+        # 1. TẠO BỘ LỌC THỜI GIAN ĐỘNG
+        date_filter = Q()
+        if start_date and end_date:
+            date_filter = Q(created_date__range=[start_date, end_date])
+
+        reservation_date_filter = Q()
+        if start_date and end_date:
+            # Đặt bàn thì lọc theo thời gian phục vụ (serve_time)
+            reservation_date_filter = Q(serve_time__range=[start_date, end_date])
+
+        # 2. ÁP DỤNG BỘ LỌC VÀO CÁC QUERY BÊN DƯỚI
         overview = {
             'total_foods': Food.objects.filter(active=True).count(),
             'total_users': User.objects.filter(is_active=True).count(),
-            'total_orders': Order.objects.filter(active=True).count(),
-            'total_reservations': Reservation.objects.filter(active=True).count(),
-
-            # Chờ duyệt — Admin cần biết có bao nhiêu đầu bếp chờ xử lý
-            'pending_chefs': User.objects.filter(
-                user_role=UserRole.CHEF,
-                is_approved=False,
-                is_active=True
-            ).count(),
+            # Thêm filter vào đây
+            'total_orders': Order.objects.filter(date_filter, active=True, status_order='SUCCESS').count(),
+            'total_reservations': Reservation.objects.filter(reservation_date_filter, active=True).count(),
+            'pending_chefs': User.objects.filter(user_role=UserRole.CHEF, is_approved=False, is_active=True).count(),
         }
 
-        # Doanh thu theo thời gian
         revenue_stats = Order.objects.filter(
-            status_order='SUCCESS'
+            date_filter, status_order='SUCCESS'  # Thêm filter vào đây
         ).annotate(
             period=TruncFunc('created_date')
         ).values('period').annotate(
-            total_revenue=Sum('total'),
+            total_revenue=Sum('total'),  # Tùy model của bạn là total_price hay total
             order_count=Count('id')
         ).order_by('period')
 

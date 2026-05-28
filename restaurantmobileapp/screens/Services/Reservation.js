@@ -139,7 +139,7 @@ const Reservation = () => {
                     { text: "Để sau", style: "cancel" },
                     {
                         text: "Gọi món ngay",
-                        onPress: () => nav.navigate("home", { screen: "cart" }),
+                        onPress: () => nav.navigate({ screen: "cart_tab" }),
                     },
                 ]
             );
@@ -148,6 +148,7 @@ const Reservation = () => {
                 ? Object.values(error.response.data).flat().join('\n')
                 : 'Đặt bàn thất bại. Vui lòng thử lại.';
             Alert.alert("Lỗi", msg);
+            console.log('❌ Lỗi đặt bàn:', error.response ?? error);
         } finally {
             setLoading(false);
         }
@@ -189,7 +190,12 @@ const Reservation = () => {
                 <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
                     Tính năng đặt bàn dành riêng cho thành viên. Vui lòng đăng nhập để tiếp tục!
                 </Text>
-                <TouchableOpacity style={Style.primaryButton} onPress={() => nav.navigate('account_tab')}>
+                <TouchableOpacity style={Style.primaryButton} onPress={() => nav.navigate('CustomerTabs', {
+                    screen: 'cart_tab', // Cấp 1: Vào Tab Giỏ hàng
+                    params: {
+                        screen: 'cart_index' // Cấp 2: Vào màn hình index bên trong Stack Giỏ hàng
+                    }
+                })}>
                     <Text style={Style.buttonLabel}>Đi đến Đăng nhập</Text>
                 </TouchableOpacity>
             </View>
@@ -216,7 +222,12 @@ const Reservation = () => {
                         style={[Style.primaryButton, { marginTop: 12 }]}
                         onPress={() => {
                             selectTableFromReservation({ id: currentBooking.table }, currentBooking.id);
-                            nav.navigate("home", { screen: "cart" });
+                            nav.navigate('CustomerTabs', {
+                                screen: 'cart_tab', // Cấp 1: Vào Tab Giỏ hàng
+                                params: {
+                                    screen: 'cart_index' // Cấp 2: Vào màn hình index bên trong Stack Giỏ hàng
+                                }
+                            });
                         }}
                     >
                         <Text style={Style.buttonLabel}>Gọi món ngay</Text>

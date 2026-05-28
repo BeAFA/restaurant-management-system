@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.157:8000/';
+const BASE_URL = 'http://192.168.1.160:8000/';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -50,6 +50,14 @@ export const endpoints = {
     'current_user': '/users/current_user/',
     'pending_chefs': '/users/pending_chefs/',
     'approve_chef': (id) => `/users/${id}/approve/`,
+
+    // ADMIN
+    // THÊM 3 API MỚI VÀO ĐÂY:
+    'admin_stats': '/statistics/admin_stats/',
+    'chef_stats': '/statistics/chef_stats/',
+    
+    // Dùng arrow function để truyền ID linh hoạt vào URL
+    'check_in': (id) => `/statistics/${id}/check_in/`,
 }
 
 CLIENT_ID_REMOVED
