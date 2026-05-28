@@ -1,4 +1,4 @@
-import { Image, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import { Image, Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
 import Style from "../../User/Style";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import * as ImgPicker from 'expo-image-picker';
@@ -14,7 +14,7 @@ const CreateFood = () => {
 
     const foodInfo = [{
         field: 'dish',
-        title: 'Tên',
+        title: 'Tên món ăn',
         icon: 'text',
     }, {
         field: 'description',
@@ -119,7 +119,7 @@ const CreateFood = () => {
             });
 
             if (res.status === 201) {
-                alert('Tạo món ăn thành công!');
+                Alert.alert('Thành công','Tạo món ăn thành công!');
                 // nav.navigate('chef_home');
             }
 
@@ -216,7 +216,6 @@ const CreateFood = () => {
                         setSelected={(val) => setSelectedIngredients(val)}
                         data={ingredients.map(i => ({ key: i.id, value: i.name }))}
                         save="key"
-                        onSelect={() => alert(selectedIngredients)}
                         label="Ingredients"
 
                         boxStyles={{

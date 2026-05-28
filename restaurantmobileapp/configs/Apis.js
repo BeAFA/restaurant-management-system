@@ -34,6 +34,7 @@ export const endpoints = {
     'reservations': '/reservations/',
     'current_reservation': '/reservations/current_reservation/',
     'reservation_detail': (id) => `/reservations/${id}/`,
+    'check_in': (id) => `/reservations/${id}/check_in/`,
 
     // === REVIEWS ===
     'current_review': (id) => `/reviews/${id}/current_review/`,
@@ -56,13 +57,10 @@ export const endpoints = {
     // THÊM 3 API MỚI VÀO ĐÂY:
     'admin_stats': '/statistics/admin_stats/',
     'chef_stats': '/statistics/chef_stats/',
-    
-    // Dùng arrow function để truyền ID linh hoạt vào URL
-    'check_in': (id) => `/statistics/${id}/check_in/`,
 }
 
-export const CLIENT_ID = '7gLtcXlozWN7XFxk8R5W6uxqV1NlACMIxsMy9gxb';
-export const CLIENT_SECRET = 'Ffv3NFrWkr6ftLzPJCJZqY9yL2myke1WGKIgOSTNRCCxrcMky0sB9bU0owgPPN4RPI3xh0vZgVPESJ9697hPmQXm22AbqCBov7Arv6c3QIJnnkvQ8jwEMvq3zrhhP10v';
+export const CLIENT_ID = 'PSAJNs8SQPo5snVGqHrTbtzNqkXygIC8EiO1GxYC';
+export const CLIENT_SECRET = '3Z6KZWgupAoTnZFlFPC7WIsonSnSk0nce6yPuXBWbIaER34YqWfI2iGCTMct9Yiyda3tXhcrEVHFbBC1g5I60w8klNPn4BOyGGaBlHuE2TYrlPHGbhOhVSMA4pcUWAIH';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

@@ -1,3 +1,5 @@
+import { Alert } from "react-native";
+
 export const initialCart = [];
 
 export default function CartReducer(state, action) {
@@ -9,36 +11,33 @@ export default function CartReducer(state, action) {
             return action.payload;
 
         case "ADD_TO_CART":
-
-            let existing = state.find(
-                item => item.id === action.payload.id
-            );
+            const existing = state.find(i => i.id === action.payload.id);
+            if (existing && existing.quantity >= 10) {
+                Alert.alert("Thông báo", "Số lượng món ăn đã đạt tối đa!");
+                return state;
+            }
 
             if (existing) {
-
-                return state.map(item =>
-                    item.id === action.payload.id
-                        ? {
-                            ...item,
-                            quantity: item.quantity + 1
-                        }
-                        : item
+                return state.map(i =>
+                    i.id === action.payload.id
+                        ? { ...i, quantity: i.quantity + 1 }
+                        : i
                 );
             }
 
             return [
                 ...state,
-                {
-                    ...action.payload,
-                    quantity: 1
-                }
+                { ...action.payload, quantity: 1 }
             ];
 
         case "REMOVE_FROM_CART":
-
-            return state.filter(
-                item => item.id !== action.payload
-            );
+            return state
+                .map(i =>
+                    i.id === action.payload
+                        ? { ...i, quantity: i.quantity - 1 }
+                        : i
+                )
+                .filter(i => i.quantity > 0);
 
         case "CLEAR_CART":
 

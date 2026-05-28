@@ -1,5 +1,5 @@
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Style from "../../styles/CompareFoodStyle";
 import Apis, { endpoints } from "../../configs/Apis";
@@ -7,14 +7,17 @@ import FoodCompareContext from "../../contexts/FoodCompareContext";
 import { useNavigation } from "@react-navigation/native";
 
 const FoodCompare = ({ route }) => {
-    const { clearFoodsToCompare } = useContext(FoodCompareContext)
+    const {
+        foodsToCompare,
+        clearFoodsToCompare
+    } = useContext(FoodCompareContext);
+
+    const [comparedFoods, setComparedFoods] = useState([]);
     const navigation = useNavigation();
 
-    let comparedFoods = route?.params?.comparedFoods || [];
-
     const handleClear = () => {
-        clearFoodsToCompare();       
-        navigation.goBack();       
+        clearFoodsToCompare();
+        navigation.goBack();
     };
 
     const formatPrice = (price) =>
@@ -101,6 +104,41 @@ const FoodCompare = ({ route }) => {
         }
     ];
 
+
+
+    useEffect(() => {
+
+        const loadComparedFoods = async () => {
+
+            try {
+
+                const ids = foodsToCompare
+                    .map(item => item.id)
+                    .join(",");
+
+                console.log("COMPARE IDS:", ids);
+
+                const res = await Apis.get(
+                    endpoints['foods_compare'](ids)
+                );
+
+                console.log("COMPARE DATA:", res.data);
+
+                setComparedFoods(res.data);
+
+            } catch (err) {
+                console.log("COMPARE ERROR:", err);
+            }
+        };
+
+        if (foodsToCompare.length >= 2) {
+            loadComparedFoods();
+        } else {
+            setComparedFoods([]);
+        }
+
+    }, [foodsToCompare]);
+
     if (!comparedFoods.length) {
         return (
             <View style={Style.emptyContainer}>
@@ -112,6 +150,7 @@ const FoodCompare = ({ route }) => {
     }
 
     return (
+
         <View style={Style.container}>
 
             <SafeAreaView edges={["top"]}>
@@ -119,56 +158,58 @@ const FoodCompare = ({ route }) => {
                     So sánh món ăn
                 </Text>
             </SafeAreaView>
+            <ScrollView>
+                <ScrollView horizontal>
+                    <View style={Style.scrollContainer}>
 
-            <ScrollView horizontal>
-                <View style={Style.scrollContainer}>
+                        {/* HEADER */}
+                        <View style={Style.headerRow}>
 
-                    {/* HEADER */}
-                    <View style={Style.headerRow}>
-
-                        <View style={Style.attributeHeaderCell}>
-                            <Text style={Style.attributeHeaderText}>
-                                Thuộc tính
-                            </Text>
-                        </View>
-
-                        {comparedFoods.map(food => (
-                            <View
-                                key={food.id}
-                                style={Style.foodHeaderCell}
-                            >
-                                <Text style={Style.foodHeaderText}>
-                                    {food.dish}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    {/* BODY */}
-                    {compareRows.map((row, index) => (
-                        <View
-                            key={index}
-                            style={Style.compareRow}
-                        >
-
-                            {/* LABEL */}
-                            <View style={Style.attributeCell}>
-                                <Text style={Style.attributeText}>
-                                    {row.label}
+                            <View style={Style.attributeHeaderCell}>
+                                <Text style={Style.attributeHeaderText}>
+                                    Thuộc tính
                                 </Text>
                             </View>
 
                             {comparedFoods.map(food => (
                                 <View
                                     key={food.id}
-                                    style={Style.valueCell}
+                                    style={Style.foodHeaderCell}
                                 >
-                                    {row.render(food)}
+                                    <Text style={Style.foodHeaderText}>
+                                        {food.dish}
+                                    </Text>
                                 </View>
                             ))}
                         </View>
-                    ))}
-                </View>
+
+                        {/* BODY */}
+                        {compareRows.map((row, index) => (
+                            <View
+                                key={index}
+                                style={Style.compareRow}
+                            >
+
+                                {/* LABEL */}
+                                <View style={Style.attributeCell}>
+                                    <Text style={Style.attributeText}>
+                                        {row.label}
+                                    </Text>
+                                </View>
+
+                                {/* VALUES */}
+                                {comparedFoods.map(food => (
+                                    <View
+                                        key={food.id}
+                                        style={Style.valueCell}
+                                    >
+                                        {row.render(food)}
+                                    </View>
+                                ))}
+                            </View>
+                        ))}
+                    </View>
+                </ScrollView>
             </ScrollView>
             <View style={Style.actionContainer}>
                 <TouchableOpacity
