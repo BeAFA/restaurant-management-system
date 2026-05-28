@@ -193,21 +193,50 @@ class DiningSession(BaseModel):
 
 
 class Order(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=False, related_name='orders')
+    user = models.ForeignKey(
+        User, on_delete=models.PROTECT, null=False, related_name='orders'
+    )
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    session = models.ForeignKey(DiningSession, on_delete=models.PROTECT, related_name='orders'
-                                )
-    status_order = models.CharField(choices=Status_Order.choices, default=Status_Order.WAITING, max_length=20)
+    table_direct = models.ForeignKey(
+        'Table', on_delete=models.PROTECT,
+        related_name='direct_orders', null=True, blank=True
+    )
+
+    # Session (walk-in / order thêm tại bàn)
+    session = models.ForeignKey(
+        DiningSession,
+        on_delete=models.PROTECT,
+        related_name='orders',
+        null=True,
+        blank=True
+    )
+
+    # Reservation (đặt trước — session sẽ được gán lúc check-in nếu cần)
+    reservation = models.ForeignKey(
+        'Reservation',
+        on_delete=models.SET_NULL,
+        related_name='pre_orders',
+        null=True,
+        blank=True
+    )
+
+    status_order = models.CharField(
+        choices=Status_Order.choices,
+        default=Status_Order.WAITING,
+        max_length=20
+    )
 
     def update_total(self):
-        # Tính tổng tất cả total_price của các OrderDetail thuộc Order này
         total_sum = self.details.aggregate(Sum('total_price'))['total_price__sum'] or 0
         self.total = total_sum
-        # dùng update để tránh gọi lại hàm save() gây vòng lặp vô tận
         Order.objects.filter(pk=self.pk).update(total=total_sum)
 
     def __str__(self):
-        return f"Đơn hàng {self.id} - Bàn {self.session.table.id}"
+        if self.session:
+            return f"Đơn hàng {self.id} - Bàn {self.session.table.id}"
+        if self.reservation:
+            return f"Đơn hàng {self.id} - Đặt trước bàn {self.reservation.table.id}"
+        return f"Đơn hàng {self.id}"
 
 
 class OrderDetail(BaseModel):

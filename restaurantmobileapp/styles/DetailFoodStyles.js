@@ -7,6 +7,31 @@ export default StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFFFFF',
     },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#0E7468",
+        textAlign: "center",
+        marginTop: 10,
+        marginBottom: 16,
+    },
+    tableInfoContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 10,
+        backgroundColor: "#E3F2FD",
+        alignSelf: "flex-start",
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+    emptyTableContainer: {
+        marginTop: 12,
+        marginBottom: 10,
+        flexDirection: "row",
+        alignItems: "center",
+    },
     imageContainer: {
         position: 'relative',
         backgroundColor: '#FFF',
@@ -100,11 +125,91 @@ export default StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
     },
-    leftCompare: {
-        marginTop: 20,
-        left: 20,
+    compareBadge: {
+        position: 'absolute',
+        top: -8,
+        right: -8,
+
+        backgroundColor: '#FF4D4F',
+
+        minWidth: 22,
+        height: 22,
+        borderRadius: 11,
+
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        paddingHorizontal: 5,
+
+        borderWidth: 2,
+        borderColor: '#FFF',
     },
 
+    compareBadgeText: {
+        color: '#FFF',
+        fontSize: 11,
+        fontWeight: 'bold',
+    },
+
+    noReviewsText: {
+        color: '#aaa',
+        fontSize: 14,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginTop: 10,
+        paddingHorizontal: 20
+    },
+
+    compareButton: {
+        marginTop: 20,
+        backgroundColor: '#0E7468',
+        borderRadius: 14,
+        height: 52,
+
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+    },
+
+    compareButtonActive: {
+        backgroundColor: '#FF8C42',
+    },
+
+    compareButtonText: {
+        color: '#FFF',
+        fontSize: 15,
+        fontWeight: '700',
+        marginLeft: 8,
+    },
+
+    viewCompareButton: {
+        marginTop: 12,
+        height: 50,
+
+        borderWidth: 1.5,
+        borderColor: '#0E7468',
+
+        borderRadius: 14,
+
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        backgroundColor: '#F4FFFD',
+    },
+
+    viewCompareText: {
+        color: '#0E7468',
+        fontSize: 15,
+        fontWeight: '700',
+        marginLeft: 8,
+    },
 
     // Thanh mua hàng cố định ở dưới cùng (Bottom Bar)
     bottomBar: {

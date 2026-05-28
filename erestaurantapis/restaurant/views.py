@@ -302,6 +302,15 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     serializer_class = UserSerializer
     parser_classes = [parsers.MultiPartParser]
 
+    def perform_create(self, serializer):
+
+        role = self.request.data.get('user_role')
+
+        if role not in [UserRole.CUSTOMER, UserRole.CHEF]:
+            raise ValidationError("Role không hợp lệ!")
+
+        serializer.save()
+
     @action(methods=['GET', 'PATCH'], url_path='current_user', detail=False,
             permission_classes=[permissions.IsAuthenticated])
     def current_user(self, request):
