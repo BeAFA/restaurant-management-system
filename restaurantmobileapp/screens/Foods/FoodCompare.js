@@ -158,7 +158,6 @@ const FoodCompare = ({ route }) => {
                                 </Text>
                             </View>
 
-                            {/* VALUES */}
                             {comparedFoods.map(food => (
                                 <View
                                     key={food.id}
