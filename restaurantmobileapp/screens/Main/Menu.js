@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';;
 import Apis, { endpoints } from "../../configs/Apis";
@@ -8,6 +8,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import Header from "../../components/Header";
 import SimpleFood from "../../components/SimpleFood";
 import { SelectList } from 'react-native-dropdown-select-list'
+import UserContext from "../../contexts/UserContext";
 
 const Menu = () => {
     const [categories, setCategories] = useState([]);
@@ -20,6 +21,7 @@ const Menu = () => {
     const [showFilter, setShowFilter] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [chefs, setChefs] = useState([]);
+    const { user } = useContext(UserContext);
 
     // State cho Bộ lọc
     const [minPrice, setMinPrice] = useState('');
@@ -238,155 +240,172 @@ const Menu = () => {
         </TouchableOpacity>
     );
 
-    const renderFoodItem = ({ item }) => (
-        <View>
-            <SimpleFood
-                item={item}
-                next={() => nav.navigate('menu', {
-                    screen: 'food_detail',
-                    initial: false,
-                    params: { foodId: item.id }
-                })}
-            />
-        </View>
-    );
-
-    return (
-        <View style={Style.container}>
-            <View style={Style.topSection}>
-                <Text style={Style.headerTitle}>Menu</Text>
-                <View style={Style.searchRow}>
-                    <TextInput
-                        style={Style.searchInput}
-                        placeholder="Tìm kiếm món ăn..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery} // Cập nhật state liên tục khi gõ
-                        placeholderTextColor="#999"
+    const renderFoodItem = ({ item }) => {
+        
+        if (user && user.user_role === 'CUSTOMER') {
+            return (
+                <View>
+                    <SimpleFood
+                        item={item}
+                        next={() => nav.navigate('menu', {
+                            screen: 'food_detail',
+                            initial: false,
+                            params: { foodId: item.id }
+                        })}
                     />
-                    <TouchableOpacity style={Style.filterBtn} onPress={() => setShowFilter(true)}>
-                        <Ionicons name="options" size={24} color="#FFF" />
-                    </TouchableOpacity>
                 </View>
-            </View>
+            );
+        }
 
-            <View style={Style.categoryContainer}>
-                <FlatList
-                    data={categories}
-                    renderItem={renderCategoryItem}
-                    keyExtractor={(item, index) => `${item.id}-${index}`}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
+        if (user && user.user_role === 'CHEF') {
+            return (
+                <View>
+                    <SimpleFood
+                        item={item}
+                        next={() => nav.navigate('chef_foods_manage', {screen: 'update_food', initial: false, params: { foodId: item.id }})}
+                    />
+                </View>
+            );
+        }
+            
+    }
+
+return (
+    <View style={Style.container}>
+        <View style={Style.topSection}>
+            <Text style={Style.headerTitle}>Menu</Text>
+            <View style={Style.searchRow}>
+                <TextInput
+                    style={Style.searchInput}
+                    placeholder="Tìm kiếm món ăn..."
+                    value={searchQuery}
+                    onChangeText={setSearchQuery} // Cập nhật state liên tục khi gõ
+                    placeholderTextColor="#999"
                 />
+                <TouchableOpacity style={Style.filterBtn} onPress={() => setShowFilter(true)}>
+                    <Ionicons name="options" size={24} color="#FFF" />
+                </TouchableOpacity>
             </View>
-
-            <FlatList
-                data={getFilteredFoods()}
-                renderItem={renderFoodItem}
-                keyExtractor={(item, index) => `${item.id}-${index}`}
-                contentContainerStyle={Style.listContainer}
-                showsVerticalScrollIndicator={false}
-                // Thêm 3 thuộc tính cực kỳ quan trọng cho Infinite Scroll
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.1} // Gọi loadMore khi cách đáy màn hình 10%
-                ListFooterComponent={loading && <ActivityIndicator size="large" color="#1A5D4A" style={{ marginVertical: 20 }} />}
-            />
-
-
-
-            <Modal visible={showFilter} transparent={true} animationType="slide">
-                {/* 1. Biến Overlay thành nút bấm đóng Modal */}
-                <Pressable style={Style.modalOverlay} onPress={() => setShowFilter(false)}>
-
-                    {/* 2. Chặn sự kiện click xuyên qua khi bấm vào phần nội dung màu trắng */}
-                    <Pressable
-                        style={Style.modalContent}
-                        onPress={(e) => e.stopPropagation()}
-                    >
-                        {/* Tiêu đề & Nút đóng */}
-                        <View style={Style.modalHeader}>
-                            <Text style={Style.modalTitle}>Bộ lọc nâng cao</Text>
-                            <TouchableOpacity onPress={() => setShowFilter(false)}>
-                                <Ionicons name="close" size={28} color="#333" />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* ... Toàn bộ giao diện ô nhập Giá, chọn Thời gian, nút Áp dụng giữ nguyên ... */}
-                        {/* Mục 1: Lọc theo khoảng giá */}
-                        <Text style={Style.filterLabel}>Khoảng giá ($)</Text>
-                        <View style={Style.priceRow}>
-                            <TextInput
-                                style={Style.priceInput}
-                                placeholder="Tối thiểu"
-                                keyboardType="numeric"
-                                value={minPrice}
-                                onChangeText={setMinPrice}
-                            />
-                            <Text style={Style.priceDivider}>-</Text>
-                            <TextInput
-                                style={Style.priceInput}
-                                placeholder="Tối đa"
-                                keyboardType="numeric"
-                                value={maxPrice}
-                                onChangeText={setMaxPrice}
-                            />
-                        </View>
-
-                        {/* Mục 2: Lọc theo thời gian */}
-                        <Text style={Style.filterLabel}>Thời gian chuẩn bị</Text>
-                        <View style={Style.timeRow}>
-                            {['15', '30', '60'].map(time => (
-                                <TouchableOpacity
-                                    key={time}
-                                    style={[Style.timeBtn, maxTime === time && Style.timeBtnActive]}
-                                    onPress={() => setMaxTime(maxTime === time ? '' : time)}
-                                >
-                                    <Text style={[Style.timeBtnText, maxTime === time && Style.timeBtnTextActive]}>
-                                        &lt; {time} phút
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        <Text style={Style.filterLabel}>Đánh giá</Text>
-                        <View style={Style.timeRow}>
-                            {['1', '2', '3', '4', '5'].map(rating => (
-                                <TouchableOpacity
-                                    key={rating}
-                                    style={[Style.timeBtn, minRating === rating && Style.timeBtnActive]}
-                                    onPress={() => setMinRating(minRating === rating ? '' : rating)}
-                                >
-                                    <Text style={[Style.timeBtnText, minRating === rating && Style.timeBtnTextActive]}>
-                                        &ge; {rating} ⭐
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        <Text style={Style.filterLabel}>Đầu bếp</Text>
-
-                        <SelectList
-                            setSelected={(val) => setChefSelected(val)}
-                            data={chefs}
-                            save="key"
-                            placeholder="Chọn đầu bếp"
-                            search={false}
-                        />
-
-                        {/* Mục 3: Nút hành động */}
-                        <View style={Style.actionRow}>
-                            <TouchableOpacity style={Style.resetBtn} onPress={resetFilters}>
-                                <Text style={Style.resetBtnText}>Làm mới</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={Style.applyBtn} onPress={applyFilters}>
-                                <Text style={Style.applyBtnText}>Áp dụng</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                    </Pressable>
-                </Pressable>
-            </Modal>
         </View>
-    );
+
+        <View style={Style.categoryContainer}>
+            <FlatList
+                data={categories}
+                renderItem={renderCategoryItem}
+                keyExtractor={(item, index) => `${item.id}-${index}`}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+            />
+        </View>
+
+        <FlatList
+            data={getFilteredFoods()}
+            renderItem={renderFoodItem}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            contentContainerStyle={Style.listContainer}
+            showsVerticalScrollIndicator={false}
+            // Thêm 3 thuộc tính cực kỳ quan trọng cho Infinite Scroll
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.1} // Gọi loadMore khi cách đáy màn hình 10%
+            ListFooterComponent={loading && <ActivityIndicator size="large" color="#1A5D4A" style={{ marginVertical: 20 }} />}
+        />
+
+
+
+        <Modal visible={showFilter} transparent={true} animationType="slide">
+            {/* 1. Biến Overlay thành nút bấm đóng Modal */}
+            <Pressable style={Style.modalOverlay} onPress={() => setShowFilter(false)}>
+
+                {/* 2. Chặn sự kiện click xuyên qua khi bấm vào phần nội dung màu trắng */}
+                <Pressable
+                    style={Style.modalContent}
+                    onPress={(e) => e.stopPropagation()}
+                >
+                    {/* Tiêu đề & Nút đóng */}
+                    <View style={Style.modalHeader}>
+                        <Text style={Style.modalTitle}>Bộ lọc nâng cao</Text>
+                        <TouchableOpacity onPress={() => setShowFilter(false)}>
+                            <Ionicons name="close" size={28} color="#333" />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* ... Toàn bộ giao diện ô nhập Giá, chọn Thời gian, nút Áp dụng giữ nguyên ... */}
+                    {/* Mục 1: Lọc theo khoảng giá */}
+                    <Text style={Style.filterLabel}>Khoảng giá ($)</Text>
+                    <View style={Style.priceRow}>
+                        <TextInput
+                            style={Style.priceInput}
+                            placeholder="Tối thiểu"
+                            keyboardType="numeric"
+                            value={minPrice}
+                            onChangeText={setMinPrice}
+                        />
+                        <Text style={Style.priceDivider}>-</Text>
+                        <TextInput
+                            style={Style.priceInput}
+                            placeholder="Tối đa"
+                            keyboardType="numeric"
+                            value={maxPrice}
+                            onChangeText={setMaxPrice}
+                        />
+                    </View>
+
+                    {/* Mục 2: Lọc theo thời gian */}
+                    <Text style={Style.filterLabel}>Thời gian chuẩn bị</Text>
+                    <View style={Style.timeRow}>
+                        {['15', '30', '60'].map(time => (
+                            <TouchableOpacity
+                                key={time}
+                                style={[Style.timeBtn, maxTime === time && Style.timeBtnActive]}
+                                onPress={() => setMaxTime(maxTime === time ? '' : time)}
+                            >
+                                <Text style={[Style.timeBtnText, maxTime === time && Style.timeBtnTextActive]}>
+                                    &lt; {time} phút
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <Text style={Style.filterLabel}>Đánh giá</Text>
+                    <View style={Style.timeRow}>
+                        {['1', '2', '3', '4', '5'].map(rating => (
+                            <TouchableOpacity
+                                key={rating}
+                                style={[Style.timeBtn, minRating === rating && Style.timeBtnActive]}
+                                onPress={() => setMinRating(minRating === rating ? '' : rating)}
+                            >
+                                <Text style={[Style.timeBtnText, minRating === rating && Style.timeBtnTextActive]}>
+                                    &ge; {rating} ⭐
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <Text style={Style.filterLabel}>Đầu bếp</Text>
+
+                    <SelectList
+                        setSelected={(val) => setChefSelected(val)}
+                        data={chefs}
+                        save="key"
+                        placeholder="Chọn đầu bếp"
+                        search={false}
+                    />
+
+                    {/* Mục 3: Nút hành động */}
+                    <View style={Style.actionRow}>
+                        <TouchableOpacity style={Style.resetBtn} onPress={resetFilters}>
+                            <Text style={Style.resetBtnText}>Làm mới</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={Style.applyBtn} onPress={applyFilters}>
+                            <Text style={Style.applyBtnText}>Áp dụng</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                </Pressable>
+            </Pressable>
+        </Modal>
+    </View>
+);
 }
 
 export default Menu;

@@ -1,16 +1,20 @@
 import { StyleSheet } from 'react-native';
 
-const COLORS = {
+export const COLORS = {
     primary: '#A8D5C9', // Xanh ngọc
     background: '#F5F5F5',
     white: '#FFFFFF',
     textDark: '#333333',
     textLight: '#888888',
     accent: '#FF7F50', // Màu cam cho giá tiền/icon
-    darkGreen: '#1A5D4A' // Xanh đậm cho nút bấm
+    darkGreen: '#1A5D4A', // Xanh đậm cho nút bấm
+    orange: '#FF6347' // Thêm màu cam chủ đạo của Profile
 };
 
 export default StyleSheet.create({
+    // ==========================================
+    // 1. STYLE DÙNG CHUNG & CÁC MÀN HÌNH KHÁC
+    // ==========================================
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
@@ -78,7 +82,7 @@ export default StyleSheet.create({
         paddingBottom: 20,
     },
     foodCard: {
-        flexDirection: 'row', // Chuyển thành hàng ngang
+        flexDirection: 'row',
         backgroundColor: COLORS.white,
         borderRadius: 15,
         padding: 10,
@@ -130,35 +134,10 @@ export default StyleSheet.create({
     },
     modalContent: {
         backgroundColor: COLORS.white,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 20,
-        minHeight: 300,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    applyBtn: {
-        backgroundColor: COLORS.darkGreen,
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    applyBtnText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    modalContent: {
-        backgroundColor: COLORS.white,
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         padding: 20,
-        paddingBottom: 40, // Đệm cho các máy có thanh điều hướng ảo
+        paddingBottom: 40,
         minHeight: 400,
     },
     modalHeader: {
@@ -231,7 +210,7 @@ export default StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop:20
+        marginTop: 20
     },
     resetBtn: {
         flex: 1,
@@ -255,5 +234,94 @@ export default StyleSheet.create({
         color: COLORS.white,
         fontSize: 16,
         fontWeight: 'bold',
+    },
+
+    // ==========================================
+    // 2. STYLE DÀNH RIÊNG CHO PROFILE
+    // ==========================================
+    headerBackground: { 
+        backgroundColor: COLORS.orange, 
+        height: 160, 
+        borderBottomLeftRadius: 40, 
+        borderBottomRightRadius: 40, 
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0 
+    },
+    profileCard: { 
+        backgroundColor: COLORS.white, 
+        marginHorizontal: 20, 
+        marginTop: 100, 
+        borderRadius: 16, 
+        padding: 20, 
+        alignItems: 'center', 
+        elevation: 4, 
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 2 }, 
+        shadowOpacity: 0.1, 
+        shadowRadius: 8 
+    },
+    avatar: { 
+        marginTop: -60, 
+        borderWidth: 4, 
+        borderColor: COLORS.white, 
+        elevation: 2 
+    },
+    nameText: { 
+        fontSize: 22, 
+        fontWeight: 'bold', 
+        color: COLORS.textDark, 
+        marginTop: 10 
+    },
+    usernameText: { 
+        fontSize: 14, 
+        color: COLORS.textLight, 
+        marginTop: 2 
+    },
+    statsContainer: { 
+        flexDirection: 'row', 
+        justifyContent: 'center', 
+        width: '100%', 
+        marginTop: 20, 
+        paddingTop: 15, 
+        borderTopWidth: 1, 
+        borderTopColor: '#eee' 
+    },
+    statItem: { 
+        alignItems: 'center' 
+    },
+    statNumber: { 
+        fontSize: 18, 
+        fontWeight: 'bold', 
+        color: COLORS.orange 
+    },
+    statLabel: { 
+        fontSize: 12, 
+        color: '#666', 
+        marginTop: 4 
+    },
+    menuContainer: { 
+        backgroundColor: COLORS.white, 
+        marginHorizontal: 20, 
+        marginTop: 20, 
+        borderRadius: 16, 
+        elevation: 2, 
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 1 }, 
+        shadowOpacity: 0.05, 
+        shadowRadius: 4, 
+        overflow: 'hidden' 
+    },
+    logoutButton: { 
+        marginHorizontal: 20, 
+        marginTop: 25, 
+        borderRadius: 12, 
+        paddingVertical: 5, 
+        elevation: 0 
+    },
+    logoutText: { 
+        fontWeight: 'bold', 
+        fontSize: 16 
     }
 });
