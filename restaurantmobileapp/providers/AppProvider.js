@@ -122,6 +122,10 @@ export default function AppProvider({ children }) {
 
         loadCategories();
 
+        loadUser();
+
+        loadCart();
+
     }, []);
 
     // ===== USER FUNCTIONS =====

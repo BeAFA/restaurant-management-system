@@ -36,7 +36,11 @@ const StarRating = ({ rating, onRate }) => {
 
 const FoodDetail = ({ route }) => {
     const { cart, addToCart } = useContext(CartContext);
-    const { foodsToCompare, addFoodToCompare } = useContext(FoodCompareContext);
+    const {
+        foodsToCompare,
+        addFoodToCompare,
+        removeFromFoodsToCompare
+    } = useContext(FoodCompareContext);
     const { foodId } = route.params;
     const [food, setFood] = useState(null);
     const [reviews, setReviews] = useState([]);
@@ -190,42 +194,60 @@ const FoodDetail = ({ route }) => {
             return;
         }
 
-        if (!table) {
-            navigation.navigate("table_entry");
-            return;
-        }
-
         addToCart(food);
     };
 
-    const handleCompareFoods = async (food) => {
-        // ✅ Build ids từ context hiện tại + food mới (không gọi addFoodToCompare ở đây)
-        const existingIds = foodsToCompare.map(item => item.id);
-        const uniqueIds = [...new Set([...existingIds, food.id])];
+    const handleCompareFoods = (food) => {
 
-        if (uniqueIds.length < 2) {
-            // Lưu vào context để lần sau chọn thêm
-            addFoodToCompare(food);
-            Alert.alert("Thông báo", "Hãy chọn thêm ít nhất 1 món nữa để so sánh");
+        const exists = foodsToCompare.some(
+            item => item.id === food.id
+        );
+
+        // REMOVE
+        if (exists) {
+
+            removeFromFoodsToCompare(food.id);
+
+            Alert.alert(
+                "Đã xóa",
+                "Món ăn đã được xóa khỏi danh sách so sánh."
+            );
+
             return;
         }
 
-        try {
-            const idsParam = uniqueIds.join(",");
-            const res = await Apis.get(endpoints['foods_compare'](idsParam));
+        // LIMIT
+        if (foodsToCompare.length >= 3) {
 
-            // ✅ Cập nhật context sau khi API thành công
-            addFoodToCompare(food);
-
-            navigation.navigate("food_compare", {
-                comparedFoods: res.data
-            });
-        } catch (error) {
             Alert.alert(
-                "Lỗi",
-                error?.response?.data?.error || "Không thể so sánh món ăn"
+                "Thông báo",
+                "Chỉ có thể so sánh tối đa 3 món ăn."
             );
+
+            return;
         }
+
+        // ADD
+        addFoodToCompare(food);
+
+        const nextCount = foodsToCompare.length + 1;9
+
+        // CHƯA ĐỦ 2 MÓN
+        if (nextCount === 1) {
+
+            Alert.alert(
+                "Đã thêm",
+                "Đã thêm món ăn vào danh sách so sánh.\nHãy chọn thêm 1 món nữa để bắt đầu so sánh."
+            );
+
+            return;
+        }
+
+        // ĐỦ ĐỂ SO SÁNH
+        Alert.alert(
+            "Sẵn sàng so sánh",
+            `Hiện có ${nextCount} món ăn trong danh sách so sánh.`
+        );
     };
 
 
@@ -312,11 +334,46 @@ const FoodDetail = ({ route }) => {
                                     showsVerticalScrollIndicator={true}
                                     contentContainerStyle={{ paddingBottom: 120 }}>
                                 </FlatList>
+                                <TouchableOpacity
+                                    style={[
+                                        Styles.compareButton,
+                                        foodsToCompare.some(item => item.id === food.id)
+                                        && Styles.compareButtonActive
+                                    ]}
+                                    onPress={() => handleCompareFoods(food)}
+                                >
+                                    <MaterialIcons
+                                        name="compare-arrows"
+                                        size={18}
+                                        color="#FFF"
+                                    />
 
-                                <TouchableOpacity style={[Styles.compareButton, Styles.leftCompare]} onPress={() => handleCompareFoods(food)}>
-                                    <Text style={Styles.compareButtonText}>So sánh món ăn</Text>
+                                    <Text style={Styles.compareButtonText}>
+                                        {
+                                            foodsToCompare.some(item => item.id === food.id)
+                                                ? "Đã thêm để so sánh"
+                                                : "So sánh món ăn"
+                                        }
+                                    </Text>
                                 </TouchableOpacity>
+                                {foodsToCompare.length >= 2 && (
+                                    <>
+                                        <TouchableOpacity
+                                            style={Styles.viewCompareButton}
+                                            onPress={() => navigation.navigate("food_compare")}
+                                        >
+                                            <MaterialIcons
+                                                name="visibility"
+                                                size={18}
+                                                color="#0E7468"
+                                            />
 
+                                            <Text style={Styles.viewCompareText}>
+                                                Xem bảng so sánh ({foodsToCompare.length})
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
                             </View>
                             {/* Hàng tiêu đề + nút — thay onPress bằng handleOpenReviewModal */}
                             <View style={Styles.reviewSectionRow}>
@@ -404,7 +461,7 @@ const FoodDetail = ({ route }) => {
                         </View>}
 
                     ListEmptyComponent={
-                        <Text style={{ color: '#aaa', fontSize: 14, fontStyle: 'italic', textAlign: 'center', marginTop: 10, paddingHorizontal: 20 }}>
+                        <Text style={Styles.noReviewsText}>
                             Chưa có đánh giá nào cho món ăn này.
                         </Text>
                     }
@@ -414,23 +471,12 @@ const FoodDetail = ({ route }) => {
 
             {food && (
                 <View style={Styles.bottomBar}>
-                    {!table ? (
-                        <>
-                            <TouchableOpacity
-                                style={Styles.addToCartButton}
-                                onPress={() => navigation.navigate("table_entry")}
-                            >
-                                <Text style={Styles.addToCartText}>Chọn bàn</Text>
-                            </TouchableOpacity>
-                        </>
-                    ) : (
-                        <TouchableOpacity
-                            style={Styles.addToCartButton}
-                            onPress={handleAddToCart}
-                        >
-                            <Text style={Styles.addToCartText}>Add to cart (Bàn {table.id})</Text>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity
+                        style={Styles.addToCartButton}
+                        onPress={handleAddToCart}
+                    >
+                        <Text style={Styles.addToCartText}>Add to cart</Text>
+                    </TouchableOpacity>
                 </View>
             )}
         </View>

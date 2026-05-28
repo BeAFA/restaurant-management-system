@@ -1,107 +1,196 @@
-import { useEffect, useState, useContext } from "react";
-import { ActivityIndicator, FlatList, ScrollView, Text, View, TouchableOpacity } from "react-native";
-import Apis, { endpoints, authApis } from "../../configs/Apis";
-import { Card } from 'react-native-paper';
+import { useContext } from "react";
+import {
+    FlatList, Text, View, TouchableOpacity, Alert
+} from "react-native";
+import { authApis, endpoints } from "../../configs/Apis";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons } from '@expo/vector-icons';
-import Styles from "../../styles/DetailFoodStyles";
+import { MaterialIcons } from "@expo/vector-icons";
 import CartContext from "../../contexts/CartContext";
-import Reviews from "../../components/SimpleReviews";
 import UserContext from "../../contexts/UserContext";
-import SimpleFood from "../../components/SimpleFood";
+import CartFood from "../../components/CartFood";
 import TableContext from "../../contexts/TableContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
+import Styles from "../../styles/CartFoodStyle";
 
 const Cart = () => {
-    const { cart, dispatchCart, addToCart, clearCart, removeFromCart } = useContext(CartContext);
     const navigation = useNavigation();
+    const { cart, clearCart } = useContext(CartContext);
     const { user } = useContext(UserContext);
     const { table, tableSource, reservationId, clearTable } = useContext(TableContext);
 
+    const parseErrorMsg = (error) => {
+        const data = error?.response?.data;
+        if (!data) return "Đặt hàng thất bại!";
+        // Django ValidationError trả về nhiều dạng khác nhau, xử lý hết
+        if (typeof data === "string") return data;
+        if (data.error) return data.error;
+        if (data.non_field_errors) return data.non_field_errors.join("\n");
+        // {'__all__': [...]} hoặc {'field': [...]}
+        return Object.values(data).flat().join("\n");
+    };
+
     const confirm = async () => {
-        if (!table) {
-            alert("Vui lòng chọn bàn trước!");
+        if (!user) {
+            Alert.alert("Thông báo", "Vui lòng đăng nhập!");
             return;
         }
-        if (!user) {
-            alert("Vui lòng đăng nhập!");
+
+        if (!table) {
+            navigation.navigate("table_entry");
             return;
         }
 
         try {
             const token = await SecureStore.getItemAsync("token");
+            let payload;
 
-            const payload = {
-                table_id: table.id,
-                items: cart,
-                source: tableSource,                   
-                ...(reservationId && { reservation_id: reservationId }),
-            };
+            if (tableSource === "reservation") {
+                if (!reservationId) {
+                    Alert.alert("Lỗi", "Không tìm thấy thông tin đặt bàn.");
+                    return;
+                }
+                payload = {
+                    reservation_id: reservationId,
+                    details: cart.map((item) => ({
+                        food: item.id,
+                        quantity: item.quantity,
+                    })),
+                };
+            } else {
+                // Walk-in trực tiếp: nhân viên đã dẫn vào bàn, chỉ cần table id
+                payload = {
+                    table_id: table.id,
+                    details: cart.map((item) => ({
+                        food: item.id,
+                        quantity: item.quantity,
+                    })),
+                };
+            }
 
-            await authApis(token).post(endpoints['orders'], payload);
+            await authApis(token).post(endpoints["orders"], payload);
 
             clearCart();
-            clearTable();
-            navigation.navigate("Home");
+
+            Alert.alert(
+                "Thành công",
+                tableSource === "reservation"
+                    ? "Đặt món thành công! Đơn hàng đã được lưu cho bàn của bạn."
+                    : "Đặt món thành công!",
+                [
+                    {
+                        text: "OK",
+                        onPress: () => navigation.navigate("menu"),
+                    },
+                ]
+            );
         } catch (error) {
-            console.error("Tạo order thất bại", error.response?.data || error);
-            alert("Đặt hàng thất bại, vui lòng thử lại");
+            Alert.alert("Lỗi", parseErrorMsg(error));
         }
     };
 
-    useEffect(() => { }, []);
-
     return (
-        <View style={{ padding: 20, flex: 1, backgroundColor: '#f2f4f6' }}>
-
+        <View style={{ padding: 20, flex: 1, backgroundColor: "#f2f4f6" }}>
             {cart && cart.length > 0 ? (
                 <>
                     <SafeAreaView edges={["top"]}>
                         <Text style={Styles.headerTitle}>Giỏ hàng của bạn</Text>
                     </SafeAreaView>
+
+                    {/* Table info bar */}
+                    <View>
+                        {table ? (
+                            <View style={Styles.tableInfoContainer}>
+                                <MaterialIcons
+                                    name="table-restaurant"
+                                    size={20}
+                                    color="#1976D2"
+                                />
+                                <Text
+                                    style={{
+                                        marginLeft: 8,
+                                        color: "#1976D2",
+                                        fontWeight: "600",
+                                    }}
+                                >
+                                    Bàn {table.id}
+                                    {tableSource === "reservation"
+                                        ? "  📅 Đặt trước"
+                                        : ""}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={clearTable}
+                                    style={{ marginLeft: 10 }}
+                                >
+                                    <MaterialIcons
+                                        name="close"
+                                        size={18}
+                                        color="red"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate("table_entry")}
+                                style={Styles.emptyTableContainer}
+                            >
+                                <MaterialIcons
+                                    name="add-circle-outline"
+                                    size={20}
+                                    color="#1976D2"
+                                />
+                                <Text
+                                    style={{
+                                        marginLeft: 5,
+                                        color: "#1976D2",
+                                        fontWeight: "600",
+                                    }}
+                                >
+                                    Chọn bàn
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
                     <FlatList
                         data={cart}
-                        renderItem={({ item }) => (
-                            <SimpleFood
-                                key={item.id}
-                                item={item}
-                            />
-                        )}
-                    >
-                    </FlatList>
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => <CartFood item={item} />}
+                    />
+
                     <View style={Styles.bottomBar}>
-                        <TouchableOpacity style={Styles.clearCartButton} onPress={clearCart}>
-                            <Text style={Styles.addToCartText}>Clear Cart</Text>
+                        <TouchableOpacity
+                            style={Styles.clearCartButton}
+                            onPress={clearCart}
+                        >
+                            <Text style={Styles.addToCartText}>Xoá giỏ</Text>
                         </TouchableOpacity>
 
                         <View style={{ width: 10 }} />
 
-                        <TouchableOpacity style={Styles.addToCartButton} onPress={confirm}>
-                            <Text style={Styles.addToCartText}>Confirm</Text>
+                        <TouchableOpacity
+                            style={Styles.addToCartButton}
+                            onPress={confirm}
+                        >
+                            <Text style={Styles.addToCartText}>Xác nhận</Text>
                         </TouchableOpacity>
                     </View>
                 </>
             ) : (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 18, color: '#555555' }}>Giỏ hàng của bạn đang trống</Text>
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Text style={{ fontSize: 18, color: "#555555" }}>
+                        Giỏ hàng của bạn đang trống
+                    </Text>
                 </View>
-            )}
-
-            {table ? (
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
-                    <Text>Bàn đang chọn: Bàn {table.id}</Text>
-                    <TouchableOpacity onPress={clearTable} style={{ marginLeft: 8 }}>
-                        <Text style={{ color: "red" }}>✕</Text>
-                    </TouchableOpacity>
-                </View>
-            ) : (
-                <TouchableOpacity onPress={() => navigation.navigate("table_entry")}>
-                    <Text style={{ color: "#1976D2" }}>+ Chọn bàn</Text>
-                </TouchableOpacity>
             )}
         </View>
     );
-}
+};
 
 export default Cart;

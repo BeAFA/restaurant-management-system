@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 from .models import Category, Food, Review, User, OrderDetail, Order, Table, Reservation, FoodChef, UserRole, \
     Ingredient, \
-    FoodIngredient, DiningSession, Status_Session
+    FoodIngredient, DiningSession, Status_Session, Status_Reservation
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -55,6 +55,20 @@ class UserSerializer(UserAnonymousSerializer):
         fields = UserAnonymousSerializer.Meta.fields + ['username', 'password', 'user_role', 'is_approved']
         extra_kwargs = {'password': {'write_only': True},
                         'is_approved': {'read_only': True}}
+
+    def validate_user_role(self, value):
+
+        allowed_roles = [
+            UserRole.CUSTOMER,
+            UserRole.CHEF
+        ]
+
+        if value not in allowed_roles:
+            raise serializers.ValidationError(
+                "Chỉ được đăng ký tài khoản khách hàng hoặc đầu bếp."
+            )
+
+        return value
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -112,72 +126,105 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True)
-    session_code = serializers.CharField(write_only=True)
-    table = serializers.CharField(source='session.table.id')
-
+    session_code = serializers.CharField(write_only=True, required=False, allow_null=True)
+    reservation_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    table_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)  # ← THÊM DÒNG NÀY
+    table = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'table', 'user', 'details', 'status_order', 'total', 'created_date', 'session_code']
+        fields = [
+            'id', 'table', 'user', 'details',
+            'status_order', 'total', 'created_date',
+            'session_code', 'reservation_id', 'table_id'  # ← THÊM 'table_id' VÀO ĐÂY
+        ]
         extra_kwargs = {
             'user': {'read_only': True},
             'total': {'read_only': True},
             'status_order': {'read_only': True}
         }
 
-    def create(self, validated_data):
-        details_data = validated_data.pop('details')
-
-        order = Order.objects.create(**validated_data)
-
-        for data in details_data:
-            OrderDetail.objects.create(order=order, **data)
-
-        return order
-
-    def update(self, instance, validated_data):
-        details_data = validated_data.pop('details', None)
-
-        instance.table = validated_data.get('table', instance.table)
-        instance.save()
-
-        if details_data is not None:
-            instance.details.all().delete()
-
-            for data in details_data:
-                OrderDetail.objects.create(order=instance, **data)
-
-        return instance
+    def get_table(self, obj):
+        if obj.session:
+            return obj.session.table.id
+        if obj.reservation:
+            return obj.reservation.table.id
+        if obj.table_direct:
+            return obj.table_direct.id
+        return None
 
     def validate(self, attrs):
-        session_code = attrs.pop('session_code')
+        session_code = attrs.pop('session_code', None)
+        reservation_id = attrs.pop('reservation_id', None)
+        table_id = attrs.pop('table_id', None)
 
-        session = DiningSession.objects.filter(
-            session_code=session_code,
-            status_session=Status_Session.OPEN
-        ).first()
+        if session_code:
+            session = DiningSession.objects.filter(
+                session_code=session_code,
+                status_session=Status_Session.OPEN
+            ).first()
+            if not session:
+                raise serializers.ValidationError('Session không hợp lệ')
+            attrs['session'] = session
 
-        if not session:
+        elif reservation_id:
+            try:
+                reservation = Reservation.objects.get(
+                    pk=reservation_id,
+                    status_reservation=Status_Reservation.CONFIRMED
+                )
+            except Reservation.DoesNotExist:
+                raise serializers.ValidationError('Reservation không hợp lệ hoặc chưa được xác nhận')
+            attrs['reservation'] = reservation
+            attrs['session'] = None
+
+        elif table_id:
+            try:
+                table = Table.objects.get(pk=table_id)
+            except Table.DoesNotExist:
+                raise serializers.ValidationError('Bàn không tồn tại')
+            attrs['table_direct'] = table
+            attrs['session'] = None
+
+        else:
             raise serializers.ValidationError(
-                'Session không hợp lệ'
+                'Cần cung cấp session_code, reservation_id, hoặc table_id'
             )
-
-        attrs['session'] = session
 
         return attrs
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')
-
         order = Order.objects.create(**validated_data)
-
         for data in details_data:
-            OrderDetail.objects.create(
-                order=order,
-                **data
-            )
-
+            OrderDetail.objects.create(order=order, **data)
         return order
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        instance.save()
+        if details_data is not None:
+            instance.details.all().delete()
+            for data in details_data:
+                OrderDetail.objects.create(order=instance, **data)
+        return instance
+
+    def create(self, validated_data):
+        details_data = validated_data.pop('details')
+        order = Order.objects.create(**validated_data)
+        for data in details_data:
+            OrderDetail.objects.create(order=order, **data)
+        return order
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        instance.save()
+        if details_data is not None:
+            instance.details.all().delete()
+            for data in details_data:
+                OrderDetail.objects.create(order=instance, **data)
+        return instance
+
 
 class TableSerializer(serializers.ModelSerializer):
     class Meta:
