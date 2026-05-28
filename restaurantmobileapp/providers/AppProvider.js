@@ -42,20 +42,6 @@ export default function AppProvider({ children }) {
         initialFoodsToCompare
     );
 
-    // ===== LOAD FOODS =====
-
-    const loadFoods = async () => {
-        try {
-            let res = await Apis.get(endpoints['foods']);
-
-            setFoods(res.data);
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
-    // ===== LOAD CATEGORIES =====
-
     const loadCategories = async () => {
         try {
             let res = await Apis.get(endpoints['categories']);
@@ -66,7 +52,6 @@ export default function AppProvider({ children }) {
         }
     };
 
-    // ===== LOAD USER =====
 
     const loadUser = async () => {
         try {
@@ -114,17 +99,17 @@ export default function AppProvider({ children }) {
         }
     };
 
-    // ===== APP START =====
 
     useEffect(() => {
 
-        loadFoods();
-
         loadCategories();
+
+        loadUser();
+
+        loadCart();
 
     }, []);
 
-    // ===== USER FUNCTIONS =====
 
     const login = async (userData, token) => {
 
@@ -147,8 +132,6 @@ export default function AppProvider({ children }) {
             type: "LOGOUT"
         });
     };
-
-    // ===== CART FUNCTIONS =====
 
     const addToCart = async (food) => {
 
@@ -195,7 +178,6 @@ export default function AppProvider({ children }) {
         await SecureStore.deleteItemAsync("cart");
     };
 
-    // ===== FOOD COMPARE FUNCTIONS =====
     const addFoodToCompare = async (food) => {
         if (foodsToCompare.length >= 3) {
             Alert.alert("Thông báo", "Bạn chỉ có thể so sánh tối đa 3 món ăn. Vui lòng xóa danh sách so sánh để thêm món mới.");
@@ -225,7 +207,6 @@ export default function AppProvider({ children }) {
     };
 
 
-    // ===== TABLE FUNCTIONS =====
     const selectTable = (tableData, source = "walk_in") => {
         setTable(tableData);
         setTableSource(source);

@@ -110,12 +110,26 @@ const Dashboard = () => {
 
                     {showStartPicker && (
                         <DateTimePicker value={startDate} mode="date" display="default"
-                            onChange={(event, date) => { setShowStartPicker(false); if(date) setStartDate(date); }}
+                            onChange={(event, date) => { 
+                                setShowStartPicker(false); 
+                                if(date) {
+                                    setStartDate(date);
+                                    if (date > endDate) setEndDate(date);
+                                } 
+                            }}
                         />
                     )}
                     {showEndPicker && (
                         <DateTimePicker value={endDate} mode="date" display="default" minimumDate={startDate}
-                            onChange={(event, date) => { setShowEndPicker(false); if(date) setEndDate(date); }}
+                            onChange={(event, date) => { 
+                                setShowEndPicker(false); 
+                                if(date) {
+                                    const startObj = new Date(startDate.setHours(0,0,0,0));
+                                    const endObj = new Date(date.setHours(0,0,0,0));
+                                    if (endObj >= startObj) setEndDate(date);
+                                    else alert("Ngày kết thúc không hợp lệ!");
+                                } 
+                            }}
                         />
                     )}
                 </View>

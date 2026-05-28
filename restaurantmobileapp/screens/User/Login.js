@@ -25,7 +25,9 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const { dispatchUser } = useContext(UserContext);
 
-
+    const [hidePass, setHidePass] = useState({
+        password: true,
+    });
 
     const validate = () => {
         setErr(null);
@@ -61,29 +63,12 @@ CLIENT_SECRET_REMOVED
             const currentUser = await authApis(res.data.access_token)
                 .get(endpoints['current_user']);
 
-            console.log("Toàn bộ thông tin user:", currentUser.data);
-            console.log("Vai trò của người đăng nhập là:", currentUser.data.user_role);
-
-            // (Tùy chọn) Bạn có thể dùng if-else ở đây nếu muốn hiển thị thông báo chào mừng riêng
-            if (currentUser.data.user_role === 'ADMIN') {
-                console.log("Xin chào Quản trị viên!");
-                // alert("Chào mừng sếp đã quay lại!");
-            } else if (currentUser.data.user_role === 'CHEF') {
-                console.log("Xin chào Đầu bếp!");
-            } else {
-                console.log("Xin chào Khách hàng!");
-            }
 
             dispatchUser({
                 type: 'LOGIN',
                 payload: currentUser.data,
             });
 
-            
-
-
-
-            // nav.navigate('home');
 
         } catch (ex) {
             if (ex.response) {
@@ -106,40 +91,56 @@ CLIENT_SECRET_REMOVED
     return (
         <View style={[Style.container, { paddingTop: 80 }]}>
 
-            {/* Khu vực Logo và Lời chào */}
             <View style={Style.headerContainer}>
                 <Text style={Style.titleText}>DK Restaurant</Text>
                 <Text style={Style.subText}>Đăng nhập để đặt món ngay!</Text>
             </View>
 
-            {/* Khu vực Form nhập liệu */}
             <View style={Style.formContainer}>
                 <HelperText style={Style.margin} type="error" visible={!!err}>
                     {err}
                 </HelperText>
 
-                {userInfo.map(u => (
-                    <TextInput
-                        key={u.field}
-                        value={user[u.field]}
-                        onChangeText={(t) => setUser({ ...user, [u.field]: t })}
-                        style={Style.input}
-                        label={u.title}
-                        placeholder={`Nhập ${u.title.toLowerCase()}`}
-                        secureTextEntry={u.secureTextEntry}
-                        mode="outlined" // Chuyển sang dạng có viền bao quanh
-                        outlineColor="#E0E0E0" // Viền xám nhạt khi không focus
-                        activeOutlineColor="#388f35" // Đổi viền sang màu cam khi bấm vào
-                        right={<TextInput.Icon icon={u.icon} color="#FF6347" />}
-                    />
-                ))}
 
-                {/* Thêm nút Quên mật khẩu cho thực tế */}
+                <TextInput
+                    key={userInfo[0].field}
+                    value={user.username}
+                    onChangeText={(t) => setUser({ ...user, [userInfo[0].field]: t })}
+                    style={Style.input}
+                    label={userInfo[0].title}
+                    placeholder={`Nhập ${userInfo[0].title.toLowerCase()}`}
+                    secureTextEntry={userInfo.secureTextEntry}
+                    mode="outlined" 
+                    outlineColor="#E0E0E0" 
+                    activeOutlineColor="#388f35" 
+
+                    right={<TextInput.Icon icon="account" color="#FF6347" />}
+                />
+                
+
+                <TextInput
+                    key={userInfo[1].field}
+                    label={userInfo[1].title}
+                    mode="outlined"
+                    style={Style.input}
+                    activeOutlineColor="#FF6347"
+                    secureTextEntry={hidePass.password}
+                    value={user.password}
+                    onChangeText={(t) => setUser({ ...user, [userInfo[1].field]: t })}
+                    right={
+                        <TextInput.Icon
+                            icon={hidePass.password ? "eye-off" : "eye"}
+                            color="#FF6347"
+                            onPress={() => setHidePass({ ...hidePass, password: !hidePass.password })}
+                        />
+                    }
+                />
+
+                
                 <TouchableOpacity>
                     <Text style={Style.forgotPassword}>Quên mật khẩu?</Text>
                 </TouchableOpacity>
 
-                {/* Nút Đăng nhập */}
                 <Button
                     loading={loading}
                     disabled={loading}
