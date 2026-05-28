@@ -115,9 +115,22 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
+    dish_name = serializers.CharField(
+        source='food.dish',
+        read_only=True
+    )
+
     class Meta:
         model = OrderDetail
-        fields = ['id', 'food', 'quantity', 'unit_price', 'total_price']
+        fields = [
+            'id',
+            'food',
+            'dish_name',
+            'quantity',
+            'unit_price',
+            'total_price'
+        ]
+
         extra_kwargs = {
             'unit_price': {'read_only': True},
             'total_price': {'read_only': True}

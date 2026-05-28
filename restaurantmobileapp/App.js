@@ -113,7 +113,7 @@ const CustomerTabNavigator = () => {
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (
                 <>
-                    <Tab.Screen name="cart_tab" component={CartStackNavigator} options={{ title: "Giỏ hàng", tabBarIcon: () => <Icon source="cart" size={20} /> }} />
+                    <Tab.Screen name="cart_index" component={Cart} options={{ title: "Giỏ hàng", tabBarIcon: () => <Icon source="cart" size={20} /> }} />
                     <Tab.Screen name="profile" component={ProfileStackNavigator} options={{ title: "Hồ sơ", tabBarIcon: () => <Icon source="account" size={20} /> }} />
                 </>
             )}
@@ -161,15 +161,7 @@ const AdminTabNavigator = () => {
                     tabBarIcon: () => <Icon source="view-dashboard" size={20} />
                 }}
             />
-            
-            <Tab.Screen
-                name="statistic_chef"
-                component={StatisticChef}
-                options={{
-                    title: "Thống kê",
-                    tabBarIcon: () => <Icon source="chart-bar" size={20} />,
-                }}
-            />
+        
             {user === null ? (
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (

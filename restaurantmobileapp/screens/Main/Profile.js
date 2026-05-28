@@ -82,7 +82,7 @@ const Profile = () => {
                                     description="Xem lại các món đã thêm vào giỏ"
                                     left={props => <List.Icon {...props} icon="cart" color="#FF6347" />}
                                     right={props => <List.Icon {...props} icon="chevron-right" color="#ccc" />}
-                                    onPress={() => nav.navigate('cart_tab')}
+                                    onPress={() => nav.navigate('cart_index')}
                                 />
                             </>
                         )}

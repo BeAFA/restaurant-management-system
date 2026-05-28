@@ -155,10 +155,10 @@ const Reservation = () => {
 
             Alert.alert(
                 "Đặt bàn thành công! 🎉",
+                "Đặt bàn thành công.",
                 [{ text: "OK", style: "cancel" }]
             );
         } catch (error) {
-            // Backend trả về lỗi conflict reservation hoặc lỗi validation khác
             const data = error?.response?.data;
             const msg = data
                 ? Object.values(data).flat().join('\n')
