@@ -3,7 +3,6 @@ from django.db.models import Avg, Count, Sum
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
-from pyexpat.errors import messages
 from rest_framework import viewsets, generics, filters, status, permissions, parsers, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -15,10 +14,10 @@ from django.db.models import Q
 
 from . import perms
 from .serializers import CategorySerializer, FoodSerializer, ReviewSerializer, FoodDetailSerializer, UserSerializer, \
-    UserAnonymousSerializer, OrderSerializer, OrderDetailSerializer, ReservationSerializer, ChefApproveSerializer, \
-    FoodChefSerializer, FoodComparisonSerializer, TableSerializer
+    UserAnonymousSerializer, OrderSerializer, ReservationSerializer, ChefApproveSerializer, \
+    FoodChefSerializer, FoodComparisonSerializer, TableSerializer, FoodCreateSerializer, IngredientSerializer
 from .models import Category, Food, User, Review, Order, Reservation, OrderDetail, UserRole, FoodChef, Status_Order, \
-    Status_Table, Table, DiningSession, Status_Reservation, Status_Session
+    Status_Table, Table, DiningSession, Status_Reservation, Status_Session, Ingredient
 from .paginators import FoodPagination, ReviewsPagination
 
 
@@ -31,6 +30,9 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveA
         foods = self.get_object().foods.filter(active=True)
         return Response(FoodSerializer(foods, many=True).data, status=status.HTTP_200_OK)
 
+class IngredientsViewSet(viewsets.ViewSet, generics.ListAPIView):
+    queryset = Ingredient.objects.filter(active=True)
+    serializer_class = IngredientSerializer
 
 class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = Food.objects.filter(active=True)
@@ -49,6 +51,9 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
     def get_queryset(self):
         query = self.queryset.annotate(
             avg_rating=Avg('reviews__rating')
+        ).select_related('category').prefetch_related(
+            'food_ingredients__ingredients',
+            'chefs__chef'
         )
 
         q = self.request.query_params.get('q')
@@ -58,6 +63,12 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         cate_id = self.request.query_params.get('category_id')
         if cate_id:
             query = query.filter(category_id=cate_id)
+        chef_id = self.request.query_params.get('chef_id')
+        if chef_id:
+            query = query.filter(
+                chefs__chef_id=chef_id,
+                chefs__active=True
+            )
 
         return query
 
@@ -69,10 +80,17 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
 
         return [permissions.AllowAny()]
 
+    @action(methods=['POST'], url_path='create_food', detail=False, permission_classes=[perms.IsApprovedChef])
+    def create_food(self, request):
+        s = FoodCreateSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        food = s.save()
+        FoodChef.objects.create(food=food, chef=request.user)
+        return Response(FoodDetailSerializer(food).data, status=status.HTTP_201_CREATED)
+
     @action(methods=['GET', 'POST'], url_path='reviews', detail=True)
     def get_reviews(self, request, pk):
         if self.request.method.__eq__('POST'):
-
             s = ReviewSerializer(data={
                 'comment': request.data.get('comment'),
                 'rating': request.data.get('rating'),
@@ -93,7 +111,8 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
 
         return Response(ReviewSerializer(comments, many=True).data, status=status.HTTP_200_OK)
 
-    @action(methods=['GET', 'POST', 'DELETE'], url_path='chefs', detail=True, permission_classes=[perms.IsAdminRole])
+    @action(methods=['GET', 'POST', 'DELETE'], url_path='chef_control', detail=True,
+            permission_classes=[perms.IsAdminRole])
     def manage_chefs(self, request, pk=None):
         food = self.get_object()
         if request.method == 'POST':
@@ -241,18 +260,6 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         serializer = FoodSerializer(sorted_foods, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # top_foods = Food.objects.filter(
-    #     active=True,
-    #     order_details__order__status_order='SUCCESS'
-    # ).annotate(
-    #     total_quantity=Sum('order_details__quantity'),
-    #     avg_rating=Avg('reviews__rating'),
-    # ).order_by('-total_quantity')[:10]
-    #
-    # serializer = FoodSerializer(top_foods, many=True)
-    #
-    # return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
@@ -291,6 +298,26 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
             'messages': f'Đã {action} tài khoản đầu bếp {chef.first_name + " " + chef.last_name}',
             'user': ChefApproveSerializer(chef).data
         }, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        url_path='chef_list',
+        permission_classes=[permissions.AllowAny]
+    )
+    def chef_list(self, request):
+        chefs = User.objects.filter(
+            user_role=UserRole.CHEF,
+            is_approved=True,
+            is_active=True
+        )
+
+        data = [{
+            'id': chef.id,
+            'name': f'{chef.first_name} {chef.last_name}'
+        } for chef in chefs]
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView):
@@ -533,6 +560,56 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
         instance.active = False
         instance.save()
 
+    @transaction.atomic
+    @action(
+        methods=['POST'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def check_in(self, request, pk=None):
+        reservation = self.get_object()
+
+        if reservation.status_reservation != Status_Reservation.CONFIRMED:
+            return Response(
+                {'error': 'Reservation không hợp lệ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        now = timezone.now()
+
+        # check đúng giờ
+        if now < reservation.serve_time - timedelta(minutes=30):
+            return Response(
+                {'error': 'Chưa tới giờ check-in'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if now > reservation.end_time:
+            return Response(
+                {'error': 'Reservation đã hết hạn'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # update reservation
+        reservation.status_reservation = Status_Reservation.CHECKED_IN
+        reservation.save()
+
+        # update table
+        reservation.table.status_table = Status_Table.OCCUPIED
+        reservation.table.save()
+
+        # tạo session
+        session = DiningSession.objects.create(
+            reservation=reservation,
+            table=reservation.table,
+            customer=reservation.user
+        )
+
+        return Response({
+            'message': 'Check-in thành công',
+            'session_code': session.session_code
+        }, status=status.HTTP_200_OK)
+
 
 class StatisticViewSet(viewsets.ViewSet):
     @action(methods=['GET'], url_path='chef_stats', detail=False, permission_classes=[perms.IsApprovedChef])
@@ -674,54 +751,4 @@ class StatisticViewSet(viewsets.ViewSet):
             'revenue_stats': list(revenue_stats),
             'top_foods': list(top_foods),
             'reservation_stats': list(reservation_stats)
-        }, status=status.HTTP_200_OK)
-
-    @transaction.atomic
-    @action(
-        methods=['POST'],
-        detail=True,
-        permission_classes=[permissions.IsAuthenticated]
-    )
-    def check_in(self, request, pk=None):
-        reservation = self.get_object()
-
-        if reservation.status_reservation != Status_Reservation.CONFIRMED:
-            return Response(
-                {'error': 'Reservation không hợp lệ'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        now = timezone.now()
-
-        # check đúng giờ
-        if now < reservation.serve_time - timedelta(minutes=30):
-            return Response(
-                {'error': 'Chưa tới giờ check-in'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if now > reservation.end_time:
-            return Response(
-                {'error': 'Reservation đã hết hạn'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # update reservation
-        reservation.status_reservation = Status_Reservation.CHECKED_IN
-        reservation.save()
-
-        # update table
-        reservation.table.status_table = Status_Table.OCCUPIED
-        reservation.table.save()
-
-        # tạo session
-        session = DiningSession.objects.create(
-            reservation=reservation,
-            table=reservation.table,
-            customer=reservation.user
-        )
-
-        return Response({
-            'message': 'Check-in thành công',
-            'session_code': session.session_code
         }, status=status.HTTP_200_OK)

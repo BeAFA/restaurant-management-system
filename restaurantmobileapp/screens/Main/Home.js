@@ -9,7 +9,6 @@ import SimpleFood from "../../components/SimpleFood";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Style from "./Style";
 import CategoryContext from "../../contexts/CategoryContext";
-import FoodContext from "../../contexts/FoodContext";
 
 const Home = () => {
     const { categories } = useContext(CategoryContext)
@@ -54,13 +53,11 @@ const Home = () => {
         <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#f2f4f6' }]}>
 
             <SafeAreaView edges={["top"]}>
-                <Text style={Styles.headerTitle}>DK Restaurant</Text>
-                <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} />
+                {/* <Text style={Styles.headerTitle}>DK Restaurant</Text>
+                <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} /> */}
+                {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Danh mục</Text>
             </SafeAreaView>
-
-
-            {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Danh mục</Text>
             <FlatList
                 horizontal={true} // Bật tính năng vuốt NANG
                 showsHorizontalScrollIndicator={false} // Ẩn thanh cuộn xấu xí đi

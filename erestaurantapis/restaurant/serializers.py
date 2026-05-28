@@ -87,7 +87,7 @@ class ChefApproveSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'user', 'food', 'comment', 'rating', 'created_date']  # ✅ thêm created_date
+        fields = ['id', 'user', 'food', 'comment', 'rating', 'created_date']
         extra_kwargs = {
             'food': {'read_only': True},
             'user': {'read_only': True},
@@ -218,3 +218,34 @@ class FoodComparisonSerializer(serializers.ModelSerializer):
         model = Food
         fields = ['id', 'dish', 'price', 'illustration', 'time', 'ingredients', 'description', 'category_name',
                   'avg_rating', 'review_count']
+
+class FoodCreateSerializer(serializers.ModelSerializer):
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category'
+    )
+    ingredient_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+    )
+
+    class Meta:
+        model = Food
+        fields = ['id', 'dish','description','category_id', 'price', 'illustration', 'time', 'ingredient_ids']
+
+    def create(self, validated_data):
+        ingredient_ids = validated_data.pop('ingredient_ids',[])
+
+        food = Food.objects.create(**validated_data)
+
+        for ingredient_id in ingredient_ids:
+            ingredient = Ingredient.objects.get(pk=ingredient_id)
+
+            FoodIngredient.objects.create(food=food, ingredients=ingredient)
+
+        return food
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ['id','name']
