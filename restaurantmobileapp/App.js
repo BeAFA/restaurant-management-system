@@ -24,7 +24,40 @@ import { Icon } from "react-native-paper";
 import { useContext } from "react";
 import AppProvider from "./providers/AppProvider";
 import UserContext from "./contexts/UserContext";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import CreateFood from "./screens/User/Chef/CreateFood";
+import StatisticChef from "./screens/User/Chef/StatisticChef";
+
+
+const HomeStack = createNativeStackNavigator();
+const MenuStack = createNativeStackNavigator();
+const AccountStack = createNativeStackNavigator();
+const CartStack = createNativeStackNavigator();
+
+const tableScreens = (Stack) => (
+    <>
+        <Stack.Screen
+            name="table_entry"
+            component={TableEntryScreen}
+            options={{ title: "Chọn hình thức" }}
+        />
+        <Stack.Screen
+            name="table_selection_walkin"
+            component={TableSelectionWalkIn}
+            options={{  title: "Chọn bàn" }}
+        />
+        <Stack.Screen
+            name="reservation_form"
+            component={ReservationForm}
+            options={{  title: "Đặt bàn trước" }}
+        />
+        <Stack.Screen
+            name="camera_table_selection"
+            component={QRScanner}
+            options={{ headerShown: false, title: "Quét QR bàn" }}
+        />
+    </>
+);
 
 // Khởi tạo các bộ điều hướng
 const Stack = createNativeStackNavigator();
@@ -123,6 +156,22 @@ const AdminTabNavigator = () => {
                 options={{
                     title: "Quản lý",
                     tabBarIcon: () => <Icon source="view-dashboard" size={20} />
+                }}
+            />
+            {/* <Tab.Screen
+                name="create_food"
+                component={CreateFood}
+                options={{
+                    title: "Tạo món ăn",
+                    tabBarIcon: () => <Icon source="plus" size={20} />,
+                }}
+            /> */}
+            <Tab.Screen
+                name="statistic_chef"
+                component={StatisticChef}
+                options={{
+                    title: "Thống kê",
+                    tabBarIcon: () => <Icon source="chart-bar" size={20} />,
                 }}
             />
             {user === null ? (

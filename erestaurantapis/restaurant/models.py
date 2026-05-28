@@ -132,7 +132,7 @@ class Reservation(BaseModel):
     # 2. Tự động tính end_time trước khi lưu vào Database
     def save(self, *args, **kwargs):
         if self.serve_time and not self.end_time:
-            # Cộng thêm 2 tiếng vào thời gian bắt đầu
+            # Cộng thêm 30 phút vào thời gian bắt đầu
             self.end_time = self.serve_time + timedelta(minutes=30)
         self.full_clean()
         super().save(*args, **kwargs)
@@ -146,7 +146,7 @@ class Reservation(BaseModel):
             raise ValidationError("Thời gian đặt bàn không thể ở trong quá khứ.")
 
         # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
-        expected_end_time = self.end_time or (self.serve_time + timedelta(hours=1))
+        expected_end_time = self.end_time or (self.serve_time + timedelta(minutes=30))
         # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
         # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
         conflicting_reservations = Reservation.objects.filter(

@@ -231,6 +231,7 @@ export default StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        marginTop:20
     },
     resetBtn: {
         flex: 1,

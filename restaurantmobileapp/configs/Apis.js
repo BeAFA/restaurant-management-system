@@ -8,10 +8,14 @@ export const endpoints = {
     'category_detail': (id) => `/categories/${id}/`,
     'category_foods': (id) => `/categories/${id}/foods/`,
 
+    // === INGREDIENTS ===
+    'ingredients': '/ingredients/',
+
     // === FOODS ===
     'foods': '/foods/',
-    'foods_compare': (ids) => `/foods/compare/?ids=${ids}`,
     'top_dishes': '/foods/top_dishes/',
+    'foods_compare': (ids) => `/foods/compare/?ids=${ids}`,
+    'food_create': '/foods/create_food/',
     'food_detail': (foodId) => `/foods/${foodId}/`,
     'food_chefs': (id) => `/foods/${id}/chefs/`,
     'food_reviews': (id) => `/foods/${id}/reviews/`,
@@ -42,6 +46,7 @@ export const endpoints = {
     // === USERS ===
     'register': '/users/',
     'login': '/o/token/',
+    'chef_list': 'users/chef_list/',
     'current_user': '/users/current_user/',
     'pending_chefs': '/users/pending_chefs/',
     'approve_chef': (id) => `/users/${id}/approve/`,
