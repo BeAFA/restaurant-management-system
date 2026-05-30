@@ -63,6 +63,9 @@ const OrderHistory = () => {
         );
     };
 
+    const handlePayOrder = (order) => {
+        nav.navigate("payment_qr", { order });
+    };
 
 
     // Hàm render màu sắc trạng thái
@@ -127,9 +130,19 @@ const OrderHistory = () => {
                                     </List.Accordion>
 
                                     {order.status_order === 'WAITING' && (
-                                        <View> 
+                                        <View>
                                             <Divider />
                                             <Card.Actions style={Style.actions}>
+                                                <Button
+                                                    mode="contained"
+                                                    icon="qrcode"
+                                                    buttonColor="#1976D2"
+                                                    loading={actionLoading === `pay_${order.id}`}
+                                                    disabled={actionLoading !== null}
+                                                    onPress={() => handlePayOrder(order)}
+                                                >
+                                                    Thanh toán
+                                                </Button>
                                                 <Button
                                                     mode="contained"
                                                     icon="cancel"

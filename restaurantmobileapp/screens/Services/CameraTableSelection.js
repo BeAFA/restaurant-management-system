@@ -23,7 +23,7 @@ const QRScanner = ({ onSuccess }) => {
             } else {
                 // Standalone → tự xử lý
                 selectTable(tableData, "walk_in");
-                navigation.navigate("cart_tab", { screen: "cart_index" });
+                navigation.navigate('CustomerTabs', { screen: 'cart_index' });
             }
         } catch {
             alert("QR không hợp lệ");

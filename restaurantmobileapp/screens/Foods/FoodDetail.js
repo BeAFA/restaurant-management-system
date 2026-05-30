@@ -294,7 +294,7 @@ const FoodDetail = ({ route }) => {
                                 </TouchableOpacity>
 
                                 {user && (
-                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart_index", { screen: "cart_index" })}>
+                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart_index")}>
                                         <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
                                         {cart.length > 0 && (
                                             <View style={{

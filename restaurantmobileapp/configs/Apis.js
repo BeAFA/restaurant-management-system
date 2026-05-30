@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.7:8000';
+const BASE_URL = 'http://192.168.1.157:8000';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -25,7 +25,7 @@ export const endpoints = {
     'current_order': '/orders/current_order/',
     'order_detail': (id) => `/orders/${id}/`,
     'order_cancel': (id) => `/orders/${id}/cancel/`,
-    'order_payment': (id) => `/orders/${id}/payment/`,
+    'payment': (orderId) => `/orders/${orderId}/payment/`,
 
     // === TABLES ===
     'tables': '/tables/',
