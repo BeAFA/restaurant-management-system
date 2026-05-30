@@ -31,7 +31,7 @@ const PaymentQRScreen = () => {
 
             // Hiển thị thông báo thành công
             Alert.alert(
-                "✅ Xác nhận thanh toán",
+                "Xác nhận thanh toán",
                 qrValue,
                 [
                     {
