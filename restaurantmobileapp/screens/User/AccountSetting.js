@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
-import Style from "../User/Style"; // Chỉnh lại đường dẫn cho đúng với dự án của bạn
+import Style from "../../styles/UserStyles";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import * as ImgPicker from 'expo-image-picker';
 import { useState, useContext, useEffect } from "react";
@@ -39,7 +39,7 @@ const AccountSettings = () => {
             alert("Bạn cần cấp quyền truy cập thư viện ảnh!");
         } else {
             const result = await ImgPicker.launchImageLibraryAsync({
-                mediaTypes: ImgPicker.MediaTypeOptions.Images,
+                mediaTypes: ImgPicker.MediaType.Images,
                 allowsEditing: true,
                 aspect: [1, 1],
                 quality: 0.8,

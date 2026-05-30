@@ -239,89 +239,137 @@ export default StyleSheet.create({
     // ==========================================
     // 2. STYLE DÀNH RIÊNG CHO PROFILE
     // ==========================================
-    headerBackground: { 
-        backgroundColor: COLORS.orange, 
-        height: 160, 
-        borderBottomLeftRadius: 40, 
-        borderBottomRightRadius: 40, 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        right: 0 
+    headerBackground: {
+        backgroundColor: COLORS.orange,
+        height: 160,
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0
     },
-    profileCard: { 
-        backgroundColor: COLORS.white, 
-        marginHorizontal: 20, 
-        marginTop: 100, 
-        borderRadius: 16, 
-        padding: 20, 
-        alignItems: 'center', 
-        elevation: 4, 
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 2 }, 
-        shadowOpacity: 0.1, 
-        shadowRadius: 8 
+    profileCard: {
+        backgroundColor: COLORS.white,
+        marginHorizontal: 20,
+        marginTop: 100,
+        borderRadius: 16,
+        padding: 20,
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8
     },
-    avatar: { 
-        marginTop: -60, 
-        borderWidth: 4, 
-        borderColor: COLORS.white, 
-        elevation: 2 
+    avatarContainer: {
+        marginTop: -60,
+        width: 98,
+        height: 98,
+        borderRadius: 49,
+        backgroundColor: COLORS.white,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 4,
+        borderColor: COLORS.white,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
-    nameText: { 
-        fontSize: 22, 
-        fontWeight: 'bold', 
-        color: COLORS.textDark, 
-        marginTop: 10 
+
+    avatarImage: {
+        backgroundColor: COLORS.orange,
     },
-    usernameText: { 
-        fontSize: 14, 
-        color: COLORS.textLight, 
-        marginTop: 2 
+    nameText: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+        marginTop: 10
     },
-    statsContainer: { 
-        flexDirection: 'row', 
-        justifyContent: 'center', 
-        width: '100%', 
-        marginTop: 20, 
-        paddingTop: 15, 
-        borderTopWidth: 1, 
-        borderTopColor: '#eee' 
+    usernameText: {
+        fontSize: 14,
+        color: COLORS.textLight,
+        marginTop: 2
     },
-    statItem: { 
-        alignItems: 'center' 
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        width: '100%',
+        marginTop: 20,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#eee'
     },
-    statNumber: { 
-        fontSize: 18, 
-        fontWeight: 'bold', 
-        color: COLORS.orange 
+    statItem: {
+        alignItems: 'center'
     },
-    statLabel: { 
-        fontSize: 12, 
-        color: '#666', 
-        marginTop: 4 
+    statNumber: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.orange
     },
-    menuContainer: { 
-        backgroundColor: COLORS.white, 
-        marginHorizontal: 20, 
-        marginTop: 20, 
-        borderRadius: 16, 
-        elevation: 2, 
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 1 }, 
-        shadowOpacity: 0.05, 
-        shadowRadius: 4, 
-        overflow: 'hidden' 
+    statLabel: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 4
     },
-    logoutButton: { 
-        marginHorizontal: 20, 
-        marginTop: 25, 
-        borderRadius: 12, 
-        paddingVertical: 5, 
-        elevation: 0 
+    menuContainer: {
+        backgroundColor: COLORS.white,
+        marginHorizontal: 20,
+        marginTop: 20,
+        borderRadius: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        overflow: 'hidden'
     },
-    logoutText: { 
-        fontWeight: 'bold', 
-        fontSize: 16 
-    }
+    logoutButton: {
+        marginHorizontal: 20,
+        marginTop: 25,
+        borderRadius: 12,
+        paddingVertical: 5,
+        elevation: 0
+    },
+    logoutText: {
+        fontWeight: 'bold',
+        fontSize: 16
+    },
+
+    // ==========================================
+    // 3. HOME SCREEN SPECIFIC
+    // ==========================================
+    loadingScreen: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#FF5733',
+    },
+    categoryButton: {
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 20,
+        marginRight: 10,
+        marginBottom: 20
+    },
+    categoryButtonText: {
+        fontWeight: '500'
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        paddingHorizontal: 20
+    },
+    sectionSpacing: {
+        marginBottom: 30,
+        paddingHorizontal: 20
+    },
 });

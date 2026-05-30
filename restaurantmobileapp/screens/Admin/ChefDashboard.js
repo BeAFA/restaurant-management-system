@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Text, Card, Title, Paragraph, ActivityIndicator, Button, Switch } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Apis, { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
-import styles from './Style';
+import styles from '../../styles/AdminStyles';
+import UserContext from '../../contexts/UserContext';
 
 const getWeekNumber = (d) => {
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -27,6 +28,8 @@ const ChefDashboard = () => {
     const [selectedWeek, setSelectedWeek] = useState(getWeekNumber(new Date()));
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const currentYear = new Date().getFullYear();
+
+    const { user } = useContext(UserContext);
 
     const getFilterDates = () => {
         let finalStart = new Date();
@@ -64,7 +67,8 @@ const ChefDashboard = () => {
                 setStats(res.data);
                 console.log("Thống kê Bếp:", res.data);
             } catch (ex) {
-                console.error("Lỗi lấy thống kê Bếp:", ex);
+                if (!user?.is_approved) 
+                    Alert.alert("Cảnh báo lỗi", "Không thể tải thống kê. Bạn chưa được phê duyệt làm đầu bếp. Vui lòng liên hệ quản trị viên.");
             } finally {
                 setLoading(false);
             }
@@ -142,7 +146,7 @@ const ChefDashboard = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+        <SafeAreaView style={styles.screenBackground}>
             <ScrollView style={styles.container}>
                 
                 <View style={styles.modeContainer}>
@@ -154,7 +158,7 @@ const ChefDashboard = () => {
                 {renderFilterOptions()}
 
                 {loading ? (
-                    <ActivityIndicator size="large" style={{ marginTop: 40 }} />
+                    <ActivityIndicator size="large" style={styles.loadingIndicator} />
                 ) : (
                     <>
                         <View style={styles.switchContainer}>
@@ -165,18 +169,18 @@ const ChefDashboard = () => {
                                 color="#e65100" 
                             />
                         </View>
-                        <Card style={[styles.card, { backgroundColor: '#fff3e0', marginTop: 15 }]}>
+                        <Card style={styles.highlightCard}>
                             <Card.Content>
                                 {viewAll ? (
-                                    <Paragraph style={{ fontWeight: 'bold', color: '#e65100' }}>DOANH THU TẤT CẢ MÓN ĂN</Paragraph>
+                                    <Paragraph style={styles.highlightLabel}>DOANH THU TẤT CẢ MÓN ĂN</Paragraph>
                                 ) : (
-                                    <Paragraph style={{ fontWeight: 'bold', color: '#e65100' }}>DOANH THU MÓN ĂN CỦA BẠN</Paragraph>
+                                    <Paragraph style={styles.highlightLabel}>DOANH THU MÓN ĂN CỦA BẠN</Paragraph>
                                 )}
-                                <Title style={{ color: '#e65100', fontSize: 26, fontWeight: 'bold' }}>
+                                <Title style={styles.highlightValue}>
                                     {totalRevenue.toLocaleString()} VNĐ
                                 </Title>
-                                <Paragraph style={{ color: '#555' }}>
-                                    Đã bán tổng cộng: <Text style={{fontWeight: 'bold'}}>{totalQuantity} phần</Text>
+                                <Paragraph style={styles.subtitleText}>
+                                    Đã bán tổng cộng: <Text style={styles.boldText}>{totalQuantity} phần</Text>
                                 </Paragraph>
                             </Card.Content>
                         </Card>
@@ -187,18 +191,18 @@ const ChefDashboard = () => {
                             stats.food_stats.map((food, index) => (
                                 <Card key={index} style={styles.dishCard}>
                                     <Card.Content style={styles.dishRow}>
-                                        <View style={{ flex: 1 }}>
-                                            <Title style={{ fontSize: 16 }}>{food.food__dish}</Title>
-                                            <Paragraph style={{ color: 'gray', fontSize: 13 }}>
-                                                Số lượng đặt: <Text style={{fontWeight: 'bold', color: 'black'}}>{food.total_quantity}</Text>
+                                        <View style={styles.flexOne}>
+                                            <Title style={styles.foodTitle}>{food.food__dish}</Title>
+                                            <Paragraph style={styles.foodMetaText}>
+                                                Số lượng đặt: <Text style={styles.boldText}>{food.total_quantity}</Text>
                                             </Paragraph>
                                             {food.avg_rating && (
-                                                <Paragraph style={{ color: '#f39c12', fontSize: 13 }}>
+                                                <Paragraph style={styles.ratingText}>
                                                     Đánh giá: ⭐ {Number(food.avg_rating).toFixed(1)}
                                                 </Paragraph>
                                             )}
                                         </View>
-                                        <View style={{ justifyContent: 'center' }}>
+                                        <View style={styles.centeredColumn}>
                                             <Text style={styles.revenueText}>
                                                 {food.total_revenue.toLocaleString()}đ
                                             </Text>
@@ -207,7 +211,7 @@ const ChefDashboard = () => {
                                 </Card>
                             ))
                         ) : (
-                            <Text style={{ fontStyle: 'italic', color: 'gray', textAlign: 'center', marginTop: 20 }}>
+                            <Text style={styles.noDataText}>
                                 Không có món ăn nào được bán ra trong kỳ này.
                             </Text>
                         )}

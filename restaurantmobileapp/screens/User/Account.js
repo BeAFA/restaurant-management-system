@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Style from './Style';
+import Style from '../../styles/UserStyles';
 
 export default function Account() {
     const nav = useNavigation();

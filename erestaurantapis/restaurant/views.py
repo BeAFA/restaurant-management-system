@@ -30,9 +30,11 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveA
         foods = self.get_object().foods.filter(active=True)
         return Response(FoodSerializer(foods, many=True).data, status=status.HTTP_200_OK)
 
+
 class IngredientsViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Ingredient.objects.filter(active=True)
     serializer_class = IngredientSerializer
+
 
 class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = Food.objects.filter(active=True)
@@ -306,8 +308,9 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
 
         role = self.request.data.get('user_role')
 
-        if role not in [UserRole.CUSTOMER, UserRole.CHEF]:
-            raise ValidationError("Role không hợp lệ!")
+        if role:
+            if role not in [UserRole.CUSTOMER, UserRole.CHEF]:
+                raise ValidationError("Role không hợp lệ!")
 
         serializer.save()
 
@@ -372,15 +375,21 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         permission_classes=[permissions.AllowAny]
     )
     def chef_list(self, request):
+        is_approved = request.query_params.get('is_approved')
+
         chefs = User.objects.filter(
             user_role=UserRole.CHEF,
-            is_approved=True,
             is_active=True
         )
 
+        if is_approved is not None:
+            chefs = chefs.filter(is_approved=is_approved.lower() == 'true')
+
         data = [{
             'id': chef.id,
-            'name': f'{chef.first_name} {chef.last_name}'
+            'name': f'{chef.first_name} {chef.last_name}',
+            'email': chef.email,
+            'avatar': chef.avatar.url if chef.avatar else None,
         } for chef in chefs]
 
         return Response(data, status=status.HTTP_200_OK)

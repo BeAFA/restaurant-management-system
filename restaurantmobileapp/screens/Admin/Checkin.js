@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
 import { TextInput, Button, Title } from 'react-native-paper';
+import { authApis, endpoints } from '../../configs/Apis';
+import * as SecureStore from 'expo-secure-store';
+import Style from '../../styles/AdminStyles';
 
 const CheckIn = () => {
     const [reservationId, setReservationId] = useState('');
@@ -25,15 +28,15 @@ const CheckIn = () => {
     }
 
     return (
-        <View style={styles.container}>
-            <Title style={styles.title}>Check-in Khách Hàng</Title>
+        <View style={Style.checkinContainer}>
+            <Title style={Style.checkinTitle}>Check-in Khách Hàng</Title>
 
             <TextInput
                 label="Mã đặt bàn (Reservation ID)"
                 value={reservationId}
                 onChangeText={setReservationId}
                 keyboardType="numeric"
-                style={styles.input}
+                style={Style.checkinInput}
                 mode="outlined"
             />
 
@@ -46,17 +49,11 @@ const CheckIn = () => {
                 Xác nhận Check-in
             </Button>
 
-            <Button icon="qrcode-scan" mode="outlined" style={{ marginTop: 15 }}>
+            <Button icon="qrcode-scan" mode="outlined" style={Style.qrButtonMargin}>
                 Quét QR Code
             </Button>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, justifyContent: 'center' },
-    title: { textAlign: 'center', marginBottom: 20 },
-    input: { marginBottom: 20 }
-});
 
 export default CheckIn;

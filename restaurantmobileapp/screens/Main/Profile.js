@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from "react";
-import { View, ScrollView, Styleheet } from "react-native";
+import React, { useContext, useState, useEffect, useCallback } from "react";
+import { View, ScrollView } from "react-native";
 import { Text, Avatar, List, Button } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import UserContext from "../../contexts/UserContext";
 import { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
-import Style from "./Style";
+import MainStyles from "../../styles/MainStyles";
 
 const Profile = () => {
     const { user, logout } = useContext(UserContext);
@@ -13,60 +13,77 @@ const Profile = () => {
     const [orderCount, setOrderCount] = useState(0);
 
     if (!user) return null;
-    
+
 
     const isChef = user.user_role === 'CHEF';
-    const isCustomer = user.user_role !== 'ADMIN' && user.user_role !== 'CHEF'; 
+    const isCustomer = user.user_role !== 'ADMIN' && user.user_role !== 'CHEF';
 
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Người dùng';
 
-    useEffect(() => {
-        const fetchOrderCount = async () => {
-            if (isCustomer) {
-                try {
-                    const token = await SecureStore.getItemAsync('token');
-                    const res = await authApis(token).get(endpoints['orders']);
-                    
-                    const count = res.data.count !== undefined ? res.data.count : res.data.length;
-                    setOrderCount(count || 0);
-                    
-                } catch (ex) {
-                    console.error("Lỗi đếm số lượng đơn hàng:", ex);
-                }
-            }
-        };
+    const fetchOrderCount = async () => {
+        if (isCustomer) {
+            try {
+                const token = await SecureStore.getItemAsync('token');
+                const res = await authApis(token).get(endpoints['orders']);
 
-        fetchOrderCount();
-    }, [isCustomer]);
+                const count =
+                    res.data.count !== undefined
+                        ? res.data.count
+                        : res.data.length;
+
+                setOrderCount(count || 0);
+
+            } catch (ex) {
+                console.error("Lỗi đếm số lượng đơn hàng:", ex);
+            }
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchOrderCount();
+        }, [isCustomer])
+    );
 
     return (
-        <View style={Style.container}>
+        <View style={MainStyles.container}>
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-                
-                <View style={Style.headerBackground} />
 
-                <View style={Style.profileCard}>
-                    {user.avatar ? (
-                        <Avatar.Image size={90} source={{ uri: user.avatar }} style={Style.avatar} />
-                    ) : (
-                        <Avatar.Icon size={90} icon="account" color="#fff" style={[Style.avatar, { backgroundColor: '#FF6347' }]} />
-                    )}
-                    
-                    <Text style={Style.nameText}>{fullName}</Text>
-                    <Text style={Style.usernameText}>@{user.username}</Text>
+                <View style={MainStyles.headerBackground} />
+
+                <View style={MainStyles.profileCard}>
+                    <View style={MainStyles.avatarContainer}>
+                        {user.avatar ? (
+                            <Avatar.Image
+                                size={90}
+                                source={{ uri: user.avatar }}
+                                style={MainStyles.avatarImage}
+                            />
+                        ) : (
+                            <Avatar.Icon
+                                size={90}
+                                icon="account"
+                                color="#fff"
+                                style={MainStyles.avatarImage}
+                            />
+                        )}
+                    </View>
+
+                    <Text style={MainStyles.nameText}>{fullName}</Text>
+                    <Text style={MainStyles.usernameText}>@{user.username}</Text>
 
                     {isCustomer && (
-                        <View style={Style.statsContainer}>
-                            <View style={Style.statItem}>
-                                <Text style={Style.statNumber}>{orderCount}</Text>
-                                <Text style={Style.statLabel}>Đơn hàng</Text>
+                        <View style={MainStyles.statsContainer}>
+                            <View style={MainStyles.statItem}>
+                                <Text style={MainStyles.statNumber}>{orderCount}</Text>
+                                <Text style={MainStyles.statLabel}>Đơn hàng</Text>
                             </View>
                         </View>
                     )}
                 </View>
-                <View style={Style.menuContainer}>
+                <View style={MainStyles.menuContainer}>
                     <List.Section>
-                        
+
                         {isCustomer && (
                             <>
                                 <List.Item
@@ -74,7 +91,7 @@ const Profile = () => {
                                     description="Xem lại chi tiết các đơn hàng đã đặt"
                                     left={props => <List.Icon {...props} icon="receipt" color="#FF6347" />}
                                     right={props => <List.Icon {...props} icon="chevron-right" color="#ccc" />}
-                                    onPress={() => nav.navigate('order_history')} 
+                                    onPress={() => nav.navigate('order_history')}
                                 />
 
                                 <List.Item
@@ -93,7 +110,7 @@ const Profile = () => {
                                 description="Danh sách món ăn bạn phụ trách"
                                 left={props => <List.Icon {...props} icon="silverware-fork-knife" color="#FF6347" />}
                                 right={props => <List.Icon {...props} icon="chevron-right" color="#ccc" />}
-                                onPress={() => nav.navigate('chef_foods_manage', { screen: 'chef_manage_foods' })} 
+                                onPress={() => nav.navigate('chef_foods_manage', { screen: 'chef_manage_foods' })}
                             />
                         )}
 
@@ -112,19 +129,19 @@ const Profile = () => {
                     </List.Section>
                 </View>
 
-                <Button 
-                    mode="contained" 
+                <Button
+                    mode="contained"
                     icon="logout"
-                    buttonColor="#ffebee" 
-                    textColor="#d32f2f"  
-                    style={Style.logoutButton}
-                    labelStyle={Style.logoutText}
+                    buttonColor="#ffebee"
+                    textColor="#d32f2f"
+                    style={MainStyles.logoutButton}
+                    labelStyle={MainStyles.logoutText}
                     onPress={logout}
                 >
                     Đăng xuất
                 </Button>
 
-                <View style={{height: 50}} /> 
+                <View style={{ height: 50 }} />
             </ScrollView>
         </View>
     );

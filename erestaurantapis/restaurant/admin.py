@@ -64,6 +64,28 @@ class UserAdmin(BaseUserAdmin):
         'phone'
     ]
 
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Thông tin bổ sung', {
+            'fields': (
+                'phone',
+                'avatar',
+                'user_role',
+                'is_approved',
+            )
+        }),
+    )
+
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ('Thông tin bổ sung', {
+            'fields': (
+                'phone',
+                'avatar',
+                'user_role',
+                'is_approved',
+            )
+        }),
+    )
+
 
 admin.site.register(Category)
 admin.site.register(Food, MyFoodAdmin)

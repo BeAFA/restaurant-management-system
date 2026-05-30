@@ -4,7 +4,7 @@ import { useState, useContext } from "react";
 CLIENT_ID_REMOVED
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
-import Style from './Style';
+import Style from '../../styles/UserStyles';
 import UserContext from "../../contexts/UserContext";
 
 const Login = () => {

@@ -1,19 +1,19 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { View, FlatList, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { Text, List, Button, FAB } from 'react-native-paper';
+import { View, FlatList, Alert, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, Button, FAB } from 'react-native-paper';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 
 import SimpleFood from '../../../components/SimpleFood';
 import UserContext from '../../../contexts/UserContext';
 import { authApis, endpoints } from '../../../configs/Apis';
-import Style from '../Style'; // Import Style chung
+import Style from '../../../styles/UserStyles';
 
 const ChefManageFoods = () => {
     const [foods, setFoods] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
-    
+
     // State để theo dõi xem món nào đang được "xổ xuống"
     const [expandedId, setExpandedId] = useState(null);
 
@@ -25,10 +25,10 @@ const ChefManageFoods = () => {
         try {
             setLoading(true);
             const token = await SecureStore.getItemAsync('token');
-            
+
             // Gọi API lấy danh sách Food, lọc theo chef_id
             const res = await authApis(token).get(`${endpoints['foods']}?chef_id=${user.id}`);
-            
+
             const foodData = res.data.results || res.data;
             setFoods(foodData);
         } catch (ex) {
@@ -60,15 +60,15 @@ const ChefManageFoods = () => {
             [
                 { text: "Không", style: "cancel" },
                 {
-                    text: "Xóa", 
+                    text: "Xóa",
                     style: "destructive",
                     onPress: async () => {
                         try {
                             setActionLoading(food.id);
                             const token = await SecureStore.getItemAsync('token');
-                            
+
                             await authApis(token).delete(`${endpoints['foods']}${food.id}/chef_manage_food/`);
-                            
+
                             Alert.alert("Thành công", "Đã xóa món ăn!");
                             fetchChefFoods(); // Tải lại danh sách
                         } catch (ex) {
@@ -82,9 +82,7 @@ const ChefManageFoods = () => {
         );
     };
 
-    // 4. CHỈNH SỬA: Điều hướng sang màn hình UpdateFood và truyền foodId
     const handleEditFood = (food) => {
-        // Đảm bảo bạn đã đăng ký màn hình 'update_food' trong file Router của bạn
         nav.navigate('update_food', { foodId: food.id });
     };
 
@@ -92,33 +90,32 @@ const ChefManageFoods = () => {
         const isExpanded = expandedId === item.id;
 
         return (
-            <View style={localStyles.itemContainer}>
-                <List.Accordion
-                    expanded={isExpanded}
-                    onPress={() => handlePressAccordion(item.id)}
-                    style={localStyles.accordionHeader}
-                    right={props => null} 
-                    title={
-                        <View pointerEvents="none"> 
-                            <SimpleFood item={item} />
-                        </View>
-                    }
-                >
-                    <View style={localStyles.actionRow}>
-                        <Button 
-                            mode="outlined" 
+            <View style={Style.itemContainer}>
+                <View style={{ position: 'relative' }}>
+                    <SimpleFood item={item} />
+                    <TouchableOpacity
+                        style={StyleSheet.absoluteFill}
+                        onPress={() => handlePressAccordion(item.id)}
+                        activeOpacity={0.8}
+                    />
+                </View>
+
+                {isExpanded && (
+                    <View style={Style.actionRow}>
+                        <Button
+                            mode="outlined"
                             icon="pencil"
                             textColor="#1976d2"
-                            style={localStyles.actionBtn}
+                            style={Style.actionBtn}
                             onPress={() => handleEditFood(item)}
                         >
                             Chỉnh sửa
                         </Button>
-                        <Button 
-                            mode="contained" 
+                        <Button
+                            mode="contained"
                             icon="delete"
                             buttonColor="#e74c3c"
-                            style={localStyles.actionBtn}
+                            style={Style.actionBtn}
                             loading={actionLoading === item.id}
                             disabled={actionLoading === item.id}
                             onPress={() => handleDeleteFood(item)}
@@ -126,82 +123,56 @@ const ChefManageFoods = () => {
                             Xóa món
                         </Button>
                     </View>
-                </List.Accordion>
+                )}
             </View>
         );
     };
 
     return (
-        <View style={Style.container}>
-            {/* Header chung */}
-            <View style={Style.headerContainer}>
-                <Text style={Style.titleText}>Món ăn của tôi</Text>
-                <Text style={Style.subText}>Danh sách các món bạn đang phụ trách</Text>
+        !user.is_approved ? (
+            <View style={[Style.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#e74c3c', textAlign: 'center' }}>
+                    Bạn chưa được phê duyệt làm đầu bếp
+                </Text>
+
+                <Text style={{ marginTop: 10, color: 'gray', textAlign: 'center' }}>
+                    Vui lòng liên hệ quản trị viên để được phê duyệt tài khoản đầu bếp.
+                </Text>
             </View>
+        ) : (
+            <View style={Style.container}>
+                {/* Header chung */}
+                <View style={Style.headerContainer}>
+                    <Text style={Style.titleText}>Món ăn của tôi</Text>
+                    <Text style={Style.subText}>Danh sách các món bạn đang phụ trách</Text>
+                </View>
 
-            {loading ? (
-                <ActivityIndicator size="large" color="#FF6347" style={{ marginTop: 20 }} />
-            ) : (
-                <FlatList
-                    data={foods}
-                    keyExtractor={item => item.id.toString()}
-                    renderItem={renderFoodItem}
-                    contentContainerStyle={{ padding: 15, paddingBottom: 80 }}
-                    ListEmptyComponent={
-                        <Text style={{ textAlign: 'center', marginTop: 30, color: 'gray' }}>
-                            Bạn chưa phụ trách món ăn nào.
-                        </Text>
-                    }
-                    showsVerticalScrollIndicator={false}
+                {loading ? (
+                    <ActivityIndicator size="large" color="#FF6347" style={{ marginTop: 20 }} />
+                ) : (
+                    <FlatList
+                        data={foods}
+                        keyExtractor={item => item.id.toString()}
+                        renderItem={renderFoodItem}
+                        contentContainerStyle={{ padding: 15, paddingBottom: 80 }}
+                        ListEmptyComponent={
+                            <Text style={{ textAlign: 'center', marginTop: 30, color: 'gray' }}>
+                                Bạn chưa phụ trách món ăn nào.
+                            </Text>
+                        }
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
+
+                <FAB
+                    icon="plus"
+                    style={Style.fab}
+                    color="white"
+                    onPress={() => nav.navigate('create_food')}
                 />
-            )}
-
-            {/* CHỈNH SỬA: Sửa lỗi thẻ FAB có 2 thuộc tính onPress */}
-            <FAB
-                icon="plus"
-                style={localStyles.fab}
-                color="white"
-                onPress={() => nav.navigate('create_food')}
-            />
-        </View>
+            </View>
+        )
     );
-};
-
-const localStyles = StyleSheet.create({
-    itemContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 15,
-        marginBottom: 15,
-        overflow: 'hidden',
-        elevation: 3, 
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    accordionHeader: {
-        backgroundColor: '#fff',
-        padding: 0, 
-    },
-    actionRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        padding: 10,
-        backgroundColor: '#fafafa', 
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-    },
-    actionBtn: {
-        marginLeft: 10,
-        borderRadius: 8,
-    },
-    fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: '#FF6347',
-    }
-});
+}
 
 export default ChefManageFoods;
