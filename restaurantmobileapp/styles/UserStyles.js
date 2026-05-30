@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
     // ==========================================
@@ -6,26 +6,26 @@ export default StyleSheet.create({
     // ==========================================
     container: {
         flex: 1,
-        backgroundColor: '#FFF5E5', // Nền trắng cho Login & Register
+        backgroundColor: '#FFF5E5',
         paddingLeft: 15,
         paddingRight: 15,
     },
     scrollContent: {
         paddingBottom: 300,
     },
-    headerContainer: { 
+    headerContainer: {
         alignItems: 'center',
         marginTop: 30,
         marginBottom: 20,
     },
-    
+
     // ==========================================
     // 2. TEXT & TYPOGRAPHY (Dùng chung)
     // ==========================================
     titleText: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#FF6347', // Màu cam đỏ Tomato (Foodie Express)
+        color: '#FF6347',
         marginTop: 15,
     },
     subText: {
@@ -43,17 +43,17 @@ export default StyleSheet.create({
     // 3. FORM & NÚT BẤM (Login & Register)
     // ==========================================
     formContainer: {
-        backgroundColor: '#F69D39', // Nền xám nhạt cho form
+        backgroundColor: '#F69D39',
         padding: 20,
         marginHorizontal: 20,
         borderRadius: 25,
-        elevation: 3, // Bóng nhẹ cho form
+        elevation: 3,
     },
     input: {
         marginBottom: 12,
-        backgroundColor : '#F69D39', // Loại bỏ nền trắng mặc định của TextInput
+        backgroundColor: '#F69D39',
     },
-    primaryButton: { // Đã đổi tên để dùng cho cả Đăng nhập & Đăng ký
+    primaryButton: {
         paddingVertical: 6,
         backgroundColor: '#FFE394',
         borderRadius: 25,
@@ -65,14 +65,14 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         color: '#FF6347',
     },
-    forgotPassword: { // Dành riêng cho Đăng nhập
+    forgotPassword: {
         textAlign: 'right',
         color: '#b9422a',
         marginTop: 5,
         marginBottom: 20,
         fontWeight: '600',
     },
-    logoImage: { // Logo đồ ăn ở trang Đăng nhập
+    logoImage: {
         width: 120,
         height: 120,
         resizeMode: 'contain',
@@ -88,11 +88,11 @@ export default StyleSheet.create({
         padding: 15,
         borderWidth: 1.5,
         borderColor: '#FF6347',
-        borderStyle: 'dashed', 
+        borderStyle: 'dashed',
         borderRadius: 12,
         marginBottom: 15,
         marginTop: 5,
-        backgroundColor: '#FFF5F3', 
+        backgroundColor: '#FFF5F3',
     },
     avatarPickerText: {
         color: '#FF6347',
@@ -114,7 +114,7 @@ export default StyleSheet.create({
     // ==========================================
     profileContainer: {
         flex: 1,
-        backgroundColor: '#F5F5F5', // Nền xám nhạt làm nổi bật khối thông tin
+        backgroundColor: '#F5F5F5',
     },
     headerBackground: {
         backgroundColor: '#FF6347',
@@ -122,9 +122,9 @@ export default StyleSheet.create({
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
-    profileInfoWrapper: { 
+    profileInfoWrapper: {
         alignItems: 'center',
-        marginTop: -60, // Kéo phần info đè lên nền cam
+        marginTop: -60,
         marginBottom: 20,
     },
     avatarWrapper: {
@@ -134,8 +134,8 @@ export default StyleSheet.create({
         backgroundColor: '#ffffff',
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5, 
-        shadowColor: '#000', 
+        elevation: 5,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -184,7 +184,7 @@ export default StyleSheet.create({
         marginHorizontal: 20,
         borderRadius: 15,
         elevation: 2,
-        overflow: 'hidden', 
+        overflow: 'hidden',
         marginBottom: 20,
     },
     logoutButton: {
@@ -201,17 +201,18 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         color: '#FF6347',
     },
+
     //6. TRANG ACCOUNT (Hub Đăng nhập / Đăng ký)
     accountContainer: {
         flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 20,
-        backgroundColor: '#FFF5E5', // Đồng bộ màu nền chung
+        backgroundColor: '#FFF5E5',
     },
     accountTitle: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#FF6347', // Màu cam đỏ chủ đạo
+        color: '#FF6347',
         textAlign: 'center',
         marginBottom: 10,
     },
@@ -219,33 +220,148 @@ export default StyleSheet.create({
         fontSize: 16,
         color: '#666',
         textAlign: 'center',
-        marginBottom: 40,
-        paddingHorizontal: 10,
-        lineHeight: 24,
+        marginBottom: 30,
     },
     accountLoginBtn: {
-        backgroundColor: '#FF6347', 
-        paddingVertical: 15,
-        borderRadius: 25, // Bo góc đồng bộ với primaryButton
-        alignItems: 'center',
+        backgroundColor: '#FF6347',
+        paddingVertical: 14,
+        borderRadius: 25,
         marginBottom: 15,
-        elevation: 3,
+        alignItems: 'center',
     },
     accountLoginText: {
-        color: '#FFFFFF',
-        fontSize: 18,
+        color: '#fff',
         fontWeight: 'bold',
+        fontSize: 16,
     },
     accountRegisterBtn: {
-        backgroundColor: '#FFE394', // Màu vàng nhạt phụ trợ
-        paddingVertical: 15,
+        backgroundColor: '#fff',
+        paddingVertical: 14,
         borderRadius: 25,
+        borderWidth: 1,
+        borderColor: '#FF6347',
         alignItems: 'center',
-        elevation: 2,
     },
     accountRegisterText: {
         color: '#FF6347',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    header: {
+        backgroundColor: '#FF6347',
+        padding: 15,
+        alignItems: 'center',
+    },
+    headerText: {
+        color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
-    }
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 20,
+        fontStyle: 'italic',
+        color: 'gray',
+    },
+    orderCard: {
+        marginBottom: 15,
+        backgroundColor: '#fff',
+        elevation: 2,
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    orderAccordionHeader: {
+        backgroundColor: '#fff',
+    },
+    statusBadge: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 12,
+        alignSelf: 'center',
+        marginRight: 10,
+    },
+    detailsContainer: {
+        padding: 15,
+        backgroundColor: '#fafafa',
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    detailTitle: {
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#333',
+    },
+    foodRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+        paddingBottom: 8,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#ddd',
+    },
+    foodName: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#000',
+    },
+    foodMeta: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 2,
+    },
+    foodTotal: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#FF6347',
+    },
+    dateText: {
+        fontSize: 12,
+        color: 'gray',
+        marginTop: 10,
+        fontStyle: 'italic',
+        textAlign: 'right',
+    },
+    actions: {
+        padding: 10,
+        justifyContent: 'flex-end',
+        backgroundColor: '#fff',
+    },
+    itemContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        marginBottom: 15,
+        overflow: 'hidden',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    accordionHeader: {
+        backgroundColor: '#fff',
+        padding: 0,
+    },
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        padding: 10,
+        backgroundColor: '#fafafa',
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    actionBtn: {
+        marginLeft: 10,
+        borderRadius: 8,
+    },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#FF6347',
+    },
 });

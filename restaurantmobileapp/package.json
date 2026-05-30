@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-picker/picker": "2.11.4",
     "@react-navigation/bottom-tabs": "^7.16.1",
@@ -17,16 +18,17 @@
     "@types/react": "~19.2.10",
     "axios": "^1.16.1",
     "expo": "~55.0.24",
-    "expo-camera": "~55.0.19",
     "expo-image-picker": "~55.0.20",
     "expo-secure-store": "~55.0.14",
     "react": "19.2.0",
     "react-native": "0.83.6",
     "react-native-dropdown-select-list": "^2.0.5",
     "react-native-paper": "^5.15.2",
+    "react-native-qrcode-svg": "^6.3.21",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
-    "react-native-webview": "^13.16.1"
+    "react-native-svg": "15.15.3",
+    "react-native-webview": "13.16.0"
   },
   "private": true,
   "devDependencies": {

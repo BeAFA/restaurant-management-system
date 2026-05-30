@@ -1,33 +1,26 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-    // ==========================================
-    // 1. KHUNG CƠ BẢN & TIÊU ĐỀ
-    // ==========================================
     container: {
         flex: 1,
-        backgroundColor: '#FFF5E5', // Màu nền chuẩn của app
+        backgroundColor: '#FFF5E5',
         paddingHorizontal: 20,
         paddingTop: 40,
     },
     headerTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#FF6347', // Màu cam đỏ Tomato
+        color: '#FF6347',
         textAlign: 'center',
         marginBottom: 25,
-        textTransform: 'uppercase', // In hoa cho sang trọng
+        textTransform: 'uppercase',
         letterSpacing: 1,
     },
-
-    // ==========================================
-    // 2. TRẠNG THÁI 1: FORM ĐẶT BÀN
-    // ==========================================
     formContainer: {
-        backgroundColor: '#FFFFFF', // Nền trắng để form nhìn sạch sẽ, dễ đọc
+        backgroundColor: '#FFFFFF',
         padding: 25,
         borderRadius: 25,
-        elevation: 4, // Đổ bóng giống khối formContainer cũ
+        elevation: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -41,18 +34,18 @@ export default StyleSheet.create({
         marginTop: 10,
     },
     input: {
-        backgroundColor: '#F5F5F5', // Xám nhạt thay vì cam đậm để chữ dễ nhìn hơn
+        backgroundColor: '#F5F5F5',
         minHeight: 50,
         borderRadius: 12,
         paddingHorizontal: 15,
         fontSize: 16,
         marginBottom: 15,
-        justifyContent: 'center', // Giúp text trong TouchableOpacity căn giữa theo chiều dọc
+        justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#E0E0E0',
     },
     primaryButton: {
-        backgroundColor: '#FF6347', // Dùng màu cam đỏ làm nút chính cho nổi bật
+        backgroundColor: '#FF6347',
         paddingVertical: 15,
         borderRadius: 25,
         alignItems: 'center',
@@ -64,19 +57,49 @@ export default StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
-
-    // ==========================================
-    // 3. TRẠNG THÁI 2: VÉ ĐẶT BÀN (TICKET CARD)
-    // ==========================================
+    centeredScreen: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loginHintText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    promptText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    fullPageLoader: {
+        flex: 1,
+        backgroundColor: '#FFF5E5',
+    },
+    marginTop12: {
+        marginTop: 12,
+    },
+    errorText: {
+        color: 'red',
+        fontStyle: 'italic',
+        marginBottom: 15,
+    },
+    disabledButton: {
+        opacity: 0.5,
+    },
+    spacer100: {
+        height: 100,
+    },
     ticketCard: {
         backgroundColor: '#FFFFFF',
         padding: 30,
         borderRadius: 20,
         alignItems: 'center',
         marginHorizontal: 10,
-        // Tạo viền nét đứt hoặc viền màu vàng để giống một tấm vé
         borderWidth: 2,
-        borderColor: '#FFE394', 
+        borderColor: '#FFE394',
         borderStyle: 'dashed',
         elevation: 5,
         shadowColor: '#FF6347',
@@ -96,8 +119,8 @@ export default StyleSheet.create({
         paddingHorizontal: 40,
         borderRadius: 25,
         borderWidth: 1.5,
-        borderColor: '#FF6347', // Viền đỏ cam giống nút Đăng xuất ở Profile
-        backgroundColor: '#FFF5F3', 
+        borderColor: '#FF6347',
+        backgroundColor: '#FFF5F3',
     },
     cancelBtnText: {
         color: '#FF6347',
@@ -111,7 +134,7 @@ export default StyleSheet.create({
         marginBottom: 15,
     },
     tableBtn: {
-        width: '30%', // Chia 3 cột
+        width: '30%',
         backgroundColor: '#F5F5F5',
         paddingVertical: 15,
         borderRadius: 12,
@@ -147,10 +170,6 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 4,
     },
-
-    // ==========================================
-    // 5. MODAL XÁC NHẬN
-    // ==========================================
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -217,5 +236,24 @@ export default StyleSheet.create({
         color: '#FFF',
         fontWeight: 'bold',
         fontSize: 16,
-    }
+    },
+    centeredContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    loginPromptText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    loadingIndicator: {
+        flex: 1,
+        backgroundColor: '#FFF5E5',
+    },
+    primaryButtonMarginTop: {
+        marginTop: 12,
+    },
 });

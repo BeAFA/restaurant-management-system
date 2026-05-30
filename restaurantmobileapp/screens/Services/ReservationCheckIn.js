@@ -96,10 +96,7 @@ const ReservationCheckIn = () => {
             // Save table to context (reservation.table is the table id from the serializer)
             selectTable({ id: reservation.table }, "reservation");
 
-            navigation.navigate("CustomerTabs", {
-                screen: "cart_tab",
-                params: { screen: "cart_index" },
-            });
+            navigation.navigate("CustomerTabs", { screen: "cart_index" });
         } catch (e) {
             const msg =
                 e.response?.data?.error ?? "Check-in thất bại, thử lại sau.";
@@ -284,10 +281,10 @@ const styles = {
         borderRadius: 8,
     },
     bannerWarning: { backgroundColor: "#fff3cd" },
-    bannerError:   { backgroundColor: "#f8d7da" },
+    bannerError: { backgroundColor: "#f8d7da" },
     bannerSuccess: { backgroundColor: "#d4edda" },
     bannerTextWarning: { color: "#7a5c00", flex: 1, fontSize: 14 },
-    bannerTextError:   { color: "#7a1212", flex: 1, fontSize: 14 },
+    bannerTextError: { color: "#7a1212", flex: 1, fontSize: 14 },
     bannerTextSuccess: { color: "#155724", flex: 1, fontSize: 14 },
     checkInBtn: {
         backgroundColor: "#1976D2",

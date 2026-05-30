@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
-import Style from "../../User/Style";
+import Style from "../../../styles/UserStyles";
 import { Button, HelperText, TextInput, ActivityIndicator } from "react-native-paper";
 import * as ImgPicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
@@ -23,13 +23,13 @@ const UpdateFood = () => {
     });
 
     const [err, setErr] = useState(null);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const [updateLoading, setUpdateLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
-    
+
     const [categories, setCategories] = useState([]);
     const [ingredients, setIngredients] = useState([]);
-    
+
     // State cho Dropdown
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -46,7 +46,7 @@ const UpdateFood = () => {
         const fetchAllData = async () => {
             try {
                 setLoading(true);
-                
+
                 // Gọi 3 API cùng lúc bằng Promise.all để tăng tốc độ
                 const [resCategories, resIngredients, resFoodDetail] = await Promise.all([
                     Apis.get(endpoints['categories']),
@@ -72,8 +72,8 @@ const UpdateFood = () => {
 
                 setSelectedCategory(foodData.category?.id || "");
 
-                const initialIngredientIds = foodData.food_ingredients 
-                    ? foodData.food_ingredients.map(item => item.ingredient.id) 
+                const initialIngredientIds = foodData.food_ingredients
+                    ? foodData.food_ingredients.map(item => item.ingredient.id)
                     : [];
                 setSelectedIngredients(initialIngredientIds);
 
@@ -114,10 +114,6 @@ const UpdateFood = () => {
             setErr("Vui lòng chọn danh mục");
             return false;
         }
-        if (selectedIngredients.length === 0) {
-            setErr("Vui lòng chọn nguyên liệu");
-            return false;
-        }
         return true;
     }
 
@@ -142,12 +138,14 @@ const UpdateFood = () => {
                 });
             }
 
-            selectedIngredients.forEach(id => {
-                form.append('ingredient_ids', Number(id));
-            });
+            if (selectedIngredients.length > 0) {
+                selectedIngredients.forEach(id => {
+                    form.append('ingredient_ids', Number(id));
+                });
+            }
 
             const token = await SecureStore.getItemAsync('token');
-            
+
             const res = await authApis(token).patch(`${endpoints['foods']}${foodId}/chef_manage_food/`, form, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -182,10 +180,10 @@ const UpdateFood = () => {
                         try {
                             setDeleteLoading(true);
                             const token = await SecureStore.getItemAsync('token');
-                            
+
                             // Dùng foodId từ route
                             await authApis(token).delete(`${endpoints['foods']}${foodId}/chef_manage_food/`);
-                            
+
                             Alert.alert('Thành công', 'Đã xóa món ăn!', [
                                 { text: 'OK', onPress: () => nav.goBack() }
                             ]);
@@ -227,7 +225,7 @@ const UpdateFood = () => {
             <HelperText style={Style.errorText} type="error" visible={!!err}>
                 {err}
             </HelperText>
-            
+
             <ScrollView contentContainerStyle={Style.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={Style.formContainer}>
                     {foodInfo.map(f => (
@@ -256,8 +254,9 @@ const UpdateFood = () => {
                         inputStyles={{ color: "#000", fontSize: 16 }}
                         dropdownStyles={{ borderColor: "#E0E0E0" }}
                     />
-
-                    <MultipleSelectList 
+                    
+                    <Text style={{ marginTop: 10 }}>*Chú ý: Nếu không cần chỉnh nguyên liệu nấu thì không cần chọn lại</Text>
+                    <MultipleSelectList
                         style={{ marginTop: 10 }}
                         setSelected={(val) => setSelectedIngredients(val)}
                         data={ingredients.map(i => ({ key: i.id, value: i.name }))}

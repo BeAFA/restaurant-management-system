@@ -1,6 +1,5 @@
 import { Image, Text, TouchableOpacity, View, ScrollView } from "react-native";
-// Nhớ đổi đường dẫn này trỏ tới file RegisterStyles.js bạn vừa tạo
-import Style from "./Style";
+import Style from "../../styles/UserStyles";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import * as ImgPicker from 'expo-image-picker';
 import { useState } from "react";
@@ -29,7 +28,9 @@ const Register = () => {
         field: 'username',
         title: 'Tên đăng nhập',
         icon: 'account',
-    }, {
+    }];
+
+    const userPassword = [{
         field: 'password',
         title: 'Mật khẩu',
         icon: 'eye',
@@ -45,6 +46,10 @@ const Register = () => {
     const [err, setErr] = useState(null);
     const nav = useNavigation();
     const [loading, setLoading] = useState(false);
+
+    const [hidePass, setHidePass] = useState({
+            confirm: true
+        });
 
     const picker = async () => {
         let { status } = await ImgPicker.requestMediaLibraryPermissionsAsync();
@@ -156,6 +161,27 @@ const Register = () => {
                             outlineColor="#E0E0E0"
                             activeOutlineColor="#FF6347" // Màu viền cam khi gõ
                             right={<TextInput.Icon icon={u.icon} color="#FF6347" />}
+                        />
+                    ))}
+                    {userPassword.map(u => (
+                        <TextInput
+                            value={user[u.field]}
+                            key={u.field}
+                            onChangeText={(t) => setUser({ ...user, [u.field]: t })}
+                            style={Style.input}
+                            label={u.title}
+                            placeholder={`Nhập ${u.title.toLowerCase()}`}
+                            secureTextEntry={u.secureTextEntry && hidePass.confirm}
+                            mode="outlined" // Kiểu viền bao quanh
+                            outlineColor="#E0E0E0"
+                            activeOutlineColor="#FF6347" // Màu viền cam khi gõ
+                            right={
+                                <TextInput.Icon
+                                    icon={hidePass.confirm ? "eye-off" : "eye"}
+                                    color="#FF6347"
+                                    onPress={() => setHidePass({ ...hidePass, confirm: !hidePass.confirm })}
+                                />
+                            }
                         />
                     ))}
 

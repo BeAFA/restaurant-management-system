@@ -19,12 +19,14 @@ class FoodIllustrationSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class FoodIngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='ingredients.name', read_only=True)
 
     class Meta:
         model = FoodIngredient
         fields = ['id', 'name']
+
 
 class FoodSerializer(FoodIllustrationSerializer):
     avg_rating = serializers.FloatField(read_only=True)
@@ -251,7 +253,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'table', 'serve_time', 'end_time', 'customer_quantity', 'status_reservation']
         extra_kwargs = {'user': {'read_only': True},
                         'end_time': {'read_only': True},
-                        'status_reservation': {'read_only': True},}
+                        'status_reservation': {'read_only': True}, }
 
 
 class FoodChefSerializer(serializers.ModelSerializer):
@@ -279,6 +281,7 @@ class FoodComparisonSerializer(serializers.ModelSerializer):
         fields = ['id', 'dish', 'price', 'illustration', 'time', 'ingredients', 'description', 'category_name',
                   'avg_rating', 'review_count']
 
+
 class FoodCreateSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
@@ -287,14 +290,16 @@ class FoodCreateSerializer(serializers.ModelSerializer):
     ingredient_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
+        required=False,
+        allow_empty=True
     )
 
     class Meta:
         model = Food
-        fields = ['id', 'dish','description','category_id', 'price', 'illustration', 'time', 'ingredient_ids']
+        fields = ['id', 'dish', 'description', 'category_id', 'price', 'illustration', 'time', 'ingredient_ids']
 
     def create(self, validated_data):
-        ingredient_ids = validated_data.pop('ingredient_ids',[])
+        ingredient_ids = validated_data.pop('ingredient_ids', [])
 
         food = Food.objects.create(**validated_data)
 
@@ -305,7 +310,34 @@ class FoodCreateSerializer(serializers.ModelSerializer):
 
         return food
 
+    def update(self, instance, validated_data):
+        ingredient_ids = validated_data.pop('ingredient_ids', None)
+
+        # cập nhật field bình thường
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        # CHỈ cập nhật nguyên liệu nếu frontend có gửi ingredient_ids
+        if ingredient_ids is not None:
+
+            # xóa nguyên liệu cũ
+            FoodIngredient.objects.filter(food=instance).delete()
+
+            # thêm nguyên liệu mới
+            for ingredient_id in ingredient_ids:
+                ingredient = Ingredient.objects.get(pk=ingredient_id)
+
+                FoodIngredient.objects.create(
+                    food=instance,
+                    ingredients=ingredient
+                )
+
+        return instance
+
+
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ['id','name']
+        fields = ['id', 'name']

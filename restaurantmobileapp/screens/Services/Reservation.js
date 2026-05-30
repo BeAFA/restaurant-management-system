@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { authApis, endpoints } from "../../configs/Apis";
-import Style from './Style';
+import Style from '../../styles/ServiceStyles';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import UserContext from '../../contexts/UserContext';
@@ -159,11 +159,7 @@ const Reservation = () => {
                 [{ text: "OK", style: "cancel" }]
             );
         } catch (error) {
-            const data = error?.response?.data;
-            const msg = data
-                ? Object.values(data).flat().join('\n')
-                : 'Đặt bàn thất bại. Vui lòng thử lại.';
-            Alert.alert("Lỗi", msg);
+            Alert.alert("Lỗi", "Bàn đã được đặt trong thời gian bạn chọn.");
             console.log('Lỗi đặt bàn:', error.response ?? error);
         } finally {
             setLoading(false);
@@ -215,14 +211,13 @@ const Reservation = () => {
         return (
             <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Text style={Style.headerTitle}>Yêu Cầu Đăng Nhập</Text>
-                <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
+                <Text style={Style.promptText}>
                     Tính năng đặt bàn dành riêng cho thành viên. Vui lòng đăng nhập để tiếp tục!
                 </Text>
                 <TouchableOpacity
                     style={Style.primaryButton}
                     onPress={() => nav.navigate('CustomerTabs', {
-                        screen: 'cart_tab',
-                        params: { screen: 'cart_index' }
+                        screen: 'profile',
                     })}
                 >
                     <Text style={Style.buttonLabel}>Đi đến Đăng nhập</Text>
@@ -232,7 +227,7 @@ const Reservation = () => {
     }
 
     if (loading) return (
-        <ActivityIndicator size="large" color="#FF6347" style={{ flex: 1, backgroundColor: '#FFF5E5' }} />
+        <ActivityIndicator size="large" color="#FF6347" style={Style.fullPageLoader} />
     );
 
     if (currentBooking) {
@@ -247,13 +242,10 @@ const Reservation = () => {
                     </Text>
 
                     <TouchableOpacity
-                        style={[Style.primaryButton, { marginTop: 12 }]}
+                        style={[Style.primaryButton, Style.marginTop12]}
                         onPress={() => {
                             selectTableFromReservation({ id: currentBooking.table }, currentBooking.id);
-                            nav.navigate('CustomerTabs', {
-                                screen: 'cart_tab',
-                                params: { screen: 'cart_index' }
-                            });
+                            nav.navigate('CustomerTabs', { screen: 'cart_index' });
                         }}
                     >
                         <Text style={Style.buttonLabel}>Gọi món ngay</Text>
@@ -326,7 +318,7 @@ const Reservation = () => {
                     <>
                         <Text style={Style.label}>Chọn bàn trống:</Text>
                         {allTables.length === 0 ? (
-                            <Text style={{ color: 'red', fontStyle: 'italic', marginBottom: 15 }}>
+                            <Text style={Style.errorText}>
                                 Không có bàn trống phù hợp cho {qty} người vào khung giờ này.
                             </Text>
                         ) : (
@@ -355,7 +347,7 @@ const Reservation = () => {
                 )}
 
                 <TouchableOpacity
-                    style={[Style.primaryButton, (!selectedTable || !customerQuantity) && { opacity: 0.5 }]}
+                    style={[Style.primaryButton, (!selectedTable || !customerQuantity) && Style.disabledButton]}
                     onPress={handlePreSubmit}
                     disabled={!selectedTable || !customerQuantity}
                 >
@@ -371,16 +363,16 @@ const Reservation = () => {
 
                         <View style={Style.summaryBox}>
                             <Text style={Style.summaryText}>
-                                📋 Bàn số: <Text style={{ fontWeight: 'bold' }}>{selectedTable?.id}</Text>
+                                📋 Bàn số: <Text style={Style.boldText}>{selectedTable?.id}</Text>
                             </Text>
                             <Text style={Style.summaryText}>
-                                👥 Số khách: <Text style={{ fontWeight: 'bold' }}>{customerQuantity}</Text>
+                                👥 Số khách: <Text style={Style.boldText}>{customerQuantity}</Text>
                             </Text>
                             <Text style={Style.summaryText}>
-                                🕒 Đến lúc: <Text style={{ fontWeight: 'bold' }}>{serveTime.toLocaleString('vi-VN')}</Text>
+                                🕒 Đến lúc: <Text style={Style.boldText}>{serveTime.toLocaleString('vi-VN')}</Text>
                             </Text>
                             <Text style={Style.summaryText}>
-                                ⏱ Thời lượng: <Text style={{ fontWeight: 'bold' }}>30 phút</Text>
+                                ⏱ Thời lượng: <Text style={Style.boldText}>30 phút</Text>
                             </Text>
                         </View>
 
@@ -406,7 +398,7 @@ const Reservation = () => {
                 </View>
             </Modal>
 
-            <View style={{ height: 100 }} />
+            <View style={Style.spacer100} />
         </ScrollView>
     );
 };

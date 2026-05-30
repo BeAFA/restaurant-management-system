@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, List, Divider, Chip } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Apis, { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
+import Style from '../../styles/UserStyles';
 
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
@@ -62,6 +63,9 @@ const OrderHistory = () => {
         );
     };
 
+    const handlePayOrder = (order) => {
+        nav.navigate("payment_qr", { order });
+    };
 
 
     // Hàm render màu sắc trạng thái
@@ -73,62 +77,72 @@ const OrderHistory = () => {
             default: return { color: '#95a5a6', label: status };
         }
     };
-    
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={Style.container}>
 
             {loading ? (
                 <ActivityIndicator size="large" color="#FF6347" style={{ marginTop: 20 }} />
             ) : (
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 10 }}>
                     {orders.length === 0 ? (
-                        <Text style={styles.emptyText}>Bạn chưa có đơn hàng nào.</Text>
+                        <Text style={Style.emptyText}>Bạn chưa có đơn hàng nào.</Text>
                     ) : (
                         orders.map((order) => {
                             const statusInfo = getStatusStyle(order.status_order);
 
                             return (
-                                <Card key={order.id} style={styles.orderCard}>
+                                <Card key={order.id} style={Style.orderCard}>
                                     <List.Accordion
                                         title={`Đơn hàng #${order.id}`}
                                         description={`Tổng tiền: ${order.total ? order.total.toLocaleString() : 0}đ`}
                                         titleStyle={{ fontWeight: 'bold' }}
                                         left={props => <List.Icon {...props} icon="receipt-text-outline" />}
                                         right={props => (
-                                            <View style={styles.statusBadge}>
+                                            <View style={Style.statusBadge}>
                                                 <Text style={{ color: statusInfo.color, fontWeight: 'bold', fontSize: 12 }}>
                                                     {statusInfo.label}
                                                 </Text>
                                             </View>
                                         )}
-                                        style={styles.accordionHeader}
+                                        style={Style.orderAccordionHeader}
                                     >
-                                        <View style={styles.detailsContainer}>
-                                            <Text style={styles.detailTitle}>Chi tiết món ăn:</Text>
+                                        <View style={Style.detailsContainer}>
+                                            <Text style={Style.detailTitle}>Chi tiết món ăn:</Text>
                                             {order.details && order.details.map((item, index) => (
-                                                <View key={index} style={styles.foodRow}>
+                                                <View key={index} style={Style.foodRow}>
                                                     <View style={{ flex: 1 }}>
-                                                        <Text style={styles.foodName}>{item.dish_name || "Món ăn"}</Text>
-                                                        <Text style={styles.foodMeta}>
+                                                        <Text style={Style.foodName}>{item.dish_name || "Món ăn"}</Text>
+                                                        <Text style={Style.foodMeta}>
                                                             {item.unit_price ? item.unit_price.toLocaleString() : 0}đ x {item.quantity}
                                                         </Text>
                                                     </View>
-                                                    <Text style={styles.foodTotal}>
+                                                    <Text style={Style.foodTotal}>
                                                         {item.total_price ? item.total_price.toLocaleString() : 0}đ
                                                     </Text>
                                                 </View>
                                             ))}
 
-                                            <Text style={styles.dateText}>
+                                            <Text style={Style.dateText}>
                                                 Ngày đặt: {new Date(order.created_date).toLocaleString('vi-VN')}
                                             </Text>
                                         </View>
                                     </List.Accordion>
 
                                     {order.status_order === 'WAITING' && (
-                                        <>
+                                        <View>
                                             <Divider />
-                                            <Card.Actions style={styles.actions}>
+                                            <Card.Actions style={Style.actions}>
+                                                <Button
+                                                    mode="contained"
+                                                    icon="qrcode"
+                                                    buttonColor="#1976D2"
+                                                    loading={actionLoading === `pay_${order.id}`}
+                                                    disabled={actionLoading !== null}
+                                                    onPress={() => handlePayOrder(order)}
+                                                >
+                                                    Thanh toán
+                                                </Button>
                                                 <Button
                                                     mode="contained"
                                                     icon="cancel"
@@ -140,7 +154,7 @@ const OrderHistory = () => {
                                                     Hủy đơn
                                                 </Button>
                                             </Card.Actions>
-                                        </>
+                                        </View>
                                     )}
                                 </Card>
                             );
@@ -152,23 +166,5 @@ const OrderHistory = () => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-    header: { backgroundColor: '#FF6347', padding: 15, alignItems: 'center' },
-    headerText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    emptyText: { textAlign: 'center', marginTop: 20, fontStyle: 'italic', color: 'gray' },
-    orderCard: { marginBottom: 15, backgroundColor: '#fff', elevation: 2, borderRadius: 8, overflow: 'hidden' },
-    accordionHeader: { backgroundColor: '#fff' },
-    statusBadge: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#f0f0f0', borderRadius: 12, alignSelf: 'center', marginRight: 10 },
-    detailsContainer: { padding: 15, backgroundColor: '#fafafa', borderTopWidth: 1, borderTopColor: '#f0f0f0' },
-    detailTitle: { fontWeight: 'bold', marginBottom: 10, color: '#333' },
-    foodRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottomWidth: 0.5, borderBottomColor: '#ddd' },
-    foodName: { fontSize: 15, fontWeight: '500', color: '#000' },
-    foodMeta: { fontSize: 13, color: '#666', marginTop: 2 },
-    foodTotal: { fontSize: 15, fontWeight: 'bold', color: '#FF6347' },
-    dateText: { fontSize: 12, color: 'gray', marginTop: 10, fontStyle: 'italic', textAlign: 'right' },
-    actions: { padding: 10, justifyContent: 'flex-end', backgroundColor: '#fff' }
-});
 
 export default OrderHistory;

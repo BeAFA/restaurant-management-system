@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Card, Title, Paragraph, ActivityIndicator, List, Button } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Apis, { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
-import Style from './Style';
+import Style from '../../styles/AdminStyles';
 
 // Hàm hỗ trợ tính số tuần của năm hiện tại
 const getWeekNumber = (d) => {
@@ -170,7 +170,7 @@ const Dashboard = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+        <SafeAreaView style={Style.screenBackground}>
             <ScrollView style={Style.container}>
                 
                 {/* 1. NÚT CHỌN CHẾ ĐỘ LỌC (NGÀY / TUẦN / THÁNG) */}
@@ -184,14 +184,14 @@ const Dashboard = () => {
                 {renderFilterOptions()}
 
                 {loading ? (
-                    <ActivityIndicator size="large" style={{ marginTop: 40 }} />
+                    <ActivityIndicator size="large" style={Style.loadingIndicator} />
                 ) : (
                     <>
                         {/* 3. TỔNG DOANH THU THEO KHOẢNG THỜI GIAN ĐÃ CHỌN */}
-                        <Card style={[Style.card, { backgroundColor: '#e8f5e9', marginTop: 15 }]}>
+                        <Card style={Style.highlightCard}>
                             <Card.Content>
-                                <Paragraph style={{ fontWeight: 'bold' }}>TỔNG DOANH THU KỲ ĐÃ CHỌN</Paragraph>
-                                <Title style={{ color: '#2e7d32', fontSize: 24 }}>
+                                <Paragraph style={Style.highlightTitle}>TỔNG DOANH THU KỲ ĐÃ CHỌN</Paragraph>
+                                <Title style={Style.highlightValue}>
                                     {totalRevenue.toLocaleString()} VNĐ
                                 </Title>
                             </Card.Content>

@@ -226,6 +226,9 @@ class Order(BaseModel):
         max_length=20
     )
 
+    payos_order_code = models.BigIntegerField(null=True, blank=True, unique=True, db_index=True)
+    payment_link_id = models.CharField(max_length=255, null=True, blank=True)
+
     def update_total(self):
         total_sum = self.details.aggregate(Sum('total_price'))['total_price__sum'] or 0
         self.total = total_sum

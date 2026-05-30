@@ -59,6 +59,13 @@ const FoodDetail = ({ route }) => {
     const [isEditing, setIsEditing] = useState(false);    // đang sửa hay tạo mới
     const [deletingReview, setDeletingReview] = useState(false);
 
+    const currencyFormatter = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    });
+
+    const formattedPrice = currencyFormatter.format(food?.price);
+
     const loadFood = async () => {
         setLoading(true);
         try {
@@ -230,7 +237,7 @@ const FoodDetail = ({ route }) => {
         // ADD
         addFoodToCompare(food);
 
-        const nextCount = foodsToCompare.length + 1;9
+        const nextCount = foodsToCompare.length + 1; 9
 
         // CHƯA ĐỦ 2 MÓN
         if (nextCount === 1) {
@@ -287,7 +294,7 @@ const FoodDetail = ({ route }) => {
                                 </TouchableOpacity>
 
                                 {user && (
-                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart_tab", { screen: "cart_index" })}>
+                                    <TouchableOpacity style={[Styles.navButton, Styles.rightNav]} onPress={() => navigation.navigate("cart_index")}>
                                         <MaterialIcons name="shopping-basket" size={20} color="#FFF" />
                                         {cart.length > 0 && (
                                             <View style={{
@@ -319,7 +326,7 @@ const FoodDetail = ({ route }) => {
                                     </View>
                                 </View>
 
-                                <Text style={Styles.price}>{food.price || "25.00$"}</Text>
+                                <Text style={Styles.price}>{formattedPrice} </Text>
 
                                 <Text style={Styles.description}>
                                     {formatPlainString(food.description)}
