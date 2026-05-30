@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, ScrollView, Alert } from "react-native";
 import { Text, TextInput, Button, HelperText } from "react-native-paper";
-import Style from "../User/Style";
+import Style from "../../styles/UserStyles";
 import { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from "@react-navigation/native";

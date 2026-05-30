@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
-import Style from "../../User/Style";
+import Style from "../../../styles/UserStyles";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import * as ImgPicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
@@ -120,7 +120,7 @@ const CreateFood = () => {
 
             if (res.status === 201) {
                 Alert.alert('Thành công','Tạo món ăn thành công!');
-                // nav.navigate('chef_home');
+                nav.navigate('chef_manage_foods');
             }
 
         } catch (ex) {

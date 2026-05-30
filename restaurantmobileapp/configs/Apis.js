@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.194:8000';
+const BASE_URL = 'http://192.168.1.7:8000';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -47,7 +47,7 @@ export const endpoints = {
     // === USERS ===
     'register': '/users/',
     'login': '/o/token/',
-    'chef_list': 'users/chef_list/',
+    'chef_list': '/users/chef_list/',
     'current_user': '/users/current_user/',
     'pending_chefs': '/users/pending_chefs/',
     'approve_chef': (id) => `/users/${id}/approve/`,
@@ -59,8 +59,8 @@ export const endpoints = {
     'chef_stats': '/statistics/chef_stats/',
 }
 
-export const CLIENT_ID = 'PSAJNs8SQPo5snVGqHrTbtzNqkXygIC8EiO1GxYC';
-export const CLIENT_SECRET = '3Z6KZWgupAoTnZFlFPC7WIsonSnSk0nce6yPuXBWbIaER34YqWfI2iGCTMct9Yiyda3tXhcrEVHFbBC1g5I60w8klNPn4BOyGGaBlHuE2TYrlPHGbhOhVSMA4pcUWAIH';
+export const CLIENT_ID = 'QUFlhQqg9C2L1n6fSVi4C3dEL2A7Ttl5PvmE54K9';
+export const CLIENT_SECRET = 'JVf5pwtlUxYs1cEweNw6NgXYjAx6ny9W8SDS47AzwAGU6ox0YMCrbT489jr6ItmCDNWLVxVItEeAmbKiLrTIo8UAT9N90Kgej0RrMu8OTOyEfNXWp7YEu4RIFRgKM57h';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

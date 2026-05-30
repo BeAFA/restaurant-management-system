@@ -4,7 +4,7 @@ import { useState, useContext } from "react";
 import Apis, { authApis, endpoints, CLIENT_ID, CLIENT_SECRET } from "../../configs/Apis";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
-import Style from './Style';
+import Style from '../../styles/UserStyles';
 import UserContext from "../../contexts/UserContext";
 
 const Login = () => {
