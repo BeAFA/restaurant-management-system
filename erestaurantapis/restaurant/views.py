@@ -476,49 +476,48 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
         permission_classes=[perms.OrderOwner]
     )
     def payment(self, request, pk=None):
-        order = get_object_or_404(
-            Order,
-            pk=pk,
-            user=request.user
-        )
+        order = get_object_or_404(Order, pk=pk, user=request.user)
 
-        # Chỉ thanh toán order đang chờ
         if order.status_order != Status_Order.WAITING:
             return Response(
                 {'error': 'Order này không thể thanh toán'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Kiểm tra order có món không
         if not order.details.exists():
             return Response(
                 {'error': 'Order chưa có món ăn nào'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Thanh toán
         order.status_order = Status_Order.SUCCESS
         order.save()
 
+        # Chỉ xử lý session nếu order có session (walk-in)
+        # Order từ reservation_id hoặc table_id trực tiếp sẽ không có session
         session = order.session
+        if session:
+            waiting_orders = session.orders.filter(
+                status_order=Status_Order.WAITING
+            ).exists()
 
-        waiting_orders = session.orders.filter(
-            status_order=Status_Order.WAITING
-        ).exists()
+            if not waiting_orders:
+                session.status_session = Status_Session.CLOSED
+                session.closed_at = timezone.now()
+                session.save()
 
-        if not waiting_orders:
-            session.status_session = Status_Session.CLOSED
-            session.closed_at = timezone.now()
-            session.save()
+                session.table.status_table = Status_Table.AVAILABLE
+                session.table.save()
 
-            session.table.status_table = Status_Table.AVAILABLE
-            session.table.save()
+                if session.reservation:
+                    session.reservation.status_reservation = Status_Reservation.COMPLETED
+                    session.reservation.save()
 
-            if session.reservation:
-                session.reservation.status_reservation = (
-                    Status_Reservation.COMPLETED
-                )
-                session.reservation.save()
+        # ✅ THIẾU DÒNG NÀY — đây là nguyên nhân lỗi 500
+        return Response(
+            {'message': 'Thanh toán thành công'},
+            status=status.HTTP_200_OK
+        )
 
 
 class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

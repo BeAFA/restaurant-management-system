@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://192.168.1.7:8000';
+const BASE_URL = 'http://192.168.1.157:8000';
 
 export const endpoints = {
     // === CATEGORIES ===
@@ -25,7 +25,7 @@ export const endpoints = {
     'current_order': '/orders/current_order/',
     'order_detail': (id) => `/orders/${id}/`,
     'order_cancel': (id) => `/orders/${id}/cancel/`,
-    'order_payment': (id) => `/orders/${id}/payment/`,
+    'payment': (orderId) => `/orders/${orderId}/payment/`,
 
     // === TABLES ===
     'tables': '/tables/',
@@ -59,8 +59,8 @@ export const endpoints = {
     'chef_stats': '/statistics/chef_stats/',
 }
 
-export const CLIENT_ID = 'QUFlhQqg9C2L1n6fSVi4C3dEL2A7Ttl5PvmE54K9';
-export const CLIENT_SECRET = 'JVf5pwtlUxYs1cEweNw6NgXYjAx6ny9W8SDS47AzwAGU6ox0YMCrbT489jr6ItmCDNWLVxVItEeAmbKiLrTIo8UAT9N90Kgej0RrMu8OTOyEfNXWp7YEu4RIFRgKM57h';
+export const CLIENT_ID = '8TOSZ4J7ESNOtQvzXcFVd1qSZ3BYIovl2JbqrNCb';
+export const CLIENT_SECRET = 'GJhb4uAKtPM5EK5Dmz8XjrZAMXCoPWnKN0rVAR1Ri321eUjTyuL46WXZLiHK0VBxkkvdehsDxoZxG76Uu0QhbH6uCVAeWOn8Oy4Il9ph5lByQ9x3hLmQiFzWhnbuV4tK';
 
 const Apis = axios.create({
     baseURL: BASE_URL,

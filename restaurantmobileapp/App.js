@@ -21,6 +21,7 @@ import AdminManage from "./screens/Admin/AdminManage";
 import OrderHistory from "./screens/User/OrderHistory";
 import ChefManageFoods from "./screens/User/Chef/ChefManageFoods";
 import UpdateFood from "./screens/User/Chef/UpdateFood";
+import PaymentQRScreen from "./screens/Services/PaymentQRScreen";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -49,12 +50,12 @@ const tableScreens = (Stack) => (
         <Stack.Screen
             name="table_selection_walkin"
             component={TableSelectionWalkIn}
-            options={{  title: "Chọn bàn" }}
+            options={{ title: "Chọn bàn" }}
         />
         <Stack.Screen
             name="reservation_form"
             component={ReservationForm}
-            options={{  title: "Đặt bàn trước" }}
+            options={{ title: "Đặt bàn trước" }}
         />
         {/* <Stack.Screen
             name="camera_table_selection"
@@ -121,6 +122,7 @@ const CustomerTabNavigator = () => {
     );
 };
 
+
 const CustomerRootNavigator = () => (
     <Stack.Navigator>
         <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} options={{ headerShown: false }} />
@@ -129,6 +131,7 @@ const CustomerRootNavigator = () => (
         <Stack.Screen name="table_selection_walkin" component={TableSelectionWalkIn} options={{ title: "Chọn bàn" }} />
         <Stack.Screen name="reservation_form" component={ReservationForm} options={{ title: "Đặt bàn trước" }} />
         {/* <Stack.Screen name="camera_table_selection" component={QRScanner} options={{ headerShown: false, title: "Quét QR bàn" }} /> */}
+        <Stack.Screen name="payment_qr" component={PaymentQRScreen} options={{ headerShown: true, title: "Thanh toán" }} />
     </Stack.Navigator>
 );
 
@@ -161,7 +164,7 @@ const AdminTabNavigator = () => {
                     tabBarIcon: () => <Icon source="view-dashboard" size={20} />
                 }}
             />
-        
+
             {user === null ? (
                 <Tab.Screen name="account_tab" component={AccountStackNavigator} options={{ title: 'Tài khoản', tabBarIcon: () => <Icon source="account" size={20} /> }} />
             ) : (

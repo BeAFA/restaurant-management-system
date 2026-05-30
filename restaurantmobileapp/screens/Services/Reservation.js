@@ -159,11 +159,7 @@ const Reservation = () => {
                 [{ text: "OK", style: "cancel" }]
             );
         } catch (error) {
-            const data = error?.response?.data;
-            const msg = data
-                ? Object.values(data).flat().join('\n')
-                : 'Đặt bàn thất bại. Vui lòng thử lại.';
-            Alert.alert("Lỗi", msg);
+            Alert.alert("Lỗi", "Bàn đã được đặt trong thời gian bạn chọn.");
             console.log('Lỗi đặt bàn:', error.response ?? error);
         } finally {
             setLoading(false);
@@ -221,8 +217,7 @@ const Reservation = () => {
                 <TouchableOpacity
                     style={Style.primaryButton}
                     onPress={() => nav.navigate('CustomerTabs', {
-                        screen: 'cart_tab',
-                        params: { screen: 'cart_index' }
+                        screen: 'profile',
                     })}
                 >
                     <Text style={Style.buttonLabel}>Đi đến Đăng nhập</Text>
@@ -250,10 +245,7 @@ const Reservation = () => {
                         style={[Style.primaryButton, Style.marginTop12]}
                         onPress={() => {
                             selectTableFromReservation({ id: currentBooking.table }, currentBooking.id);
-                            nav.navigate('CustomerTabs', {
-                                screen: 'cart_tab',
-                                params: { screen: 'cart_index' }
-                            });
+                            nav.navigate('CustomerTabs', { screen: 'cart_index' });
                         }}
                     >
                         <Text style={Style.buttonLabel}>Gọi món ngay</Text>

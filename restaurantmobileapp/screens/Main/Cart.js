@@ -68,22 +68,12 @@ const Cart = () => {
                 };
             }
 
-            await authApis(token).post(endpoints["orders"], payload);
+            const res = await authApis(token).post(endpoints["orders"], payload);
+            const order = res.data;
 
             clearCart();
 
-            Alert.alert(
-                "Thành công",
-                tableSource === "reservation"
-                    ? "Đặt món thành công! Đơn hàng đã được lưu cho bàn của bạn."
-                    : "Đặt món thành công!",
-                [
-                    {
-                        text: "OK",
-                        onPress: () => navigation.navigate("menu"),
-                    },
-                ]
-            );
+            navigation.navigate("payment_qr", { order });
         } catch (error) {
             Alert.alert("Lỗi", parseErrorMsg(error));
         }
