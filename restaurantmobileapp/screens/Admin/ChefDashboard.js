@@ -8,6 +8,7 @@ import Apis, { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
 import styles from '../../styles/AdminStyles';
 import UserContext from '../../contexts/UserContext';
+import Header from '../../components/Header';
 
 const getWeekNumber = (d) => {
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -148,7 +149,8 @@ const ChefDashboard = () => {
     return (
         <SafeAreaView style={styles.screenBackground}>
             <ScrollView style={styles.container}>
-                
+                <Header />
+                <Title style={styles.header}>Thống kê doanh thu theo món ăn</Title>
                 <View style={styles.modeContainer}>
                     <Button mode={period === 'day' ? 'contained' : 'outlined'} onPress={() => setPeriod('day')} style={styles.filterBtn}>Ngày</Button>
                     <Button mode={period === 'week' ? 'contained' : 'outlined'} onPress={() => setPeriod('week')} style={styles.filterBtn}>Tuần</Button>

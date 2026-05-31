@@ -13,12 +13,12 @@ const OrderHistory = () => {
     const [actionLoading, setActionLoading] = useState(null);
     const nav = useNavigation();
 
-    // 1. Lấy danh sách Order
+    
     const fetchOrders = async () => {
         try {
             setLoading(true);
             const token = await SecureStore.getItemAsync('token');
-            // Gọi API lấy danh sách order của current user
+            
             const res = await authApis(token).get(endpoints['orders']);
             setOrders(res.data);
         } catch (ex) {
@@ -32,7 +32,7 @@ const OrderHistory = () => {
         fetchOrders();
     }, []);
 
-    // 2. Xử lý Hủy Đơn Hàng (DELETE /cancel/)
+    
     const handleCancelOrder = (orderId) => {
         Alert.alert(
             "Xác nhận hủy",
@@ -47,11 +47,11 @@ const OrderHistory = () => {
                             setActionLoading(orderId);
                             const token = await SecureStore.getItemAsync('token');
 
-                            // Gọi API cancel
+                            
                             await authApis(token).delete(`${endpoints['orders']}${orderId}/cancel/`);
 
                             Alert.alert("Thành công", "Đã hủy đơn hàng!");
-                            fetchOrders(); // Tải lại danh sách sau khi hủy
+                            fetchOrders(); 
                         } catch (ex) {
                             Alert.alert("Lỗi", "Không thể hủy đơn hàng lúc này.");
                         } finally {
@@ -68,7 +68,7 @@ const OrderHistory = () => {
     };
 
 
-    // Hàm render màu sắc trạng thái
+    
     const getStatusStyle = (status) => {
         switch (status) {
             case 'WAITING': return { color: '#f39c12', label: 'Đang chờ' };

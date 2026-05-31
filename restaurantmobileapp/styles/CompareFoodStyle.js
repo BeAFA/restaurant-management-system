@@ -25,7 +25,7 @@ export default StyleSheet.create({
         fontWeight: "500",
     },
 
-    // ===== HEADER =====
+    
 
     headerRow: {
         flexDirection: "row",
@@ -74,7 +74,7 @@ export default StyleSheet.create({
         textAlign: "center",
     },
 
-    // ===== BODY =====
+    
 
     compareRow: {
         flexDirection: "row",
@@ -113,7 +113,7 @@ export default StyleSheet.create({
         lineHeight: 20,
     },
 
-    // ===== IMAGE =====
+    
 
     foodImage: {
         width: 100,
@@ -122,7 +122,7 @@ export default StyleSheet.create({
         resizeMode: "cover",
     },
 
-    // ===== SPECIAL VALUE STYLES =====
+    
 
     ratingText: {
         fontSize: 16,
@@ -157,7 +157,7 @@ export default StyleSheet.create({
         lineHeight: 20,
     },
 
-    // ===== BUTTONS =====
+    
 
     actionContainer: {
         flexDirection: "row",

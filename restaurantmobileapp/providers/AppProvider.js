@@ -18,7 +18,7 @@ import { Alert } from "react-native";
 
 export default function AppProvider({ children }) {
 
-    // ===== STATES =====
+    
 
     const [user, dispatchUser] = useReducer(
         UserReducer,
@@ -43,14 +43,16 @@ export default function AppProvider({ children }) {
     );
 
     const loadCategories = async () => {
-        try {
-            let res = await Apis.get(endpoints['categories']);
+            try {
+                const res = await Apis.get(endpoints['categories']);
 
-            setCategories(res.data);
-        } catch (err) {
-            console.log(err);
-        }
-    };
+                const categoryData = res.data.results || res.data;
+
+                setCategories([{ id: '', name: 'Tất cả' }, ...categoryData]);
+            } catch (ex) {
+                console.log("Lỗi tải danh mục:", ex.message);
+            }
+        };
 
 
     const loadUser = async () => {
@@ -79,7 +81,7 @@ export default function AppProvider({ children }) {
         }
     };
 
-    // ===== LOAD CART =====
+    
 
     const loadCart = async () => {
 

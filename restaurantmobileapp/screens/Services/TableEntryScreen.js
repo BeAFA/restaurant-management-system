@@ -18,7 +18,6 @@ const TableEntryScreen = () => {
                 Chọn hình thức phù hợp với bạn
             </Text>
 
-            {/* Đến trực tiếp */}
             <TouchableOpacity
                 style={[styles.card, styles.walkIn]}
                 onPress={() => navigation.navigate("table_selection_walkin")}
@@ -42,7 +41,6 @@ const TableEntryScreen = () => {
                 <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
 
-            {/* Đặt trước */}
             <TouchableOpacity
                 style={[styles.card, styles.reservation]}
                 onPress={() => navigation.navigate("reservation_form")}
@@ -61,30 +59,6 @@ const TableEntryScreen = () => {
 
                 <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
-
-            {/* Divider */}
-            {/* <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>hoặc</Text>
-                <View style={styles.divider} />
-            </View> */}
-
-            {/* QR */}
-            {/* <TouchableOpacity style={[styles.card, styles.qrCard]} onPress={() => navigation.navigate("camera_table_selection")}>
-                <View style={[styles.iconBox, styles.orangeIcon]}>
-                    <MaterialIcons name="qr-code-scanner" size={28} color="#D28A22" />
-                </View>
-
-                <View style={styles.content}>
-                    <Text style={styles.cardTitle}>Quét mã QR bàn</Text>
-
-                    <Text style={styles.cardDesc}>
-                        Hướng camera vào mã QR trên bàn của bạn
-                    </Text>
-                </View>
-
-                <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity> */}
 
             <Text style={styles.footerText}>
                 Bạn có thể thay đổi bàn bất kỳ lúc nào trong giỏ hàng

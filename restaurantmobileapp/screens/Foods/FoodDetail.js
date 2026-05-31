@@ -49,14 +49,14 @@ const FoodDetail = ({ route }) => {
     const { user } = useContext(UserContext);
     const { table } = useContext(TableContext);
 
-    //--- State cho Review Modal ---
+    
     const [reviewModalVisible, setReviewModalVisible] = useState(false);
     const [reviewComment, setReviewComment] = useState("");
     const [reviewRating, setReviewRating] = useState(5);
     const [submittingReview, setSubmittingReview] = useState(false);
-    // Thêm state
-    const [userReview, setUserReview] = useState(null);   // review của chính user
-    const [isEditing, setIsEditing] = useState(false);    // đang sửa hay tạo mới
+    
+    const [userReview, setUserReview] = useState(null);   
+    const [isEditing, setIsEditing] = useState(false);    
     const [deletingReview, setDeletingReview] = useState(false);
 
     const currencyFormatter = new Intl.NumberFormat('vi-VN', {
@@ -98,7 +98,7 @@ const FoodDetail = ({ route }) => {
         if (!user) { navigation.navigate("account_tab"); return; }
 
         if (userReview) {
-            // ✅ Điền sẵn dữ liệu cũ vào modal
+            
             setReviewComment(userReview.comment || "");
             setReviewRating(userReview.rating || 5);
             setIsEditing(true);
@@ -110,7 +110,7 @@ const FoodDetail = ({ route }) => {
         setReviewModalVisible(true);
     };
 
-    // Cập nhật handleSubmitReview — phân nhánh POST / PATCH
+    
     const handleSubmitReview = async () => {
         if (!user) {
             setReviewModalVisible(false);
@@ -124,16 +124,16 @@ const FoodDetail = ({ route }) => {
             let res;
 
             if (isEditing && userReview) {
-                // ✅ PATCH — chỉnh sửa review cũ
+                
                 res = await authApis(token).patch(
                     endpoints['current_review'](userReview.id),
                     { comment: reviewComment, rating: reviewRating }
                 );
-                // Cập nhật review trong danh sách
+                
                 setReviews(prev => prev.map(r => r.id === userReview.id ? res.data : r));
                 setUserReview(res.data);
             } else {
-                // ✅ POST — tạo review mới
+                
                 res = await authApis(token).post(
                     endpoints['food_reviews'](foodId),
                     { comment: reviewComment, rating: reviewRating }
@@ -177,7 +177,7 @@ const FoodDetail = ({ route }) => {
                             await authApis(token).delete(
                                 endpoints['review_detail'](userReview.id)
                             );
-                            // ✅ Xóa khỏi danh sách và reset userReview
+                            
                             setReviews(prev => prev.filter(r => r.id !== userReview.id));
                             setUserReview(null);
                             setReviewModalVisible(false);
@@ -210,7 +210,7 @@ const FoodDetail = ({ route }) => {
             item => item.id === food.id
         );
 
-        // REMOVE
+        
         if (exists) {
 
             removeFromFoodsToCompare(food.id);
@@ -223,7 +223,7 @@ const FoodDetail = ({ route }) => {
             return;
         }
 
-        // LIMIT
+        
         if (foodsToCompare.length >= 3) {
 
             Alert.alert(
@@ -234,12 +234,12 @@ const FoodDetail = ({ route }) => {
             return;
         }
 
-        // ADD
+        
         addFoodToCompare(food);
 
         const nextCount = foodsToCompare.length + 1; 9
 
-        // CHƯA ĐỦ 2 MÓN
+        
         if (nextCount === 1) {
 
             Alert.alert(
@@ -250,7 +250,7 @@ const FoodDetail = ({ route }) => {
             return;
         }
 
-        // ĐỦ ĐỂ SO SÁNH
+        
         Alert.alert(
             "Sẵn sàng so sánh",
             `Hiện có ${nextCount} món ăn trong danh sách so sánh.`
@@ -382,7 +382,6 @@ const FoodDetail = ({ route }) => {
                                     </>
                                 )}
                             </View>
-                            {/* Hàng tiêu đề + nút — thay onPress bằng handleOpenReviewModal */}
                             <View style={Styles.reviewSectionRow}>
                                 <Text style={Styles.reviewSectionTitle}>
                                     Đánh giá từ khách hàng ({reviews.length})
@@ -398,14 +397,12 @@ const FoodDetail = ({ route }) => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Modal — cập nhật tiêu đề theo trạng thái */}
                             <Modal visible={reviewModalVisible} transparent animationType="slide"
                                 onRequestClose={() => setReviewModalVisible(false)}>
                                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                                     style={Styles.modalOverlay}>
                                     <View style={Styles.modalContainer}>
                                         <View style={Styles.modalHeader}>
-                                            {/* ✅ Tiêu đề modal thay đổi theo trạng thái */}
                                             <Text style={Styles.modalTitle}>
                                                 {isEditing ? "Chỉnh sửa đánh giá" : "Đánh giá món ăn"}
                                             </Text>
@@ -431,7 +428,6 @@ const FoodDetail = ({ route }) => {
                                         />
 
                                         <View style={Styles.reviewActionRow}>
-                                            {/* Nút xóa — chỉ hiện khi đang chỉnh sửa */}
                                             {isEditing && (
                                                 <TouchableOpacity
                                                     onPress={handleDeleteReview}
@@ -448,7 +444,6 @@ const FoodDetail = ({ route }) => {
                                                 </TouchableOpacity>
                                             )}
 
-                                            {/* Nút gửi / cập nhật */}
                                             <TouchableOpacity
                                                 onPress={handleSubmitReview}
                                                 disabled={submittingReview}

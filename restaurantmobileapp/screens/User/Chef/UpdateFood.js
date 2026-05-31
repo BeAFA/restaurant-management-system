@@ -30,7 +30,7 @@ const UpdateFood = () => {
     const [categories, setCategories] = useState([]);
     const [ingredients, setIngredients] = useState([]);
 
-    // State cho Dropdown
+    
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedIngredients, setSelectedIngredients] = useState([]);
 
@@ -41,27 +41,27 @@ const UpdateFood = () => {
         { field: 'time', title: 'Thời gian', icon: 'clock' },
     ];
 
-    // 3. Gom việc gọi dữ liệu vào chung một useEffect
+    
     useEffect(() => {
         const fetchAllData = async () => {
             try {
                 setLoading(true);
 
-                // Gọi 3 API cùng lúc bằng Promise.all để tăng tốc độ
+                
                 const [resCategories, resIngredients, resFoodDetail] = await Promise.all([
                     Apis.get(endpoints['categories']),
                     Apis.get(endpoints['ingredients']),
                     Apis.get(endpoints['food_detail'](foodId))
                 ]);
 
-                // Set Data cho Dropdown
+                
                 setCategories(resCategories.data.results || resCategories.data);
                 setIngredients(resIngredients.data.results || resIngredients.data);
 
-                // Lấy dữ liệu món ăn chi tiết
+                
                 const foodData = resFoodDetail.data;
 
-                // 4. Bơm dữ liệu cũ vào các State để hiển thị lên Form
+                
                 setFood({
                     dish: foodData.dish || '',
                     description: foodData.description || '',
@@ -181,7 +181,7 @@ const UpdateFood = () => {
                             setDeleteLoading(true);
                             const token = await SecureStore.getItemAsync('token');
 
-                            // Dùng foodId từ route
+                            
                             await authApis(token).delete(`${endpoints['foods']}${foodId}/chef_manage_food/`);
 
                             Alert.alert('Thành công', 'Đã xóa món ăn!', [
@@ -205,7 +205,7 @@ const UpdateFood = () => {
         return food.illustration.uri;
     };
 
-    // Hiện loading spinner khi đang tải dữ liệu API lúc mới vào màn hình
+    
     if (loading) {
         return (
             <View style={[Style.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -248,7 +248,7 @@ const UpdateFood = () => {
                         data={categories.map(c => ({ key: c.id, value: c.name }))}
                         save="key"
                         placeholder="Chọn danh mục"
-                        // Cập nhật defaultOption an toàn sau khi API tải xong
+                        
                         defaultOption={categories.find(c => c.id === selectedCategory) ? { key: selectedCategory, value: categories.find(c => c.id === selectedCategory).name } : null}
                         boxStyles={{ borderColor: "#E0E0E0", borderRadius: 10, marginTop: 10, minHeight: 55 }}
                         inputStyles={{ color: "#000", fontSize: 16 }}

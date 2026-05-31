@@ -5,12 +5,11 @@ import Profile from "./screens/Main/Profile";
 import FoodDetail from "./screens/Foods/FoodDetail";
 import Cart from "./screens/Main/Cart";
 import Menu from "./screens/Main/Menu";
-import ReservationForm from "./screens/Services/Reservation"; // Gộp dòng import trùng
+import ReservationForm from "./screens/Services/Reservation";
 import Account from "./screens/User/Account";
 import AccountSettings from "./screens/User/AccountSetting";
 import ChangePassword from "./screens/User/PasswordSetting";
 import TableSelection from "./screens/Services/TableSelection";
-// import QRScanner from "./screens/Services/CameraTableSelection";
 import TableEntryScreen from "./screens/Services/TableEntryScreen";
 import TableSelectionWalkIn from "./screens/Services/TableSelectionWalkIn";
 import FoodCompare from "./screens/Foods/FoodCompare";
@@ -32,7 +31,6 @@ import AppProvider from "./providers/AppProvider";
 import UserContext from "./contexts/UserContext";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import CreateFood from "./screens/User/Chef/CreateFood";
-import StatisticChef from "./screens/User/Chef/StatisticChef";
 
 
 const HomeStack = createNativeStackNavigator();
@@ -57,19 +55,14 @@ const tableScreens = (Stack) => (
             component={ReservationForm}
             options={{ title: "Đặt bàn trước" }}
         />
-        {/* <Stack.Screen
-            name="camera_table_selection"
-            component={QRScanner}
-            options={{ headerShown: false, title: "Quét QR bàn" }}
-        /> */}
     </>
 );
 
-// Khởi tạo các bộ điều hướng
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// 1. TỐI ƯU CÁC STACK CON (Chỉ chứa các màn hình thực sự thuộc về nó)
+
 const HomeStackNavigator = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" component={Home} />
@@ -130,7 +123,6 @@ const CustomerRootNavigator = () => (
         <Stack.Screen name="table_entry" component={TableEntryScreen} options={{ title: "Chọn hình thức" }} />
         <Stack.Screen name="table_selection_walkin" component={TableSelectionWalkIn} options={{ title: "Chọn bàn" }} />
         <Stack.Screen name="reservation_form" component={ReservationForm} options={{ title: "Đặt bàn trước" }} />
-        {/* <Stack.Screen name="camera_table_selection" component={QRScanner} options={{ headerShown: false, title: "Quét QR bàn" }} /> */}
         <Stack.Screen name="payment_qr" component={PaymentQRScreen} options={{ headerShown: true, title: "Thanh toán" }} />
     </Stack.Navigator>
 );
@@ -154,14 +146,6 @@ const AdminTabNavigator = () => {
                 options={{
                     title: "Quản lý",
                     tabBarIcon: () => <Icon source="account-cog" size={20} />
-                }}
-            />
-            <Tab.Screen
-                name="check_in"
-                component={CheckIn}
-                options={{
-                    title: "Quản lý",
-                    tabBarIcon: () => <Icon source="view-dashboard" size={20} />
                 }}
             />
 
@@ -227,10 +211,10 @@ const ChefTabNavigator = () => {
 };
 
 const AppRouter = () => {
-    // THÊM VÀO ĐÂY Lấy thông tin user từ Context
+    
     const { user } = useContext(UserContext);
 
-    // 1. NẾU LÀ ADMIN ĐÃ ĐĂNG NHẬP
+    
     if (user && user.user_role === 'ADMIN') {
         return <AdminTabNavigator />;
     }
@@ -238,11 +222,11 @@ const AppRouter = () => {
         return <ChefTabNavigator />;
     }
 
-    // 2. CÁC TRƯỜNG HỢP CÒN LẠI (Khách hàng hoặc Chưa đăng nhập)
+    
     return <CustomerRootNavigator />;
 };
 
-// 4. APP CHÍNH
+
 export default function App() {
     return (
         <SafeAreaProvider>

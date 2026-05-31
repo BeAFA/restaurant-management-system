@@ -123,21 +123,21 @@ class Reservation(BaseModel):
 
     @property
     def is_active_now(self):
-        # Kiểm tra xem thời điểm HIỆN TẠI có đang nằm trong khung giờ đặt bàn hay không
+        
         now = timezone.now()
         if self.serve_time and self.end_time:
             return self.serve_time <= now <= self.end_time
         return False
 
-    # 2. Tự động tính end_time trước khi lưu vào Database
+    
     def save(self, *args, **kwargs):
         if self.serve_time and not self.end_time:
-            # Cộng thêm 30 phút vào thời gian bắt đầu
+            
             self.end_time = self.serve_time + timedelta(minutes=30)
         self.full_clean()
         super().save(*args, **kwargs)
 
-    # 3. Logic chặn đặt trùng bàn trong khoảng 2 tiếng đó
+    
     def clean(self):
         if not self.serve_time:
             return
@@ -145,15 +145,15 @@ class Reservation(BaseModel):
         if self.serve_time < timezone.now():
             raise ValidationError("Thời gian đặt bàn không thể ở trong quá khứ.")
 
-        # Nếu chưa có end_time (lúc đang tạo mới), tạm tính để check
+        
         expected_end_time = self.end_time or (self.serve_time + timedelta(minutes=30))
-        # Tìm các đơn đặt bàn có thời gian giao thoa (overlap)
-        # Công thức: (Bắt đầu A < Kết thúc B) AND (Kết thúc A > Bắt đầu B)
+        
+        
         conflicting_reservations = Reservation.objects.filter(
             table=self.table,
             serve_time__lt=expected_end_time,
             end_time__gt=self.serve_time
-        ).exclude(pk=self.pk)  # Loại trừ chính nó nếu là đang sửa (update)
+        ).exclude(pk=self.pk)  
 
         if conflicting_reservations.exists():
             raise ValidationError(
@@ -202,7 +202,7 @@ class Order(BaseModel):
         related_name='direct_orders', null=True, blank=True
     )
 
-    # Session (walk-in / order thêm tại bàn)
+    
     session = models.ForeignKey(
         DiningSession,
         on_delete=models.PROTECT,
@@ -211,7 +211,7 @@ class Order(BaseModel):
         blank=True
     )
 
-    # Reservation (đặt trước — session sẽ được gán lúc check-in nếu cần)
+    
     reservation = models.ForeignKey(
         'Reservation',
         on_delete=models.SET_NULL,
@@ -250,15 +250,14 @@ class OrderDetail(BaseModel):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     def save(self, *args, **kwargs):
-        # Chỉ copy giá từ bảng Food ở lần đầu tiên tạo OrderDetail
+        
         if not self.pk:
             self.unit_price = self.food.price
 
-        # Tính toán tổng giá cho món này
+        
         self.total_price = self.unit_price * self.quantity
 
         super().save(*args, **kwargs)
-        # Sau đó cập nhật tổng tiền cho Order cha
         self.order.update_total()
 
 

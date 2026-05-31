@@ -26,10 +26,10 @@ const PaymentQRScreen = () => {
         try {
             const token = await SecureStore.getItemAsync("token");
 
-            // Gọi API payment để đổi status → SUCCESS
+            
             await authApis(token).post(endpoints["payment"](order?.id));
 
-            // Hiển thị thông báo thành công
+            
             Alert.alert(
                 "Xác nhận thanh toán",
                 qrValue,
@@ -64,13 +64,11 @@ const PaymentQRScreen = () => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
                 <MaterialIcons name="payment" size={28} color="#1976D2" />
                 <Text style={styles.headerTitle}>Thanh toán</Text>
             </View>
 
-            {/* Card */}
             <View style={styles.card}>
                 <Text style={styles.cardTitle}>Quét mã để xác nhận</Text>
                 <Text style={styles.cardSubtitle}>
@@ -81,7 +79,6 @@ const PaymentQRScreen = () => {
                     để hoàn tất thanh toán
                 </Text>
 
-                {/* QR */}
                 <View style={styles.qrWrapper}>
                     <QRCode
                         value={qrValue}
@@ -91,7 +88,6 @@ const PaymentQRScreen = () => {
                     />
                 </View>
 
-                {/* Order info */}
                 <View style={styles.infoBox}>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Mã đơn hàng</Text>
@@ -114,13 +110,11 @@ const PaymentQRScreen = () => {
                 </View>
             </View>
 
-            {/* Nút Kiểm tra — gọi API payment */}
             <TouchableOpacity style={styles.checkButton} onPress={handleCheck}>
                 <MaterialIcons name="check-circle" size={20} color="white" />
                 <Text style={styles.checkButtonText}>Kiểm tra</Text>
             </TouchableOpacity>
 
-            {/* Nút về trang chủ — KHÔNG gọi API, order vẫn là WAITING */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() =>

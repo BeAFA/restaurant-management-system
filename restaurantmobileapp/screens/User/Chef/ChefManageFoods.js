@@ -14,19 +14,19 @@ const ChefManageFoods = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
 
-    // State để theo dõi xem món nào đang được "xổ xuống"
+    
     const [expandedId, setExpandedId] = useState(null);
 
     const nav = useNavigation();
     const { user } = useContext(UserContext);
 
-    // 1. Hàm lấy danh sách món ăn của Chef
+    
     const fetchChefFoods = async () => {
         try {
             setLoading(true);
             const token = await SecureStore.getItemAsync('token');
 
-            // Gọi API lấy danh sách Food, lọc theo chef_id
+            
             const res = await authApis(token).get(`${endpoints['foods']}?chef_id=${user.id}`);
 
             const foodData = res.data.results || res.data;
@@ -39,20 +39,20 @@ const ChefManageFoods = () => {
         }
     };
 
-    // Tự động load lại dữ liệu mỗi khi màn hình này hiện lên
+    
     useFocusEffect(
         useCallback(() => {
             fetchChefFoods();
-            return () => setExpandedId(null); // Đóng hết accordion khi rời đi
+            return () => setExpandedId(null); 
         }, [])
     );
 
-    // 2. Xử lý mở/đóng Accordion
+    
     const handlePressAccordion = (foodId) => {
         setExpandedId(expandedId === foodId ? null : foodId);
     };
 
-    // 3. Xử lý Hủy (Xóa mềm) món ăn
+    
     const handleDeleteFood = (food) => {
         Alert.alert(
             "Xác nhận xóa",
@@ -70,7 +70,7 @@ const ChefManageFoods = () => {
                             await authApis(token).delete(`${endpoints['foods']}${food.id}/chef_manage_food/`);
 
                             Alert.alert("Thành công", "Đã xóa món ăn!");
-                            fetchChefFoods(); // Tải lại danh sách
+                            fetchChefFoods(); 
                         } catch (ex) {
                             Alert.alert("Lỗi", "Không thể xóa món ăn lúc này.");
                         } finally {

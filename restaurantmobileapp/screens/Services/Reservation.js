@@ -65,9 +65,9 @@ const Reservation = () => {
         }
     };
 
-    // Kiểm tra ngày + giờ hợp lệ.
-    // - Nếu ngày chọn là hôm nay: thời gian phải trong tương lai.
-    // - Nếu ngày chọn là ngày mai trở đi: luôn hợp lệ, không cần check giờ.
+    
+    
+    
     const isDateTimeValid = (dt) => {
         const now = new Date();
         const isToday =
@@ -89,11 +89,11 @@ const Reservation = () => {
         setShowDatePicker(Platform.OS === 'ios');
         if (event.type === 'dismissed' || !selected) return;
 
-        // Gộp ngày mới với giờ hiện tại đang chọn
+        
         const updated = new Date(serveTime);
         updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
 
-        // Chặn chọn ngày trong quá khứ
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (updated < today) {
@@ -112,7 +112,7 @@ const Reservation = () => {
         const updated = new Date(serveTime);
         updated.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
 
-        // Chỉ kiểm tra giờ nếu ngày đang chọn là HÔM NAY
+        
         if (!isFutureDate(updated) && updated <= new Date()) {
             Alert.alert("Lỗi thời gian", "Hôm nay vui lòng chọn giờ trong tương lai.");
             return;
@@ -131,7 +131,7 @@ const Reservation = () => {
             Alert.alert("Lỗi", "Vui lòng chọn một bàn.");
             return;
         }
-        // Final check: ngày hôm nay thì giờ phải còn hợp lệ
+        
         if (!isDateTimeValid(serveTime)) {
             Alert.alert("Lỗi thời gian", "Thời gian đặt bàn đã qua, vui lòng chọn lại.");
             return;
@@ -267,7 +267,6 @@ const Reservation = () => {
 
             <View style={Style.formContainer}>
 
-                {/* Chọn ngày */}
                 <Text style={Style.label}>Chọn ngày:</Text>
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} style={Style.input}>
                     <Text>{formatDate(serveTime)}</Text>
@@ -282,7 +281,6 @@ const Reservation = () => {
                     />
                 )}
 
-                {/* Chọn giờ — hiển thị ghi chú nếu ngày tương lai */}
                 <Text style={Style.label}>
                     Chọn giờ đến:
                     {isFutureDate(serveTime)}
@@ -299,7 +297,6 @@ const Reservation = () => {
                     />
                 )}
 
-                {/* Số lượng khách */}
                 <Text style={Style.label}>Số lượng khách:</Text>
                 <TextInput
                     style={Style.input}
@@ -313,7 +310,6 @@ const Reservation = () => {
                     }}
                 />
 
-                {/* Danh sách bàn */}
                 {qty > 0 && (
                     <>
                         <Text style={Style.label}>Chọn bàn trống:</Text>
@@ -355,7 +351,6 @@ const Reservation = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Modal Xác Nhận */}
             <Modal visible={showConfirmModal} transparent animationType="fade">
                 <View style={Style.modalOverlay}>
                     <View style={Style.modalContent}>

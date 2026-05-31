@@ -106,6 +106,7 @@ DATABASES = {
         'NAME': 'restaurantdb',
         'USER': 'root',
         'PASSWORD': 'root',
+        'PASSWORD': 'Apocalypse123@',
         'HOST': ''
     }
 }

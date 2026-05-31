@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-    // ==========================================
-    // 1. KHUNG CƠ BẢN (Dùng chung)
-    // ==========================================
     container: {
         flex: 1,
         backgroundColor: '#FFF5E5',
@@ -18,10 +15,6 @@ export default StyleSheet.create({
         marginTop: 30,
         marginBottom: 20,
     },
-
-    // ==========================================
-    // 2. TEXT & TYPOGRAPHY (Dùng chung)
-    // ==========================================
     titleText: {
         fontSize: 28,
         fontWeight: 'bold',
@@ -38,10 +31,6 @@ export default StyleSheet.create({
         textAlign: 'center',
         fontSize: 14,
     },
-
-    // ==========================================
-    // 3. FORM & NÚT BẤM (Login & Register)
-    // ==========================================
     formContainer: {
         backgroundColor: '#F69D39',
         padding: 20,
@@ -77,10 +66,6 @@ export default StyleSheet.create({
         height: 120,
         resizeMode: 'contain',
     },
-
-    // ==========================================
-    // 4. PHẦN CHỌN ẢNH (Dành riêng cho Register)
-    // ==========================================
     avatarPickerBtn: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -108,10 +93,6 @@ export default StyleSheet.create({
         borderWidth: 2,
         borderColor: '#FF6347',
     },
-
-    // ==========================================
-    // 5. TRANG PROFILE (Hồ sơ người dùng)
-    // ==========================================
     profileContainer: {
         flex: 1,
         backgroundColor: '#F5F5F5',
@@ -201,13 +182,14 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         color: '#FF6347',
     },
-
-    //6. TRANG ACCOUNT (Hub Đăng nhập / Đăng ký)
-    accountContainer: {
+    accountWrapper: {
         flex: 1,
-        justifyContent: 'center',
+        backgroundColor: '#FFF5E5', 
+    },
+    accountContent: {
+        flex: 1, 
+        justifyContent: 'center', 
         paddingHorizontal: 20,
-        backgroundColor: '#FFF5E5',
     },
     accountTitle: {
         fontSize: 32,

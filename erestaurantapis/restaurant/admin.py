@@ -15,10 +15,10 @@ class MyFoodAdmin(admin.ModelAdmin):
         return None
 
 
-# Inline: Cho phép thêm/sửa món ăn ngay bên trong trang chi tiết Đơn hàng
+
 class OrderDetailInline(admin.TabularInline):
     model = OrderDetail
-    extra = 1  # Hiển thị sẵn 1 dòng trống để thêm món
+    extra = 1  
 
 
 @admin.register(Order)
@@ -26,9 +26,9 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'total', 'status_order', 'created_date']
     list_filter = ['status_order', 'created_date']
     search_fields = ['user__username', 'user__phone']
-    inlines = [OrderDetailInline]  # Tích hợp Inline
+    inlines = [OrderDetailInline]  
 
-    # TỐI ƯU HIỆU NĂNG CHO ADMIN (Tránh N+1 Query)
+    
     list_select_related = ['user', 'table']
 
 

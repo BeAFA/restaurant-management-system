@@ -38,22 +38,22 @@ export default StyleSheet.create({
     },
     illustration: {
         width: width,
-        height: width * 0.8, // Tỷ lệ ảnh cân đối
+        height: width * 0.8, 
         backgroundColor: '#F5F5F5',
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
     },
-    // Nút điều hướng đè lên ảnh
+    
     navButton: {
         position: 'absolute',
-        top: 40, // Điều chỉnh tùy theo tai thỏ/notch của thiết bị
+        top: 40, 
         backgroundColor: '#0E7468',
         padding: 8,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 3, // Tạo bóng đổ trên Android
-        shadowColor: '#000', // Tạo bóng đổ trên iOS
+        elevation: 3, 
+        shadowColor: '#000', 
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -66,7 +66,7 @@ export default StyleSheet.create({
         marginTop: 20,
         right: 20,
     },
-    // Khối thông tin dưới ảnh
+    
     infoContainer: {
         paddingHorizontal: 20,
         paddingTop: 24,
@@ -100,7 +100,7 @@ export default StyleSheet.create({
     },
     price: {
         fontSize: 20,
-        fontWeight: '800', // Extra bold
+        fontWeight: '800', 
         color: '#111111',
         marginTop: 8,
         marginBottom: 20,
@@ -112,15 +112,15 @@ export default StyleSheet.create({
         letterSpacing: 0.2,
     },
 
-    // Compare Button
+    
     compareButton: {
         backgroundColor: '#0E7468',
         padding: 8,
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 3, // Tạo bóng đổ trên Android
-        shadowColor: '#000', // Tạo bóng đổ trên iOS
+        elevation: 3, 
+        shadowColor: '#000', 
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -211,7 +211,7 @@ export default StyleSheet.create({
         marginLeft: 8,
     },
 
-    // Thanh mua hàng cố định ở dưới cùng (Bottom Bar)
+    
     bottomBar: {
         position: 'absolute',
         bottom: 0,
@@ -246,7 +246,7 @@ export default StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    // ✅ REVIEW SECTION — hàng tiêu đề + nút viết đánh giá
+    
     reviewSectionRow: {
         flexDirection: 'row', alignItems: 'center',
         justifyContent: 'space-between',
@@ -267,13 +267,13 @@ export default StyleSheet.create({
         color: '#FFF', fontSize: 13, fontWeight: '600', marginLeft: 5,
     },
 
-    // ✅ MODAL OVERLAY
+    
     modalOverlay: {
         flex: 1, justifyContent: 'flex-end',
         backgroundColor: 'rgba(0,0,0,0.45)',
     },
 
-    // ✅ MODAL CONTAINER
+    
     modalContainer: {
         backgroundColor: '#fff',
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
@@ -282,7 +282,7 @@ export default StyleSheet.create({
         shadowOpacity: 0.1, shadowRadius: 12, elevation: 10,
     },
 
-    // ✅ MODAL HEADER (tiêu đề + nút đóng)
+    
     modalHeader: {
         flexDirection: 'row', justifyContent: 'space-between',
         alignItems: 'center', marginBottom: 4,
@@ -294,7 +294,7 @@ export default StyleSheet.create({
         color: '#888', fontSize: 13, marginBottom: 8,
     },
 
-    // ✅ STAR RATING
+    
     starRatingLabel: {
         fontSize: 14, fontWeight: '600', color: '#333', textAlign: 'center',
     },
@@ -305,7 +305,7 @@ export default StyleSheet.create({
         marginHorizontal: 6,
     },
 
-    // ✅ COMMENT INPUT
+    
     commentInput: {
         borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12,
         padding: 12, fontSize: 14, color: '#333',
@@ -317,7 +317,7 @@ export default StyleSheet.create({
         gap: 10,
     },
 
-    // ✅ SUBMIT BUTTON
+    
     submitReviewButton: {
         flex: 1,
         backgroundColor: '#0E7468',
@@ -330,7 +330,7 @@ export default StyleSheet.create({
     },
     submitReviewText: {
         color: '#fff', fontSize: 16, fontWeight: '700',
-    },// ✅ Nút xóa
+    },
     deleteReviewButton: {
         flex: 1,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

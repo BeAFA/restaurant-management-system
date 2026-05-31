@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from 'expo-secure-store';
 import Style from '../../styles/UserStyles';
 import UserContext from "../../contexts/UserContext";
+import Footer from "../../components/Footer";
 
 const Login = () => {
     const userInfo = [{

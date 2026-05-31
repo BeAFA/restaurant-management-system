@@ -18,10 +18,10 @@ const QRScanner = ({ onSuccess }) => {
             const tableData = JSON.parse(data);
 
             if (onSuccess) {
-                // Được gọi từ TableSelectionWalkIn → dùng callback
+                
                 onSuccess(tableData);
             } else {
-                // Standalone → tự xử lý
+                
                 selectTable(tableData, "walk_in");
                 navigation.navigate('CustomerTabs', { screen: 'cart_index' });
             }

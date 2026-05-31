@@ -5,6 +5,7 @@ import * as ImgPicker from 'expo-image-picker';
 import { useState } from "react";
 import Apis, { endpoints } from "../../configs/Apis";
 import { useNavigation } from "@react-navigation/native";
+import Footer from "../../components/Footer";
 
 const Register = () => {
 
@@ -134,7 +135,6 @@ const Register = () => {
 
     return (
         <View style={[Style.container, { paddingLeft: 0, paddingRight: 0 }]}>
-            {/* Dùng ScrollView để chống tràn màn hình khi mở bàn phím */}
             <View style={Style.headerContainer}>
                 <Text style={Style.titleText}>Tham gia DK Restaurant</Text>
                 <Text style={Style.subText}>Tạo tài khoản để khám phá hàng ngàn món ngon</Text>
@@ -157,9 +157,9 @@ const Register = () => {
                             label={u.title}
                             placeholder={`Nhập ${u.title.toLowerCase()}`}
                             secureTextEntry={u.secureTextEntry}
-                            mode="outlined" // Kiểu viền bao quanh
+                            mode="outlined" 
                             outlineColor="#E0E0E0"
-                            activeOutlineColor="#FF6347" // Màu viền cam khi gõ
+                            activeOutlineColor="#FF6347" 
                             right={<TextInput.Icon icon={u.icon} color="#FF6347" />}
                         />
                     ))}
@@ -172,9 +172,9 @@ const Register = () => {
                             label={u.title}
                             placeholder={`Nhập ${u.title.toLowerCase()}`}
                             secureTextEntry={u.secureTextEntry && hidePass.confirm}
-                            mode="outlined" // Kiểu viền bao quanh
+                            mode="outlined" 
                             outlineColor="#E0E0E0"
-                            activeOutlineColor="#FF6347" // Màu viền cam khi gõ
+                            activeOutlineColor="#FF6347" 
                             right={
                                 <TextInput.Icon
                                     icon={hidePass.confirm ? "eye-off" : "eye"}
@@ -185,9 +185,7 @@ const Register = () => {
                         />
                     ))}
 
-                    {/* Khu vực chọn ảnh đại diện được thiết kế lại */}
                     <TouchableOpacity style={Style.avatarPickerBtn} onPress={picker}>
-                        {/* Dùng icon camera của react-native-paper nếu bạn muốn, ở đây dùng text cho đơn giản */}
                         <Text style={Style.avatarPickerText}>📸 Chọn ảnh đại diện</Text>
                     </TouchableOpacity>
 
@@ -206,7 +204,10 @@ const Register = () => {
                         Đăng ký ngay
                     </Button>
                 </View>
+
             </ScrollView>
+
+            <Footer />
         </View>
 
     );

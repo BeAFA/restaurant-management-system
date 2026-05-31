@@ -171,7 +171,7 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
         )
 
     @action(
-        methods=['PATCH', 'DELETE'],  # Hỗ trợ cả 2 phương thức Sửa và Xóa
+        methods=['PATCH', 'DELETE'],  
         url_path='chef_manage_food',
         detail=True,
         permission_classes=[permissions.IsAuthenticated]
@@ -185,7 +185,7 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # 2. Lấy món ăn từ DB
+        
         food = self.get_object()
 
         if request.method == 'DELETE':
@@ -232,11 +232,11 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Tách 2 query để phân biệt rõ 2 trường hợp
+        
         foods_all = Food.objects.filter(id__in=food_ids)
         foods_active = foods_all.filter(active=True)
 
-        # TH1: id không tồn tại trong DB
+        
         found_ids = set(foods_all.values_list('id', flat=True))
         not_exist_ids = set(food_ids) - found_ids
         if not_exist_ids:
@@ -245,14 +245,14 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # TH2: tồn tại nhưng đang bị ẩn (active=False)
+        
         active_ids = set(foods_active.values_list('id', flat=True))
         inactive_foods = foods_all.exclude(id__in=active_ids)
         if inactive_foods.exists():
             inactive_names = list(inactive_foods.values_list('dish', flat=True))
             return Response(
                 {'error': f'Các món sau đang không hoạt động: {inactive_names}'},
-                # ví dụ: "Các món sau đang không hoạt động: ['Phở bò', 'Bún bò']"
+                
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -265,12 +265,12 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             review_count=Count('reviews', distinct=True)
         )
 
-        # categories = foods.values_list('category_id', flat=True).distinct()
-        # if categories.count() > 1:
-        #     return Response(
-        #         {'error': 'Chỉ có thể so sánh các món ăn cùng danh mục!'},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
+        
+        
+        
+        
+        
+        
 
         return Response(
             FoodComparisonSerializer(foods, many=True).data,
@@ -285,16 +285,16 @@ class FoodViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIVi
             total_quantity=Sum('quantity')
         ).order_by('-total_quantity').values_list('food_id', flat=True)[:10])
 
-        # 2. Lấy các đối tượng Food từ DB dựa theo danh sách ID trên và phải còn hoạt động (active=True)
+        
         foods = Food.objects.filter(id__in=top_ids, active=True).annotate(
             avg_rating=Avg('reviews__rating'), )
 
-        # 3. Mẹo nhỏ: Vì bộ lọc `id__in` của Django sẽ làm đảo lộn thứ tự bán chạy,
-        # ta dùng Python để sắp xếp lại danh sách Food theo đúng thứ tự chuẩn của top_ids ban đầu.
+        
+        
         food_dict = {f.id: f for f in foods}
         sorted_foods = [food_dict[f_id] for f_id in top_ids if f_id in food_dict]
 
-        # 4. Đi qua bộ chuyển đổi dữ liệu (FoodSerializer) để biến thành JSON và trả về cho App
+        
         serializer = FoodSerializer(sorted_foods, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -332,15 +332,15 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
 
-        # 1. Kiểm tra mật khẩu cũ có đúng không
+        
         if not user.check_password(old_password):
             return Response({'error': 'Mật khẩu hiện tại không chính xác!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. Kiểm tra mật khẩu mới
+        
         if not new_password or len(new_password) < 6:
             return Response({'error': 'Mật khẩu mới phải có ít nhất 6 ký tự!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. Đổi mật khẩu
+        
         user.set_password(new_password)
         user.save()
 
@@ -493,8 +493,8 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
         order.status_order = Status_Order.SUCCESS
         order.save()
 
-        # Chỉ xử lý session nếu order có session (walk-in)
-        # Order từ reservation_id hoặc table_id trực tiếp sẽ không có session
+        
+        
         session = order.session
         if session:
             waiting_orders = session.orders.filter(
@@ -513,7 +513,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListAPIView, generics.CreateAPIVie
                     session.reservation.status_reservation = Status_Reservation.COMPLETED
                     session.reservation.save()
 
-        # ✅ THIẾU DÒNG NÀY — đây là nguyên nhân lỗi 500
+        
         return Response(
             {'message': 'Thanh toán thành công'},
             status=status.HTTP_200_OK
@@ -532,7 +532,7 @@ class TableViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         if start_str:
             start = parse_datetime(start_str)
             if start:
-                end = start + timedelta(minutes=30)  # luôn tự tính, không nhận end_time từ client
+                end = start + timedelta(minutes=30)  
                 busy_ids = Reservation.objects.filter(
                     active=True,
                     serve_time__lt=end,
@@ -573,11 +573,11 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
 
     @action(methods=['GET', 'POST', 'PATCH'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def current_reservation(self, request):
-        # POST: tạo mới — không cần reservation hiện tại
+        
         if request.method == 'POST':
             return self._create_reservation(request)
 
-        # GET / PATCH: cần tìm reservation sắp tới
+        
         reservation = self._get_upcoming_reservation(request.user)
         if not reservation:
             return Response(
@@ -588,7 +588,7 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
         if request.method == 'PATCH':
             return self._update_reservation(request, reservation)
 
-            # GET
+            
         return Response(
             ReservationSerializer(reservation).data,
             status=status.HTTP_200_OK
@@ -617,7 +617,7 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
         )
         serializer.is_valid(raise_exception=True)
 
-        # Nếu serve_time thay đổi, reset end_time để tự tính lại
+        
         if 'serve_time' in request.data:
             serializer.validated_data['end_time'] = None
 
@@ -651,7 +651,7 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
 
         now = timezone.now()
 
-        # check đúng giờ
+        
         if now < reservation.serve_time - timedelta(minutes=30):
             return Response(
                 {'error': 'Chưa tới giờ check-in'},
@@ -664,15 +664,14 @@ class ReservationViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Destro
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # update reservation
+        
         reservation.status_reservation = Status_Reservation.CHECKED_IN
         reservation.save()
 
-        # update table
+        
         reservation.table.status_table = Status_Table.OCCUPIED
         reservation.table.save()
 
-        # tạo session
         session = DiningSession.objects.create(
             reservation=reservation,
             table=reservation.table,
@@ -692,7 +691,6 @@ class StatisticViewSet(viewsets.ViewSet):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
 
-        # 1. LẤY THAM SỐ VIEW_ALL (Mặc định là false)
         view_all = request.query_params.get('view_all', 'false').lower() == 'true'
 
         trunc_map = {'day': TruncDay, 'week': TruncWeek, 'month': TruncMonth}
@@ -702,21 +700,16 @@ class StatisticViewSet(viewsets.ViewSet):
         if start_date and end_date:
             date_filter = Q(order__created_date__range=[start_date, end_date])
 
-        # 2. XỬ LÝ LOGIC VIEW_ALL
         food_filter = Q()
         if not view_all:
-            # NẾU VIEW_ALL = FALSE: Chỉ lấy các món do chính đầu bếp này nấu (Logic cũ)
             chef_food_ids = FoodChef.objects.filter(
                 chef=request.user,
                 active=True
             ).values_list('food_id', flat=True)
             food_filter = Q(food_id__in=chef_food_ids)
-        # NẾU VIEW_ALL = TRUE: Biến food_filter rỗng, tự động lấy tất cả món ăn
-
-        # 3. NHÉT CẢ DATE_FILTER VÀ FOOD_FILTER VÀO QUERY
         order_stats = OrderDetail.objects.filter(
             date_filter,
-            food_filter,  # <--- Bổ sung food_filter
+            food_filter,
             order__status_order='SUCCESS'
         ).annotate(
             period=TruncFunc('order__created_date')
@@ -738,27 +731,21 @@ class StatisticViewSet(viewsets.ViewSet):
             total_revenue=Sum('total_price')
         ).order_by('-total_revenue'))
 
-        # 2. TRUY VẤN 2: LẤY ĐIỂM ĐÁNH GIÁ TRUNG BÌNH (Bảng Food)
-        # Lấy danh sách ID của các món ăn vừa được thống kê ở trên
         food_ids = [item['food__id'] for item in food_stats]
 
-        # Truy vấn trực tiếp từ bảng Food để lấy điểm đánh giá, không dính líu tới Order
         ratings = Food.objects.filter(id__in=food_ids).annotate(
             avg_rating=Avg('reviews__rating')
         ).values('id', 'avg_rating')
 
-        # Chuyển kết quả thành một dictionary để tra cứu siêu tốc: { food_id: avg_rating }
         rating_dict = {item['id']: item['avg_rating'] for item in ratings}
 
-        # 3. GỘP DỮ LIỆU: Lắp điểm đánh giá vào danh sách food_stats ban đầu
         for item in food_stats:
-            # Lấy điểm từ rating_dict ghép vào, nếu không có ai đánh giá thì trả về None
             item['avg_rating'] = rating_dict.get(item['food__id'], None)
 
-        # Trả về Response y như cũ
+        
         return Response({
             'period_stats': list(order_stats),
-            'food_stats': food_stats  # Đã là list rồi nên không cần list() nữa
+            'food_stats': food_stats
         }, status=status.HTTP_200_OK)
 
     @action(methods=['GET'], url_path='admin_stats', detail=False, permission_classes=[perms.IsAdminRole])
@@ -770,48 +757,34 @@ class StatisticViewSet(viewsets.ViewSet):
         trunc_map = {'day': TruncDay, 'week': TruncWeek, 'month': TruncMonth}
         TruncFunc = trunc_map.get(period, TruncMonth)
 
-        # 1. TẠO BỘ LỌC THỜI GIAN ĐỘNG
         date_filter = Q()
         if start_date and end_date:
             date_filter = Q(created_date__range=[start_date, end_date])
 
         reservation_date_filter = Q()
         if start_date and end_date:
-            # Đặt bàn thì lọc theo thời gian phục vụ (serve_time)
             reservation_date_filter = Q(serve_time__range=[start_date, end_date])
 
-        # 2. ÁP DỤNG BỘ LỌC VÀO CÁC QUERY BÊN DƯỚI
+
         overview = {
             'total_foods': Food.objects.filter(active=True).count(),
             'total_users': User.objects.filter(is_active=True).count(),
-            # Thêm filter vào đây
+            
             'total_orders': Order.objects.filter(date_filter, active=True, status_order='SUCCESS').count(),
             'total_reservations': Reservation.objects.filter(reservation_date_filter, active=True).count(),
             'pending_chefs': User.objects.filter(user_role=UserRole.CHEF, is_approved=False, is_active=True).count(),
         }
 
         revenue_stats = Order.objects.filter(
-            date_filter, status_order='SUCCESS'  # Thêm filter vào đây
+            date_filter, status_order='SUCCESS'
         ).annotate(
             period=TruncFunc('created_date')
         ).values('period').annotate(
-            total_revenue=Sum('total'),  # Tùy model của bạn là total_price hay total
+            total_revenue=Sum('total'),
             order_count=Count('id')
         ).order_by('period')
 
-        # Top 10 món ăn được đặt nhiều nhất
-        top_foods = OrderDetail.objects.filter(
-            order__status_order='SUCCESS'
-        ).values(
-            'food__id',
-            'food__dish',
-            'food__category__name'  # Tên category qua double JOIN
-        ).annotate(
-            total_quantity=Sum('quantity'),
-            total_revenue=Sum('total_price')
-        ).order_by('-total_quantity')[:10]  # Lấy 10 món đầu
 
-        # Thống kê đặt bàn theo ngày
         reservation_stats = Reservation.objects.filter(
             active=True
         ).annotate(
@@ -823,6 +796,5 @@ class StatisticViewSet(viewsets.ViewSet):
         return Response({
             'overview': overview,
             'revenue_stats': list(revenue_stats),
-            'top_foods': list(top_foods),
             'reservation_stats': list(reservation_stats)
         }, status=status.HTTP_200_OK)

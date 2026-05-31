@@ -22,11 +22,9 @@ const Cart = () => {
     const parseErrorMsg = (error) => {
         const data = error?.response?.data;
         if (!data) return "Đặt hàng thất bại!";
-        // Django ValidationError trả về nhiều dạng khác nhau, xử lý hết
         if (typeof data === "string") return data;
         if (data.error) return data.error;
         if (data.non_field_errors) return data.non_field_errors.join("\n");
-        // {'__all__': [...]} hoặc {'field': [...]}
         return Object.values(data).flat().join("\n");
     };
 
@@ -58,7 +56,6 @@ const Cart = () => {
                     })),
                 };
             } else {
-                // Walk-in trực tiếp: nhân viên đã dẫn vào bàn, chỉ cần table id
                 payload = {
                     table_id: table.id,
                     details: cart.map((item) => ({
@@ -87,7 +84,6 @@ const Cart = () => {
                         <Text style={Styles.headerTitle}>Giỏ hàng của bạn</Text>
                     </SafeAreaView>
 
-                    {/* Table info bar */}
                     <View>
                         {table ? (
                             <View style={Styles.tableInfoContainer}>

@@ -6,6 +6,7 @@ import UserContext from "../../contexts/UserContext";
 import { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
 import MainStyles from "../../styles/MainStyles";
+import Footer from "../../components/Footer";
 
 const Profile = () => {
     const { user, logout } = useContext(UserContext);
@@ -34,7 +35,7 @@ const Profile = () => {
                 setOrderCount(count || 0);
 
             } catch (ex) {
-                console.error("Lỗi đếm số lượng đơn hàng:", ex);
+                console.error("Lỗi đếm số lượng đơn hàng:", ex.data || ex.message || ex);
             }
         }
     };
@@ -143,6 +144,7 @@ const Profile = () => {
 
                 <View style={{ height: 50 }} />
             </ScrollView>
+            <Footer />
         </View>
     );
 }

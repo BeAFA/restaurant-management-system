@@ -9,81 +9,61 @@ import Header from "../../components/Header";
 import SimpleFood from "../../components/SimpleFood";
 import { SelectList } from 'react-native-dropdown-select-list'
 import UserContext from "../../contexts/UserContext";
+import CategoryContext from "../../contexts/CategoryContext";
+import Footer from "../../components/Footer";
 
 const Menu = () => {
-    const [categories, setCategories] = useState([]);
+    const { categories } = useContext(CategoryContext);
     const [foods, setFoods] = useState([]);
     const [loading, setLoading] = useState(false);
-    const route = useRoute(); // Thêm dòng này để đọc tham số truyền vào
-    const [activeCategory, setActiveCategory] = useState({ id: '', name: 'All' });
+    const route = useRoute(); 
+    const [activeCategory, setActiveCategory] = useState({ id: '', name: 'Tất cả' });
     const [searchQuery, setSearchQuery] = useState('');
-    const [page, setPage] = useState(1); // Thêm State quản lý trang
+    const [page, setPage] = useState(1); 
     const [showFilter, setShowFilter] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [chefs, setChefs] = useState([]);
     const { user } = useContext(UserContext);
 
-    // State cho Bộ lọc
+    
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
-    const [maxTime, setMaxTime] = useState(''); // Ví dụ: '15', '30'
+    const [maxTime, setMaxTime] = useState('');
     const [minRating, setMinRating] = useState('');
     const [appliedFilters, setAppliedFilters] = useState({ min: '', max: '', time: '', rating: '' });
-    const [chefSelected, setChefSelected] = React.useState("");//Chọn đầu bếp
+    const [chefSelected, setChefSelected] = React.useState("");
 
     const nav = useNavigation();
 
-    // 2. Tải danh mục (Chỉ gọi 1 lần khi mở app)
-    useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const res = await Apis.get(endpoints['categories']);
-
-                // Lấy dữ liệu an toàn: Nếu có res.data.results thì dùng, không thì lấy res.data
-                const categoryData = res.data.results || res.data;
-
-                setCategories([{ id: '', name: 'All' }, ...categoryData]);
-            } catch (ex) {
-                console.log("Lỗi tải danh mục:", ex.message);
-            }
-        };
-        loadCategories();
-    }, []);
-
-    // 3. Kỹ thuật Reset Page: Đưa về trang 1 nếu người dùng đổi từ khóa tìm kiếm hoặc đổi Category
+    
     useEffect(() => {
         setPage(1);
         setHasMore(true);
         setFoods([]);
     }, [searchQuery, activeCategory.id, chefSelected]);
 
-    // 4. Kỹ thuật Debounce & Theo dõi thay đổi
+    
     useEffect(() => {
-        // Thiết lập bộ đếm giờ, sau 500ms không có thay đổi mới gọi hàm loadFoods
+        
         let timer = setTimeout(() => {
             if (page > 0) {
                 loadFoods();
             }
         }, 500);
 
-        // Clear timeout nếu người dùng gõ ký tự mới trong khoảng 500ms
+        
         return () => clearTimeout(timer);
     }, [searchQuery, activeCategory.id, page, chefSelected]);
 
     const loadFoods = async () => {
         try {
             setLoading(true);
-
             let url = '';
-
             if (activeCategory.id) {
                 url = endpoints['category_foods'](activeCategory.id);
             } else {
                 url = endpoints['foods'];
             }
-
-
-
             console.log("URL gọi API:", url);
 
             const res = await Apis.get(url, {
@@ -131,9 +111,9 @@ const Menu = () => {
         }
     };
 
-    // 6. Hàm kích hoạt khi cuộn đến cuối danh sách
+    
     const loadMore = () => {
-        // CHỈ load thêm khi: page đang mở (>0), không bị kẹt loading, VÀ màn hình đã có dữ liệu
+        
         if (hasMore && !loading && foods.length > 0) {
             setPage(prev => prev + 1);
         }
@@ -169,7 +149,7 @@ const Menu = () => {
             const rating = Number(item.avg_rating ?? 0);
 
 
-            // Dùng appliedFilters thay cho các state rời rạc
+            
             if (appliedFilters.min !== '') {
                 if (price < parseFloat(appliedFilters.min)) return false;
             }
@@ -197,39 +177,39 @@ const Menu = () => {
         if (maxPrice && max < 0) { alert("Giá tối đa không hợp lệ"); return; }
         if (minPrice && maxPrice && min > max) { alert("Min không thể lớn hơn Max"); return; }
 
-        // Đẩy dữ liệu nháp vào bản chính thức để FlatList bắt đầu lọc
+        
         setAppliedFilters({ min: minPrice, max: maxPrice, time: maxTime, rating: minRating });
         setShowFilter(false);
     };
 
     const resetFilters = () => {
-        // Xóa bản nháp trên giao diện
+        
         setMinPrice('');
         setMaxPrice('');
         setMaxTime('');
         setMinRating('');
         setChefSelected('');
-        // Xóa bản chính thức để khôi phục danh sách
+        
         setAppliedFilters({ min: '', max: '', time: '', rating: '' });
     };
 
     useEffect(() => {
-        resetFilters(); // Đảm bảo bộ lọc được reset khi đổi Category
+        resetFilters(); 
     }, [activeCategory.id]);
 
     useEffect(() => {
         if (route.params?.categoryFromHome) {
-            // 1. Cập nhật danh mục kích hoạt thành danh mục được chọn từ trang Home
+            
             setActiveCategory(route.params.categoryFromHome);
 
-            // 2. Mẹo nâng cao: Xóa tham số này khỏi bộ nhớ của route sau khi đã nhận xong
-            // Điều này giúp tránh việc bị kẹt bộ lọc khi người dùng bấm vào icon Tab Menu ở dưới đáy sau này
+            
+            
             nav.setParams({ categoryFromHome: undefined });
         }
     }, [route.params?.categoryFromHome]);
 
 
-    // --- CÁC HÀM RENDER GIAO DIỆN GIỮ NGUYÊN NHƯ CŨ ---
+    
     const renderCategoryItem = ({ item }) => (
         <TouchableOpacity
             style={MainStyles.categoryItem}
@@ -288,7 +268,7 @@ const Menu = () => {
                         style={MainStyles.searchInput}
                         placeholder="Tìm kiếm món ăn..."
                         value={searchQuery}
-                        onChangeText={setSearchQuery} // Cập nhật state liên tục khi gõ
+                        onChangeText={setSearchQuery} 
                         placeholderTextColor="#999"
                     />
                     <TouchableOpacity style={MainStyles.filterBtn} onPress={() => setShowFilter(true)}>
@@ -313,24 +293,21 @@ const Menu = () => {
                 keyExtractor={(item, index) => `${item.id}-${index}`}
                 contentContainerStyle={MainStyles.listContainer}
                 showsVerticalScrollIndicator={false}
-                // Thêm 3 thuộc tính cực kỳ quan trọng cho Infinite Scroll
+                
                 onEndReached={loadMore}
-                onEndReachedThreshold={0.1} // Gọi loadMore khi cách đáy màn hình 10%
+                onEndReachedThreshold={0.1} 
                 ListFooterComponent={loading && <ActivityIndicator size="large" color="#1A5D4A" style={{ marginVertical: 20 }} />}
             />
 
-
+            <Footer />
 
             <Modal visible={showFilter} transparent={true} animationType="slide">
-                {/* 1. Biến Overlay thành nút bấm đóng Modal */}
                 <Pressable style={MainStyles.modalOverlay} onPress={() => setShowFilter(false)}>
 
-                    {/* 2. Chặn sự kiện click xuyên qua khi bấm vào phần nội dung màu trắng */}
                     <Pressable
                         style={MainStyles.modalContent}
                         onPress={(e) => e.stopPropagation()}
                     >
-                        {/* Tiêu đề & Nút đóng */}
                         <View style={MainStyles.modalHeader}>
                             <Text style={MainStyles.modalTitle}>Bộ lọc nâng cao</Text>
                             <TouchableOpacity onPress={() => setShowFilter(false)}>
@@ -338,8 +315,6 @@ const Menu = () => {
                             </TouchableOpacity>
                         </View>
 
-                        {/* ... Toàn bộ giao diện ô nhập Giá, chọn Thời gian, nút Áp dụng giữ nguyên ... */}
-                        {/* Mục 1: Lọc theo khoảng giá */}
                         <Text style={MainStyles.filterLabel}>Khoảng giá ($)</Text>
                         <View style={MainStyles.priceRow}>
                             <TextInput
@@ -359,7 +334,6 @@ const Menu = () => {
                             />
                         </View>
 
-                        {/* Mục 2: Lọc theo thời gian */}
                         <Text style={MainStyles.filterLabel}>Thời gian chuẩn bị</Text>
                         <View style={MainStyles.timeRow}>
                             {['15', '30', '60'].map(time => (
@@ -400,7 +374,6 @@ const Menu = () => {
                             search={false}
                         />
 
-                        {/* Mục 3: Nút hành động */}
                         <View style={MainStyles.actionRow}>
                             <TouchableOpacity style={MainStyles.resetBtn} onPress={resetFilters}>
                                 <Text style={MainStyles.resetBtnText}>Làm mới</Text>

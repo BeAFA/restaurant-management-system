@@ -143,7 +143,7 @@ const CreateFood = () => {
                 const resCategories = await Apis.get(endpoints['categories']);
                 const resIngredients = await Apis.get(endpoints['ingredients']);
 
-                // Lấy dữ liệu an toàn: Nếu có res.data.results thì dùng, không thì lấy res.data
+                
                 const categoryData = resCategories.data.results || resCategories.data;
                 const ingredientData = resIngredients.data.results || resIngredients.data;
 
@@ -182,9 +182,9 @@ const CreateFood = () => {
                             label={f.title}
                             placeholder={`Nhập ${f.title.toLowerCase()}`}
                             secureTextEntry={f.secureTextEntry}
-                            mode="outlined" // Kiểu viền bao quanh
+                            mode="outlined" 
                             outlineColor="#E0E0E0"
-                            activeOutlineColor="#FF6347" // Màu viền cam khi gõ
+                            activeOutlineColor="#FF6347" 
                             right={<TextInput.Icon icon={f.icon} color="#FF6347" />}
                         />
                     ))}
@@ -240,9 +240,7 @@ const CreateFood = () => {
                         }}
                     />
 
-                    {/* Khu vực chọn ảnh đại diện được thiết kế lại */}
                     <TouchableOpacity style={Style.avatarPickerBtn} onPress={picker}>
-                        {/* Dùng icon camera của react-native-paper nếu bạn muốn, ở đây dùng text cho đơn giản */}
                         <Text style={Style.avatarPickerText}>Chọn ảnh minh họa</Text>
                     </TouchableOpacity>
 

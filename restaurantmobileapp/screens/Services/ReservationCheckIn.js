@@ -10,7 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 
-// How many minutes before/after serve_time check-in is allowed.
+
 const CHECK_IN_EARLY_MINUTES = 10;
 const CHECK_IN_LATE_MINUTES = 30;
 
@@ -23,7 +23,7 @@ const ReservationCheckIn = () => {
     const [loading, setLoading] = useState(true);
     const [checkingIn, setCheckingIn] = useState(false);
     const [windowStatus, setWindowStatus] = useState(null);
-    // "too_early" | "in_window" | "too_late" | null
+    
 
     useEffect(() => {
         fetchUpcomingReservation();
@@ -32,7 +32,7 @@ const ReservationCheckIn = () => {
     useEffect(() => {
         if (!reservation) return;
         evaluateWindow();
-        // Re-evaluate every 30 s so the UI updates as time passes
+        
         const timer = setInterval(evaluateWindow, 30_000);
         return () => clearInterval(timer);
     }, [reservation]);
@@ -48,7 +48,7 @@ const ReservationCheckIn = () => {
         } catch (e) {
             const status = e.response?.status;
             if (status === 404) {
-                // No upcoming reservation
+                
                 setReservation(null);
             } else {
                 Alert.alert("Lỗi", "Không thể tải thông tin đặt bàn.");
@@ -90,10 +90,10 @@ const ReservationCheckIn = () => {
 
             const { session_code } = res.data;
 
-            // Persist session_code for Cart
+            
             await SecureStore.setItemAsync("session_code", session_code);
 
-            // Save table to context (reservation.table is the table id from the serializer)
+            
             selectTable({ id: reservation.table }, "reservation");
 
             navigation.navigate("CustomerTabs", { screen: "cart_index" });
@@ -147,7 +147,6 @@ const ReservationCheckIn = () => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.container}>
-                {/* Reservation card */}
                 <View style={styles.card}>
                     <View style={styles.cardRow}>
                         <MaterialIcons
@@ -182,7 +181,6 @@ const ReservationCheckIn = () => {
                     </View>
                 </View>
 
-                {/* Window status banner */}
                 {windowStatus === "too_early" && (
                     <View style={[styles.banner, styles.bannerWarning]}>
                         <MaterialIcons
@@ -215,7 +213,6 @@ const ReservationCheckIn = () => {
                     </View>
                 )}
 
-                {/* Check-in button */}
                 <TouchableOpacity
                     style={[
                         styles.checkInBtn,

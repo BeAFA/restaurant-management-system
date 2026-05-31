@@ -12,17 +12,13 @@ const CheckIn = () => {
     const handleCheckIn = async (reservationId) => {
         try {
             const token = await SecureStore.getItemAsync('token');
-
-            // Gọi API POST. 
-            // Tham số 1: URL được render ra từ hàm
-            // Tham số 2: Dữ liệu body (ở đây API không yêu cầu body nên để trống {})
             const res = await authApis(token).post(endpoints['check_in'](reservationId), {});
 
             console.log("Check-in thành công:", res.data);
-            // Thông báo cho user...
+            
         } catch (ex) {
             if (ex.response) {
-                console.log("Lỗi từ server:", ex.response.data.error); // Ví dụ: "Chưa tới giờ check-in"
+                console.log("Lỗi từ server:", ex.response.data.error); 
             }
         }
     }

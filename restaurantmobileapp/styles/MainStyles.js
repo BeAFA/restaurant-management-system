@@ -1,25 +1,21 @@
 import { StyleSheet } from 'react-native';
 
 export const COLORS = {
-    primary: '#A8D5C9', // Xanh ngọc
-    background: '#F5F5F5',
+    primary: '#A8D5C9', 
+    background: '#f0a046',
     white: '#FFFFFF',
     textDark: '#333333',
-    textLight: '#888888',
-    accent: '#FF7F50', // Màu cam cho giá tiền/icon
-    darkGreen: '#1A5D4A', // Xanh đậm cho nút bấm
-    orange: '#FF6347' // Thêm màu cam chủ đạo của Profile
+    textLight: '#817a7a',
+    accent: '#FF7F50', 
+    darkGreen: '#1A5D4A', 
+    orange: '#FF6347' 
 };
 
 export default StyleSheet.create({
-    // ==========================================
-    // 1. STYLE DÙNG CHUNG & CÁC MÀN HÌNH KHÁC
-    // ==========================================
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
     },
-    // Header & Search
     topSection: {
         backgroundColor: COLORS.primary,
         paddingTop: 50,
@@ -56,7 +52,7 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    // Categories
+    
     categoryContainer: {
         paddingVertical: 15,
         paddingLeft: 20,
@@ -76,7 +72,7 @@ export default StyleSheet.create({
         borderBottomWidth: 2,
         borderBottomColor: COLORS.textDark,
     },
-    // Food List
+    
     listContainer: {
         paddingHorizontal: 20,
         paddingBottom: 20,
@@ -126,7 +122,7 @@ export default StyleSheet.create({
         color: COLORS.textDark,
         marginTop: 5,
     },
-    // Modal Filter
+    
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -157,7 +153,7 @@ export default StyleSheet.create({
         color: COLORS.textDark,
         marginBottom: 10,
     },
-    // Giao diện ô nhập Giá
+    
     priceRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -172,13 +168,14 @@ export default StyleSheet.create({
         paddingHorizontal: 15,
         fontSize: 16,
         textAlign: 'center',
+        color: COLORS.textDark,
     },
     priceDivider: {
         marginHorizontal: 15,
         fontSize: 20,
         color: COLORS.textLight,
     },
-    // Giao diện nút chọn Thời gian
+    
     timeRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -199,14 +196,14 @@ export default StyleSheet.create({
         borderColor: COLORS.darkGreen,
     },
     timeBtnText: {
-        color: COLORS.textLight,
+        color: COLORS.textDark,
         fontWeight: '600',
     },
     timeBtnTextActive: {
         color: COLORS.darkGreen,
         fontWeight: 'bold',
     },
-    // Giao diện Nút hành động (Reset / Apply)
+    
     actionRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -236,9 +233,9 @@ export default StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    // ==========================================
-    // 2. STYLE DÀNH RIÊNG CHO PROFILE
-    // ==========================================
+    
+    
+    
     headerBackground: {
         backgroundColor: COLORS.orange,
         height: 160,
@@ -339,9 +336,9 @@ export default StyleSheet.create({
         fontSize: 16
     },
 
-    // ==========================================
-    // 3. HOME SCREEN SPECIFIC
-    // ==========================================
+    
+    
+    
     loadingScreen: {
         flex: 1,
         justifyContent: 'center',
@@ -354,7 +351,7 @@ export default StyleSheet.create({
     },
     categoryButton: {
         padding: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#ddadad',
         borderRadius: 20,
         marginRight: 10,
         marginBottom: 20

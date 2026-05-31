@@ -4,7 +4,8 @@ import { Text, Card, Title, ActivityIndicator, Button, Avatar } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Apis, { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
-import styles from '../../styles/AdminManageStyles';
+import styles from '../../styles/AdminStyles';
+import Header from '../../components/Header';
 
 const AdminManage = () => {
     const [pendingChefs, setPendingChefs] = useState([]);
@@ -12,7 +13,7 @@ const AdminManage = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
 
-    // Lấy danh sách chờ duyệt
+    
     const fetchPendingChefs = async () => {
         try {
             const token = await SecureStore.getItemAsync('token');
@@ -41,9 +42,9 @@ const AdminManage = () => {
         fetchAllApprovedChefs();
     }, []);
 
-    // Hàm xử lý khi bấm nút "Duyệt"
+    
     const handleApprove = async (userId, userName) => {
-        // Hộp thoại xác nhận (Confirm) trước khi duyệt
+        
         Alert.alert(
             "Xác nhận duyệt",
             `Bạn có chắc chắn muốn cấp quyền cho đầu bếp ${userName}?`,
@@ -53,10 +54,10 @@ const AdminManage = () => {
                     text: "Duyệt ngay",
                     onPress: async () => {
                         try {
-                            setActionLoading(userId); // Bật loading cho riêng nút của user này
+                            setActionLoading(userId); 
                             const token = await SecureStore.getItemAsync('token');
 
-                            // Gọi API duyệt (Method PATCH)
+                            
                             await authApis(token).patch(endpoints['approve_chef'](userId), {
                                 is_approved: true
                             }, {
@@ -84,7 +85,7 @@ const AdminManage = () => {
     };
 
     const handleDeleteApprove = async (userId, userName) => {
-        // Hộp thoại xác nhận (Confirm) trước khi duyệt
+        
         Alert.alert(
             "Xác nhận thu hồi quyền",
             `Bạn có chắc chắn muốn thu hồi quyền cho đầu bếp ${userName}?`,
@@ -95,10 +96,10 @@ const AdminManage = () => {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            setActionLoading(userId); // Bật loading cho riêng nút của user này
+                            setActionLoading(userId); 
                             const token = await SecureStore.getItemAsync('token');
 
-                            // Gọi API duyệt (Method PATCH)
+                            
                             await authApis(token).patch(endpoints['approve_chef'](userId), {
                                 is_approved: false
                             }, {
@@ -127,7 +128,7 @@ const AdminManage = () => {
     return (
         <SafeAreaView style={styles.screenBackground}>
             <ScrollView style={styles.container}>
-
+                <Header />
                 <Title style={styles.header}>Quản lý Đầu bếp</Title>
 
                 {loading ? (
@@ -153,7 +154,7 @@ const AdminManage = () => {
                                         right={(props) => (
                                             <Button
                                                 mode="contained"
-                                                buttonColor="#2e7d32" // Màu xanh lá
+                                                buttonColor="#2e7d32" 
                                                 style={styles.actionButtonMargin}
                                                 loading={actionLoading === chef.id}
                                                 disabled={actionLoading === chef.id}
@@ -198,7 +199,6 @@ const AdminManage = () => {
                     </>
                 )}
 
-                {/* KHU VỰC DÀNH CHO YÊU CẦU 2 (Quản lý User chung) SẼ ĐƯỢC THÊM VÀO ĐÂY SAU */}
 
             </ScrollView>
         </SafeAreaView>

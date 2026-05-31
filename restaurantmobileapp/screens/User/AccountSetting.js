@@ -9,23 +9,23 @@ import * as SecureStore from 'expo-secure-store';
 import UserContext from "../../contexts/UserContext";
 
 const AccountSettings = () => {
-    // 1. Lấy thông tin user hiện tại và hàm cập nhật context
+    
     const { user: currentUser, dispatchUser } = useContext(UserContext);
     const nav = useNavigation();
 
-    // 2. Khởi tạo state với dữ liệu có sẵn từ currentUser
+    
     const [user, setUser] = useState({
         first_name: currentUser?.first_name || '',
         last_name: currentUser?.last_name || '',
         email: currentUser?.email || '',
         phone: currentUser?.phone || '',
-        avatar: currentUser?.avatar || null, // Có thể là chuỗi URL hoặc Object ảnh mới
+        avatar: currentUser?.avatar || null, 
     });
 
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Cấu hình các trường cần chỉnh sửa
+    
     const userInfo = [
         { field: 'first_name', title: 'Tên', icon: 'text' },
         { field: 'last_name', title: 'Họ và tên lót', icon: 'text' },
@@ -39,13 +39,13 @@ const AccountSettings = () => {
             alert("Bạn cần cấp quyền truy cập thư viện ảnh!");
         } else {
             const result = await ImgPicker.launchImageLibraryAsync({
-                mediaTypes: ImgPicker.MediaType.Images,
+                mediaTypes: ImgPicker.MediaTypeOptions.Images,
                 allowsEditing: true,
                 aspect: [1, 1],
                 quality: 0.8,
             });
             if (!result.canceled) {
-                // Lưu object ảnh mới vào state
+                
                 setUser({ ...user, 'avatar': result.assets[0] });
             }
         }
@@ -63,14 +63,14 @@ const AccountSettings = () => {
         try {
             setLoading(true);
 
-            // Đưa các trường text vào form
+            
             form.append('first_name', user.first_name);
             form.append('last_name', user.last_name);
             form.append('email', user.email);
             form.append('phone', user.phone);
 
-            // XỬ LÝ ẢNH CỰC KỲ QUAN TRỌNG: 
-            // Chỉ gửi ảnh nếu nó là Object mới pick từ máy (có chứa thuộc tính uri và không phải là chuỗi HTTP)
+            
+            
             if (user.avatar && typeof user.avatar !== 'string') {
                 form.append('avatar', {
                     uri: user.avatar.uri,
@@ -89,13 +89,13 @@ const AccountSettings = () => {
             if (res.status === 200) {
                 Alert.alert('Thành công', 'Cập nhật thông tin thành công!');
                 
-                // Cập nhật lại kho lưu trữ chung (Context) để màn hình Profile tự đổi dữ liệu
+                
                 dispatchUser({
-                    type: 'LOGIN', // Hoặc 'UPDATE_USER' tùy bạn định nghĩa trong Reducer
+                    type: 'LOGIN', 
                     payload: res.data,
                 });
 
-                // Quay lại màn hình trước đó
+                
                 nav.goBack();
             }
 
@@ -107,11 +107,11 @@ const AccountSettings = () => {
         }
     }
 
-    // Hàm lấy uri ảnh để hiển thị (do avatar có thể là chuỗi URL từ API hoặc Object từ ImgPicker)
+    
     const getAvatarUri = () => {
         if (!user.avatar) return null;
-        if (typeof user.avatar === 'string') return user.avatar; // Ảnh cũ từ Backend
-        return user.avatar.uri; // Ảnh mới vừa pick
+        if (typeof user.avatar === 'string') return user.avatar; 
+        return user.avatar.uri; 
     };
 
     return (
@@ -128,7 +128,6 @@ const AccountSettings = () => {
             <ScrollView contentContainerStyle={Style.scrollContent}>
                 <View style={Style.formContainer}>
                     
-                    {/* Tên đăng nhập (Chỉ hiển thị, không cho sửa) */}
                     <TextInput
                         value={currentUser?.username}
                         disabled={true}
@@ -138,7 +137,6 @@ const AccountSettings = () => {
                         right={<TextInput.Icon icon="lock" color="#aaa" />}
                     />
 
-                    {/* Các trường chỉnh sửa */}
                     {userInfo.map(u => (
                         <TextInput
                             key={u.field}
@@ -153,7 +151,6 @@ const AccountSettings = () => {
                         />
                     ))}
 
-                    {/* Khu vực đổi ảnh đại diện */}
                     <TouchableOpacity style={Style.avatarPickerBtn} onPress={picker}>
                         <Text style={Style.avatarPickerText}>📸 Thay đổi ảnh đại diện</Text>
                     </TouchableOpacity>

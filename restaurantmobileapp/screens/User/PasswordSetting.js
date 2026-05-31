@@ -27,7 +27,7 @@ const ChangePassword = () => {
     const handleUpdate = async () => {
         setErr(null);
 
-        // 1. Validate ở Frontend
+        
         if (!passwords.old_password || !passwords.new_password || !passwords.confirm_password) {
             setErr('Vui lòng điền đầy đủ các trường!');
             return;

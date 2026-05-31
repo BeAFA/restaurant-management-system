@@ -5,6 +5,7 @@ import { List, Searchbar } from "react-native-paper";
 import Styles from "../../styles/Styles";
 import MainStyles from "../../styles/MainStyles";
 import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import { useNavigation } from "@react-navigation/native";
 import SimpleFood from "../../components/SimpleFood";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -52,21 +53,19 @@ const Home = () => {
 
     return (
 
-        <ScrollView style={[Styles.padding, { flex: 1, backgroundColor: '#f2f4f6' }]}>
+        <ScrollView style={MainStyles.container}>
 
             <SafeAreaView edges={["top"]}>
-                {/* <Text style={Styles.headerTitle}>DK Restaurant</Text>
-                <Searchbar placeholder="Tìm món ăn bạn thích..." style={{ marginBottom: 20 }} /> */}
-                {/* 3. KHU VỰC DANH MỤC (CATEGORIES) */}
+                <Header />
                 <Text style={MainStyles.sectionTitle}>Danh mục</Text>
             </SafeAreaView>
             <FlatList
-                horizontal={true} // Bật tính năng vuốt NANG
-                showsHorizontalScrollIndicator={false} // Ẩn thanh cuộn xấu xí đi
-                data={categories} // Truyền dữ liệu danh mục vào
+                horizontal={true} 
+                showsHorizontalScrollIndicator={false} 
+                data={categories} 
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    // Định dạng giao diện cho từng ô danh mục nút bấm
+                    
                     <TouchableOpacity style={MainStyles.categoryButton} onPress={() => handleCategoryPress(item)}>
                         <Text style={MainStyles.categoryButtonText}>{item.name}</Text>
                     </TouchableOpacity>
@@ -91,6 +90,8 @@ const Home = () => {
                 ))}
             </View>
 
+
+            <Footer />
         </ScrollView>
     );
 }

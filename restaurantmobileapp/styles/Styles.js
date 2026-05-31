@@ -1,19 +1,54 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-    headerTitle: {
-        fontSize: 30,
-        fontWeight: "800",
-        color: "#FF6347",
-        textAlign: "center",
-        letterSpacing: 1.2,
-        textShadowColor: "rgba(0,0,0,0.1)",
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
+    headerContainer: {
+        paddingTop: 20, 
+        paddingBottom: 20,
+        marginBottom: 20,
+        paddingHorizontal: 20,
+        alignItems: "center",
+        backgroundColor: "#D92243",
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        elevation: 5,
+        shadowColor: "#000", 
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 5,
+        zIndex: 10, 
     },
-    container: {
-        flex: 1,
-        marginTop: 50
+    headerTitle: {
+        fontSize: 26, 
+        fontWeight: "800",
+        color: "#FFFFFF",
+        textAlign: "center",
+        letterSpacing: 1.2
+    },
+    footerContainer: {
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        alignItems: "center",
+        backgroundColor: "#D92243",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        elevation: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 5,
+    },
+    footerTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+        textAlign: "center",
+        letterSpacing: 1
+    },
+    footerSubTitle: {
+        fontSize: 12,
+        color: "#FFD1D8", 
+        textAlign: "center",
+        marginTop: 4,
     },
     row: {
         flexDirection: "row"

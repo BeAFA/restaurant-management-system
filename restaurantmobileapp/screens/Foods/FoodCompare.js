@@ -162,7 +162,6 @@ const FoodCompare = ({ route }) => {
                 <ScrollView horizontal>
                     <View style={Style.scrollContainer}>
 
-                        {/* HEADER */}
                         <View style={Style.headerRow}>
 
                             <View style={Style.attributeHeaderCell}>
@@ -183,21 +182,18 @@ const FoodCompare = ({ route }) => {
                             ))}
                         </View>
 
-                        {/* BODY */}
                         {compareRows.map((row, index) => (
                             <View
                                 key={index}
                                 style={Style.compareRow}
                             >
 
-                                {/* LABEL */}
                                 <View style={Style.attributeCell}>
                                     <Text style={Style.attributeText}>
                                         {row.label}
                                     </Text>
                                 </View>
 
-                                {/* VALUES */}
                                 {comparedFoods.map(food => (
                                     <View
                                         key={food.id}

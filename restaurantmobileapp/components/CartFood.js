@@ -36,13 +36,11 @@ const CartFood = ({ item }) => {
 
     return (
         <View style={Styles.card}>
-            {/* Image */}
             <Image
                 source={imageSource}
                 style={Styles.image}
             />
 
-            {/* Info */}
             <View style={Styles.infoContainer}>
                 <Text
                     numberOfLines={1}
@@ -63,7 +61,6 @@ const CartFood = ({ item }) => {
                     Thành tiền: {currencyFormatter.format(subtotal)}
                 </Text>
 
-                {/* Quantity horizontal */}
                 <View style={Styles.quantityWrapper}>
                     <TouchableOpacity
                         style={Styles.quantityButton}

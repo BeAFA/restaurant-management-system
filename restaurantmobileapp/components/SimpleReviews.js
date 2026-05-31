@@ -9,7 +9,6 @@ const Reviews = ({ item }) => {
 
     return (
             <TouchableOpacity activeOpacity={0.8} style={Styles.reviewCard}>
-                {/* Hàng chứa Avatar + Tên + Số Sao */}
                 <View style={Styles.userInfoRow}>
                     <Image style={Styles.avatar} source={imageSource} />
 
@@ -17,7 +16,6 @@ const Reviews = ({ item }) => {
                         <Text style={Styles.userName}>
                             {item.user?.first_name || ""} {item.user?.last_name || "Ẩn danh"}
                         </Text>
-                        {/* Hiển thị số sao */}
                         <View style={Styles.ratingRow}>
                             <MaterialIcons name="star" size={14} color="#FF6B4A" />
                             <Text style={Styles.ratingText}>{Number(item.rating).toFixed(1)}/5</Text>
@@ -30,7 +28,6 @@ const Reviews = ({ item }) => {
                     </View>
                 </View>
 
-                {/* Nội dung bình luận */}
                 <Text style={Styles.commentText}>
                     {item.comment || "Người dùng không để lại bình luận."}
                 </Text>

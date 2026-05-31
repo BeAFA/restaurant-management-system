@@ -1,70 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, Card, Title, Paragraph, ActivityIndicator, List, Button } from 'react-native-paper';
+import { Text, Card, Title, Paragraph, ActivityIndicator, Button } from 'react-native-paper';
+import Header from '../../components/Header';
+import RevenueChart from './RevenueChart';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Apis, { authApis, endpoints } from "../../configs/Apis";
+import { authApis, endpoints } from "../../configs/Apis";
 import * as SecureStore from 'expo-secure-store';
-import Style from '../../styles/AdminStyles';
+import Style, { Colors } from '../../styles/AdminStyles';
 
-// Hàm hỗ trợ tính số tuần của năm hiện tại
 const getWeekNumber = (d) => {
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
-    var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
-    return weekNo;
-}
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+};
+
+const buildChartData = (revenueStats = [], filterType) => { 
+    if (!revenueStats.length) return [];
+
+    return revenueStats.map((item, index) => {
+        let label = `Kỳ ${index + 1}`;
+        const targetDate = item.period; 
+
+        if (targetDate) {
+            const d = new Date(targetDate);
+            
+            if (filterType === 'day') {
+                label = `${d.getDate()}/${d.getMonth() + 1}`;
+            } else if (filterType === 'week') {
+                const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                label = days[d.getDay()];
+            } else {
+                label = `T${d.getMonth() + 1}`;
+            }
+        } else {
+            if (filterType === 'month') label = 'Tháng này';
+            else if (filterType === 'week') label = 'Tuần này';
+            else if (filterType === 'day') label = 'Hôm nay';
+        }
+
+        return { 
+            label: label, 
+            value: item.total_revenue ?? 0 
+        };
+    });
+};
 
 const Dashboard = () => {
-    const [stats, setStats] = useState(null);
+    const [stats, setStats]     = useState(null);
     const [loading, setLoading] = useState(true);
-    
-    // TRẠNG THÁI BỘ LỌC
-    const [period, setPeriod] = useState('month'); 
-    
-    // Mặc định cho Ngày (Hôm nay)
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
 
-    // Mặc định cho Tuần (Tuần hiện tại)
-    const [selectedWeek, setSelectedWeek] = useState(getWeekNumber(new Date()));
-    
-    // Mặc định cho Tháng (Tháng hiện tại 1-12)
+    const [period, setPeriod]   = useState('month');
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate,   setEndDate]   = useState(new Date());
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker,   setShowEndPicker]   = useState(false);
+    const [selectedWeek,  setSelectedWeek]  = useState(getWeekNumber(new Date()));
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-    
+
     const currentYear = new Date().getFullYear();
 
-    // HÀM TÍNH TOÁN KHOẢNG THỜI GIAN ĐỂ GỬI LÊN API
     const getFilterDates = () => {
         let finalStart = new Date();
-        let finalEnd = new Date();
+        let finalEnd   = new Date();
 
         if (period === 'day') {
-            finalStart = new Date(startDate.setHours(0,0,0,0));
-            finalEnd = new Date(endDate.setHours(23,59,59,999));
-        } 
-        else if (period === 'week') {
-            // Tính ngày đầu và cuối của tuần được chọn
+            finalStart = new Date(startDate.setHours(0, 0, 0, 0));
+            finalEnd   = new Date(endDate.setHours(23, 59, 59, 999));
+        } else if (period === 'week') {
             let simple = new Date(currentYear, 0, 1 + (selectedWeek - 1) * 7);
-            let dow = simple.getDay();
             let ISOweekStart = simple;
-            if (dow <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            if (simple.getDay() <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
             else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-            
-            finalStart = new Date(ISOweekStart.setHours(0,0,0,0));
+            finalStart = new Date(ISOweekStart.setHours(0, 0, 0, 0));
             let ISOweekEnd = new Date(ISOweekStart);
             ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
-            finalEnd = new Date(ISOweekEnd.setHours(23,59,59,999));
-        } 
-        else if (period === 'month') {
+            finalEnd = new Date(ISOweekEnd.setHours(23, 59, 59, 999));
+        } else if (period === 'month') {
             finalStart = new Date(currentYear, selectedMonth - 1, 1);
-            finalEnd = new Date(currentYear, selectedMonth, 0, 23, 59, 59); // Ngày cuối cùng của tháng
+            finalEnd   = new Date(currentYear, selectedMonth, 0, 23, 59, 59);
         }
-        
+
         return { start: finalStart.toISOString(), end: finalEnd.toISOString() };
     };
 
@@ -73,27 +91,22 @@ const Dashboard = () => {
             try {
                 setLoading(true);
                 const token = await SecureStore.getItemAsync('token');
-                
                 const { start, end } = getFilterDates();
-                
-                // Gắn thêm start_date và end_date vào URL API
-                let url = `${endpoints['admin_stats']}?period=${period}&start_date=${start}&end_date=${end}`;
-                
+                const url = `${endpoints['admin_stats']}?period=${period}&start_date=${start}&end_date=${end}`;
                 const res = await authApis(token).get(url);
                 setStats(res.data);
             } catch (ex) {
-                console.error("Lỗi lấy thống kê Admin:", ex.response?.data || ex.message);
+                console.error('Lỗi lấy thống kê Admin:', ex.response?.data || ex.message);
             } finally {
                 setLoading(false);
             }
-        }
+        };
         fetchAdminStats();
-    }, [period, startDate, endDate, selectedWeek, selectedMonth]); 
-    // Gọi lại API mỗi khi 1 trong các bộ lọc thay đổi
+    }, [period, startDate, endDate, selectedWeek, selectedMonth]);
 
     const totalRevenue = stats?.revenue_stats?.reduce((sum, item) => sum + item.total_revenue, 0) || 0;
+    const chartData    = buildChartData(stats?.revenue_stats ?? [], period);
 
-    // --- RENDER BỘ LỌC TÙY BIẾN THEO TỪNG CHẾ ĐỘ ---
     const renderFilterOptions = () => {
         if (period === 'day') {
             return (
@@ -102,7 +115,6 @@ const Dashboard = () => {
                         <Text style={Style.dateLabel}>Từ ngày</Text>
                         <Text style={Style.dateValue}>{startDate.toLocaleDateString('vi-VN')}</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity style={Style.dateBox} onPress={() => setShowEndPicker(true)}>
                         <Text style={Style.dateLabel}>Đến ngày</Text>
                         <Text style={Style.dateValue}>{endDate.toLocaleDateString('vi-VN')}</Text>
@@ -110,25 +122,22 @@ const Dashboard = () => {
 
                     {showStartPicker && (
                         <DateTimePicker value={startDate} mode="date" display="default"
-                            onChange={(event, date) => { 
-                                setShowStartPicker(false); 
-                                if(date) {
-                                    setStartDate(date);
-                                    if (date > endDate) setEndDate(date);
-                                } 
+                            onChange={(event, date) => {
+                                setShowStartPicker(false);
+                                if (date) { setStartDate(date); if (date > endDate) setEndDate(date); }
                             }}
                         />
                     )}
                     {showEndPicker && (
                         <DateTimePicker value={endDate} mode="date" display="default" minimumDate={startDate}
-                            onChange={(event, date) => { 
-                                setShowEndPicker(false); 
-                                if(date) {
-                                    const startObj = new Date(startDate.setHours(0,0,0,0));
-                                    const endObj = new Date(date.setHours(0,0,0,0));
-                                    if (endObj >= startObj) setEndDate(date);
-                                    else alert("Ngày kết thúc không hợp lệ!");
-                                } 
+                            onChange={(event, date) => {
+                                setShowEndPicker(false);
+                                if (date) {
+                                    const s = new Date(startDate.setHours(0, 0, 0, 0));
+                                    const e = new Date(date.setHours(0, 0, 0, 0));
+                                    if (e >= s) setEndDate(date);
+                                    else alert('Ngày kết thúc không hợp lệ!');
+                                }
                             }}
                         />
                     )}
@@ -141,8 +150,7 @@ const Dashboard = () => {
                 <View style={Style.dropdownContainer}>
                     <Text style={Style.dropdownLabel}>Chọn Tuần trong năm {currentYear}:</Text>
                     <View style={Style.pickerWrapper}>
-                        <Picker selectedValue={selectedWeek} onValueChange={(itemValue) => setSelectedWeek(itemValue)}>
-                            {/* Tạo mảng 52 tuần */}
+                        <Picker selectedValue={selectedWeek} onValueChange={setSelectedWeek}>
                             {[...Array(52).keys()].map(i => (
                                 <Picker.Item key={i} label={`Tuần ${i + 1}`} value={i + 1} />
                             ))}
@@ -157,8 +165,7 @@ const Dashboard = () => {
                 <View style={Style.dropdownContainer}>
                     <Text style={Style.dropdownLabel}>Chọn Tháng trong năm {currentYear}:</Text>
                     <View style={Style.pickerWrapper}>
-                        <Picker selectedValue={selectedMonth} onValueChange={(itemValue) => setSelectedMonth(itemValue)}>
-                            {/* Tạo mảng 12 tháng */}
+                        <Picker selectedValue={selectedMonth} onValueChange={setSelectedMonth}>
                             {[...Array(12).keys()].map(i => (
                                 <Picker.Item key={i} label={`Tháng ${i + 1}`} value={i + 1} />
                             ))}
@@ -172,22 +179,36 @@ const Dashboard = () => {
     return (
         <SafeAreaView style={Style.screenBackground}>
             <ScrollView style={Style.container}>
-                
-                {/* 1. NÚT CHỌN CHẾ ĐỘ LỌC (NGÀY / TUẦN / THÁNG) */}
+                <Header />
+                <Text style={Style.header}>Thống kê doanh thu</Text>
+
+                {/* Nút chọn kỳ */}
                 <View style={Style.modeContainer}>
-                    <Button mode={period === 'day' ? 'contained' : 'outlined'} onPress={() => setPeriod('day')} style={Style.filterBtn}>Theo Ngày</Button>
-                    <Button mode={period === 'week' ? 'contained' : 'outlined'} onPress={() => setPeriod('week')} style={Style.filterBtn}>Theo Tuần</Button>
-                    <Button mode={period === 'month' ? 'contained' : 'outlined'} onPress={() => setPeriod('month')} style={Style.filterBtn}>Theo Tháng</Button>
+                    {[
+                        { key: 'day',   label: 'Theo Ngày'  },
+                        { key: 'week',  label: 'Theo Tuần'  },
+                        { key: 'month', label: 'Theo Tháng' },
+                    ].map(({ key, label }) => (
+                        <Button
+                            key={key}
+                            mode={period === key ? 'contained' : 'outlined'}
+                            onPress={() => setPeriod(key)}
+                            style={Style.filterBtn}
+                            buttonColor={period === key ? Colors.primary : undefined}
+                            textColor={period === key ? Colors.surface : Colors.primary}
+                            theme={{ colors: { outline: Colors.primary } }}
+                        >
+                            {label}
+                        </Button>
+                    ))}
                 </View>
 
-                {/* 2. HIỂN THỊ CÔNG CỤ CHỌN TƯƠNG ỨNG VỚI CHẾ ĐỘ */}
                 {renderFilterOptions()}
 
                 {loading ? (
-                    <ActivityIndicator size="large" style={Style.loadingIndicator} />
+                    <ActivityIndicator size="large" style={Style.loadingIndicator} color={Colors.primary} />
                 ) : (
                     <>
-                        {/* 3. TỔNG DOANH THU THEO KHOẢNG THỜI GIAN ĐÃ CHỌN */}
                         <Card style={Style.highlightCard}>
                             <Card.Content>
                                 <Paragraph style={Style.highlightTitle}>TỔNG DOANH THU KỲ ĐÃ CHỌN</Paragraph>
@@ -196,8 +217,9 @@ const Dashboard = () => {
                                 </Title>
                             </Card.Content>
                         </Card>
+                        <Text style={Style.sectionTitle}>Biểu đồ doanh thu</Text>
+                        <RevenueChart data={chartData} />
 
-                        {/* GIỮ NGUYÊN PHẦN HIỂN THỊ GRID 4 Ô VÀ TOP MÓN ĂN NHƯ CŨ */}
                         <Title style={Style.header}>Báo cáo tổng quan</Title>
                         <View style={Style.row}>
                             <Card style={Style.gridCard}>
@@ -232,8 +254,6 @@ const Dashboard = () => {
             </ScrollView>
         </SafeAreaView>
     );
-}
-
-
+};
 
 export default Dashboard;

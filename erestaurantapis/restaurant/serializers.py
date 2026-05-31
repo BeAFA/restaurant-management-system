@@ -143,7 +143,7 @@ class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True)
     session_code = serializers.CharField(write_only=True, required=False, allow_null=True)
     reservation_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    table_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)  # ← THÊM DÒNG NÀY
+    table_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)  
     table = serializers.SerializerMethodField()
 
     class Meta:
@@ -151,7 +151,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'table', 'user', 'details',
             'status_order', 'total', 'created_date',
-            'session_code', 'reservation_id', 'table_id'  # ← THÊM 'table_id' VÀO ĐÂY
+            'session_code', 'reservation_id', 'table_id'  
         ]
         extra_kwargs = {
             'user': {'read_only': True},
@@ -313,19 +313,19 @@ class FoodCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredient_ids = validated_data.pop('ingredient_ids', None)
 
-        # cập nhật field bình thường
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
 
-        # CHỈ cập nhật nguyên liệu nếu frontend có gửi ingredient_ids
+        
         if ingredient_ids is not None:
 
-            # xóa nguyên liệu cũ
+            
             FoodIngredient.objects.filter(food=instance).delete()
 
-            # thêm nguyên liệu mới
+            
             for ingredient_id in ingredient_ids:
                 ingredient = Ingredient.objects.get(pk=ingredient_id)
 
