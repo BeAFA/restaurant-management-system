@@ -133,7 +133,7 @@ const PaymentQRScreen = () => {
                     )
                 }
             >
-                <Text style={styles.backButtonText}>Về Menu</Text>
+                <Text style={styles.backButtonText}>Tiếp tục gọi thêm món</Text>
             </TouchableOpacity>
         </ScrollView>
     );

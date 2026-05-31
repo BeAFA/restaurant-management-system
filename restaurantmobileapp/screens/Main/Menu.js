@@ -16,16 +16,16 @@ const Menu = () => {
     const { categories } = useContext(CategoryContext);
     const [foods, setFoods] = useState([]);
     const [loading, setLoading] = useState(false);
-    const route = useRoute(); 
+    const route = useRoute();
     const [activeCategory, setActiveCategory] = useState({ id: '', name: 'Tất cả' });
     const [searchQuery, setSearchQuery] = useState('');
-    const [page, setPage] = useState(1); 
+    const [page, setPage] = useState(1);
     const [showFilter, setShowFilter] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [chefs, setChefs] = useState([]);
     const { user } = useContext(UserContext);
 
-    
+
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [maxTime, setMaxTime] = useState('');
@@ -35,23 +35,23 @@ const Menu = () => {
 
     const nav = useNavigation();
 
-    
+
     useEffect(() => {
         setPage(1);
         setHasMore(true);
         setFoods([]);
     }, [searchQuery, activeCategory.id, chefSelected]);
 
-    
+
     useEffect(() => {
-        
+
         let timer = setTimeout(() => {
             if (page > 0) {
                 loadFoods();
             }
         }, 500);
 
-        
+
         return () => clearTimeout(timer);
     }, [searchQuery, activeCategory.id, page, chefSelected]);
 
@@ -111,9 +111,9 @@ const Menu = () => {
         }
     };
 
-    
+
     const loadMore = () => {
-        
+
         if (hasMore && !loading && foods.length > 0) {
             setPage(prev => prev + 1);
         }
@@ -149,7 +149,7 @@ const Menu = () => {
             const rating = Number(item.avg_rating ?? 0);
 
 
-            
+
             if (appliedFilters.min !== '') {
                 if (price < parseFloat(appliedFilters.min)) return false;
             }
@@ -177,39 +177,39 @@ const Menu = () => {
         if (maxPrice && max < 0) { alert("Giá tối đa không hợp lệ"); return; }
         if (minPrice && maxPrice && min > max) { alert("Min không thể lớn hơn Max"); return; }
 
-        
+
         setAppliedFilters({ min: minPrice, max: maxPrice, time: maxTime, rating: minRating });
         setShowFilter(false);
     };
 
     const resetFilters = () => {
-        
+
         setMinPrice('');
         setMaxPrice('');
         setMaxTime('');
         setMinRating('');
         setChefSelected('');
-        
+
         setAppliedFilters({ min: '', max: '', time: '', rating: '' });
     };
 
     useEffect(() => {
-        resetFilters(); 
+        resetFilters();
     }, [activeCategory.id]);
 
     useEffect(() => {
         if (route.params?.categoryFromHome) {
-            
+
             setActiveCategory(route.params.categoryFromHome);
 
-            
-            
+
+
             nav.setParams({ categoryFromHome: undefined });
         }
     }, [route.params?.categoryFromHome]);
 
 
-    
+
     const renderCategoryItem = ({ item }) => (
         <TouchableOpacity
             style={MainStyles.categoryItem}
@@ -221,13 +221,51 @@ const Menu = () => {
         </TouchableOpacity>
     );
 
-    const handleEditFood = (food) => {
-        if (!user?.is_approved) {
-            Alert.alert("Cảnh báo", "Bạn chưa được phê duyệt làm đầu bếp. Không thể chỉnh sửa món ăn. Vui lòng liên hệ quản trị viên.");
-            return;
+    const handleFoodAction = async (food) => {
+        try {
+            await Apis.get(endpoints['food_detail'](food.id));
+
+            if (user?.user_role === 'CHEF') {
+                if (!user?.is_approved) {
+                    Alert.alert(
+                        "Cảnh báo",
+                        "Bạn chưa được phê duyệt làm đầu bếp."
+                    );
+                    return;
+                }
+
+                nav.navigate('chef_foods_manage', {
+                    screen: 'update_food',
+                    initial: false,
+                    params: { foodId: food.id }
+                });
+            } else {
+                nav.navigate('menu', {
+                    screen: 'food_detail',
+                    initial: false,
+                    params: { foodId: food.id }
+                });
+            }
+
+        } catch (ex) {
+            if (ex.response?.status === 404) {
+                Alert.alert(
+                    "Thông báo",
+                    "Món ăn này đã bị xóa hoặc không còn khả dụng."
+                );
+
+                setFoods(prev =>
+                    prev.filter(f => f.id !== food.id)
+                );
+            } else {
+                Alert.alert(
+                    "Lỗi",
+                    "Không thể kiểm tra thông tin món ăn."
+                );
+            }
         }
-        nav.navigate('chef_foods_manage', { screen: 'update_food', initial: false, params: { foodId: food.id } })
     };
+
 
     const renderFoodItem = ({ item }) => {
 
@@ -238,7 +276,7 @@ const Menu = () => {
                 <View>
                     <SimpleFood
                         item={item}
-                        next={() => handleEditFood(item)}
+                        next={() => handleFoodAction(item)}
                     />
                 </View>
             );
@@ -247,16 +285,10 @@ const Menu = () => {
             <View>
                 <SimpleFood
                     item={item}
-                    next={() => nav.navigate('menu', {
-                        screen: 'food_detail',
-                        initial: false,
-                        params: { foodId: item.id }
-                    })}
+                    next={() => handleFoodAction(item)}
                 />
             </View>
         );
-
-
     }
 
     return (
@@ -268,7 +300,7 @@ const Menu = () => {
                         style={MainStyles.searchInput}
                         placeholder="Tìm kiếm món ăn..."
                         value={searchQuery}
-                        onChangeText={setSearchQuery} 
+                        onChangeText={setSearchQuery}
                         placeholderTextColor="#999"
                     />
                     <TouchableOpacity style={MainStyles.filterBtn} onPress={() => setShowFilter(true)}>
@@ -293,9 +325,9 @@ const Menu = () => {
                 keyExtractor={(item, index) => `${item.id}-${index}`}
                 contentContainerStyle={MainStyles.listContainer}
                 showsVerticalScrollIndicator={false}
-                
+
                 onEndReached={loadMore}
-                onEndReachedThreshold={0.1} 
+                onEndReachedThreshold={0.1}
                 ListFooterComponent={loading && <ActivityIndicator size="large" color="#1A5D4A" style={{ marginVertical: 20 }} />}
             />
 

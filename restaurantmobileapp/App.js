@@ -31,6 +31,7 @@ import AppProvider from "./providers/AppProvider";
 import UserContext from "./contexts/UserContext";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import CreateFood from "./screens/User/Chef/CreateFood";
+import ChefCreate from "./screens/Admin/ChefCreate";
 
 
 const HomeStack = createNativeStackNavigator();
@@ -146,6 +147,14 @@ const AdminTabNavigator = () => {
                 options={{
                     title: "Quản lý",
                     tabBarIcon: () => <Icon source="account-cog" size={20} />
+                }}
+            />
+            <Tab.Screen
+                name="chef_create"
+                component={ChefCreate}
+                options={{
+                    title: "Tạo đầu bếp",
+                    tabBarIcon: () => <Icon source="account-plus" size={20} />
                 }}
             />
 

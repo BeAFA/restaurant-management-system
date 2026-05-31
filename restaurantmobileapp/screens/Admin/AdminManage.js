@@ -13,7 +13,7 @@ const AdminManage = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
 
-    
+
     const fetchPendingChefs = async () => {
         try {
             const token = await SecureStore.getItemAsync('token');
@@ -29,7 +29,6 @@ const AdminManage = () => {
         try {
             const res = await Apis.get(`${endpoints['chef_list']}?is_approved=true`);
             setAllApprovedChefs(res.data);
-            console.log("Danh sách đầu bếp đã duyệt:", res.data);
         } catch (ex) {
             console.error("Lỗi lấy danh sách bếp:");
         } finally {
@@ -37,14 +36,23 @@ const AdminManage = () => {
         }
     };
 
+    const getChefName = (chef) => {
+        if (chef.name) return chef.name;
+
+        const firstName = chef.first_name || "";
+        const lastName = chef.last_name || "";
+
+        return `${firstName} ${lastName}`.trim();
+    };
+
     useEffect(() => {
         fetchPendingChefs();
         fetchAllApprovedChefs();
     }, []);
 
-    
+
     const handleApprove = async (userId, userName) => {
-        
+
         Alert.alert(
             "Xác nhận duyệt",
             `Bạn có chắc chắn muốn cấp quyền cho đầu bếp ${userName}?`,
@@ -54,10 +62,10 @@ const AdminManage = () => {
                     text: "Duyệt ngay",
                     onPress: async () => {
                         try {
-                            setActionLoading(userId); 
+                            setActionLoading(userId);
                             const token = await SecureStore.getItemAsync('token');
 
-                            
+
                             await authApis(token).patch(endpoints['approve_chef'](userId), {
                                 is_approved: true
                             }, {
@@ -85,7 +93,7 @@ const AdminManage = () => {
     };
 
     const handleDeleteApprove = async (userId, userName) => {
-        
+
         Alert.alert(
             "Xác nhận thu hồi quyền",
             `Bạn có chắc chắn muốn thu hồi quyền cho đầu bếp ${userName}?`,
@@ -96,10 +104,10 @@ const AdminManage = () => {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            setActionLoading(userId); 
+                            setActionLoading(userId);
                             const token = await SecureStore.getItemAsync('token');
 
-                            
+
                             await authApis(token).patch(endpoints['approve_chef'](userId), {
                                 is_approved: false
                             }, {
@@ -129,13 +137,26 @@ const AdminManage = () => {
         <SafeAreaView style={styles.screenBackground}>
             <ScrollView style={styles.container}>
                 <Header />
-                <Title style={styles.header}>Quản lý Đầu bếp</Title>
+                <View>
+                    <Title style={styles.header}>Quản lý Đầu bếp</Title>
+                    <Button
+                        mode="contained-tonal"
+                        icon="refresh"
+                        onPress={() => {
+                            setLoading(true);
+                            fetchPendingChefs();
+                            fetchAllApprovedChefs();
+                        }}
+                    >
+                        Reload
+                    </Button>
+                </View>
 
                 {loading ? (
                     <ActivityIndicator size="large" style={styles.loadingIndicator} />
                 ) : (
                     <>
-                    <Text style={styles.sectionTitle}>Đầu bếp chờ duyệt</Text>
+                        <Text style={styles.sectionTitle}>Đầu bếp chờ duyệt</Text>
                         {pendingChefs.length === 0 ? (
                             <View style={styles.emptyBox}>
                                 <Text style={styles.emptyText}>Hiện không có đầu bếp nào cần duyệt.</Text>
@@ -144,7 +165,7 @@ const AdminManage = () => {
                             pendingChefs.map((chef) => (
                                 <Card key={chef.id} style={styles.userCard}>
                                     <Card.Title
-                                        title={chef.name}
+                                        title={getChefName(chef)}
                                         subtitle={chef.email || "Chưa cập nhật Email"}
                                         left={(props) =>
                                             chef.avatar ?
@@ -154,11 +175,11 @@ const AdminManage = () => {
                                         right={(props) => (
                                             <Button
                                                 mode="contained"
-                                                buttonColor="#2e7d32" 
+                                                buttonColor="#2e7d32"
                                                 style={styles.actionButtonMargin}
                                                 loading={actionLoading === chef.id}
                                                 disabled={actionLoading === chef.id}
-                                                onPress={() => handleApprove(chef.id, chef.username)}
+                                                onPress={() => handleApprove(chef.id, getChefName(chef))}
                                             >
                                                 Duyệt
                                             </Button>
@@ -173,7 +194,7 @@ const AdminManage = () => {
                             allApprovedChefs.map((chef) => (
                                 <Card key={chef.id} style={styles.userCard}>
                                     <Card.Title
-                                        title={chef.name}
+                                        title={getChefName(chef)}
                                         subtitle={chef.email || "Chưa cập nhật Email"}
                                         left={(props) =>
                                             chef.avatar ?
@@ -187,7 +208,7 @@ const AdminManage = () => {
                                                 style={styles.actionButtonMargin}
                                                 loading={actionLoading === chef.id}
                                                 disabled={actionLoading === chef.id}
-                                                onPress={() => handleDeleteApprove(chef.id, chef.username)}
+                                                onPress={() => handleDeleteApprove(chef.id, getChefName(chef))}
                                             >
                                                 Thu hồi quyền
                                             </Button>
