@@ -1,21 +1,21 @@
-# Restaurant Management System
+# Hệ thống Quản lý Nhà hàng
 
-A full-stack restaurant management system built with a Django REST API backend and a React Native mobile application for customers, chefs, and administrators.
+Hệ thống quản lý nhà hàng đầy đủ tính năng, được xây dựng với backend Django REST API và ứng dụng di động React Native dành cho khách hàng, đầu bếp và quản trị viên.
 
-## Overview
+## Tổng quan
 
-This project combines:
+Dự án này kết hợp các thành phần sau:
 
 - Backend API: Django + Django REST Framework
-- Frontend mobile app: React Native + Expo
-- Database: MySQL
-- Media storage: Cloudinary
-- Payment integration: PayOS
-- Authentication: OAuth2 + custom user roles
+- Frontend mobile: React Native + Expo
+- Cơ sở dữ liệu: MySQL
+- Lưu trữ media: Cloudinary
+- Thanh toán: PayOS
+- Xác thực: OAuth2 + phân quyền người dùng tùy chỉnh
 
-The system supports food browsing, reservations, order management, table flow, chef management, admin dashboards, and payment processing.
+Hệ thống hỗ trợ tìm kiếm món ăn, đặt bàn, quản lý đơn hàng, luồng bàn ăn, quản lý đầu bếp, dashboard quản trị và xử lý thanh toán.
 
-## Project structure
+## Cấu trúc dự án
 
 ```text
 restaurant-management-system/
@@ -54,42 +54,45 @@ restaurant-management-system/
     └── configs/
 ```
 
-## Main features
+## Tính năng chính
 
-### Customer features
-- Browse food categories and menu items
-- Search foods and compare food options
-- Add to cart and place orders
-- Reserve tables and check in
-- View order history
-- Update profile and password
-- Pay via QR payment flow
+### Tính năng cho khách hàng
 
-### Chef features
-- View assigned food items
-- Create/update food entries
-- Manage menu and food approval status
-- View statistics for sold dishes and revenue
+- Duyệt danh mục và món ăn
+- Tìm kiếm món ăn và so sánh lựa chọn
+- Thêm vào giỏ hàng và đặt món
+- Đặt bàn và check-in
+- Xem lịch sử đơn hàng
+- Cập nhật hồ sơ và mật khẩu
+- Thanh toán qua quy trình QR
 
-### Admin features
-- Approve or reject chef accounts
-- Manage users and food assignments
-- View dashboards and revenue statistics
-- Monitor reservations and restaurant activity
+### Tính năng cho đầu bếp
 
-## API capabilities
+- Xem món ăn được giao nhiệm vụ
+- Tạo và cập nhật món ăn
+- Quản lý thực đơn và trạng thái phê duyệt món
+- Xem thống kê món bán chạy và doanh thu
 
-The Django backend exposes REST endpoints for:
+### Tính năng cho quản trị viên
 
-- Categories
-- Foods and food reviews
-- Users and authentication-related actions
-- Orders and payment
-- Reservations and table booking
-- Dining sessions and statistics
-- Ingredients and food comparisons
+- Duyệt hoặc từ chối tài khoản đầu bếp
+- Quản lý người dùng và phân công món ăn
+- Xem dashboard và thống kê doanh thu
+- Theo dõi đặt bàn và hoạt động của nhà hàng
 
-The API router is defined in `erestaurantapis/restaurant/urls.py` and contains resource groups such as:
+## API backend
+
+Backend Django cung cấp các endpoint REST cho:
+
+- Danh mục (Categories)
+- Món ăn và đánh giá món ăn
+- Người dùng và các thao tác liên quan tới xác thực
+- Đơn hàng và thanh toán
+- Đặt bàn và đặt chỗ
+- Phiên ăn và thống kê
+- Nguyên liệu và so sánh món ăn
+
+Router API được định nghĩa trong `erestaurantapis/restaurant/urls.py` và bao gồm các nhóm tài nguyên như:
 
 - `/categories`
 - `/foods`
@@ -101,28 +104,39 @@ The API router is defined in `erestaurantapis/restaurant/urls.py` and contains r
 - `/tables`
 - `/ingredients`
 
-## Tech stack
+## Công nghệ sử dụng
 
 ### Backend
+
 - Python 3.x
 - Django 6.0.3
 - Django REST Framework
-- drf-yasg for Swagger docs
+- drf-yasg cho Swagger docs
 - OAuth Toolkit
 - MySQL
 - Cloudinary
 - PayOS SDK
 
-### Mobile app
+### Ứng dụng di động
+
 - React Native
 - Expo
 - React Navigation
 - React Native Paper
 - Axios
 - Secure storage
-- QR code and chart libraries
+- Thư viện QR code và biểu đồ
 
-## How to run
+## Yêu cầu môi trường
+
+Trước khi chạy dự án, bạn cần:
+
+- Python 3.x
+- Node.js và npm
+- MySQL
+- Git
+
+## Hướng dẫn chạy dự án
 
 ### 1) Backend
 
@@ -133,14 +147,15 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Then configure your local database and cloud credentials in `erestaurantapis/settings.py`.
+Sau đó, cấu hình cơ sở dữ liệu cục bộ và thông tin xác thực Cloudinary trong `erestaurantapis/settings.py`.
 
-Important notes:
-- The project uses MySQL (`restaurantdb`, user `root`, password `root` by default)
-- Cloudinary credentials and OAuth client credentials are configured in the settings file
-- For production, these values should be moved to environment variables and not committed to source control
+Lưu ý quan trọng:
 
-Create database tables:
+- Dự án đang sử dụng MySQL với database `restaurantdb`, user `root`, password `root` mặc định
+- Thông tin xác thực Cloudinary và OAuth client được cấu hình trong file settings
+- Với môi trường production, nên chuyển các giá trị này sang biến môi trường và không lưu trực tiếp vào source code
+
+Tạo database tables:
 
 ```bash
 python manage.py makemigrations
@@ -148,13 +163,13 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-You can also use the helper shell script:
+Bạn cũng có thể sử dụng script hỗ trợ:
 
 ```bash
 bash run_django.sh
 ```
 
-### 2) Mobile app
+### 2) Ứng dụng di động
 
 ```bash
 cd restaurantmobileapp
@@ -162,50 +177,51 @@ npm install
 npm start
 ```
 
-For Android/iOS:
+Để chạy trên Android/iOS:
 
 ```bash
 npm run android
 npm run ios
 ```
 
-## Environment and security notes
+## Lưu ý về môi trường và bảo mật
 
-This repository currently contains example or placeholder configuration values in `erestaurantapis/erestaurantapis/settings.py` for:
+Repository hiện tại chứa các giá trị cấu hình mẫu hoặc placeholder trong `erestaurantapis/erestaurantapis/settings.py` cho:
 
 - Cloudinary
-- OAuth client settings
-- database connection configuration
+- Cài đặt OAuth client
+- Cấu hình kết nối database
 
-Before deploying, replace them with real environment-based configuration.
+Trước khi triển khai, hãy thay thế các giá trị này bằng cấu hình thực tế dựa trên biến môi trường.
 
-## License
+## Giấy phép
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+Dự án này được cấp phép theo MIT License. Xem file `LICENSE` để biết chi tiết.
 
-## Notes
+## Ghi chú
 
-This repository is a practical restaurant management project combining backend business logic with a mobile customer experience. It is suitable for learning full-stack application design, role-based access, reservation management, and order/payment workflows.
+Kho lưu trữ này là một dự án thực tế về hệ thống quản lý nhà hàng, kết hợp logic nghiệp vụ phía backend với trải nghiệm người dùng trên mobile. Đây là lựa chọn phù hợp để học về thiết kế ứng dụng full-stack, phân quyền người dùng và quản lý hoạt động nhà hàng.
 
-## Authors
+## Tác giả
 
-Repository owner: `BeAFA`
+Chủ sở hữu repository: `BeAFA`
 
-## Contributing
+## Đóng góp
 
-Pull requests and improvements are welcome. If you want to extend the project, consider adding:
+Pull requests và các cải tiến đều được hoan nghênh. Nếu bạn muốn mở rộng dự án, có thể cân nhắc thêm:
 
-- test coverage for API endpoints
+- Kiểm thử cho các API endpoint
 - CI/CD pipeline
-- Docker support
-- environment variable management
-- admin analytics improvements
-- user notification system
+- Hỗ trợ Docker
+- Quản lý biến môi trường
+- Cải thiện dashboard quản trị
+- Hệ thống thông báo cho người dùng
 
 ---
 
-If you want, I can also help you:
-- create a more polished bilingual README (English + Vietnamese)
-- add setup screenshots or architecture diagrams
-- generate Docker configuration for this project
-- write a project roadmap for future features
+Nếu bạn muốn, tôi có thể hỗ trợ thêm:
+
+- Tạo README song ngữ (Tiếng Anh + Tiếng Việt)
+- Thêm sơ đồ kiến trúc hoặc ảnh chụp thiết lập
+- Tạo cấu hình Docker cho dự án
+- Viết roadmap phát triển cho các tính năng trong tương lai
