@@ -204,7 +204,7 @@ Kho lưu trữ này là một dự án thực tế về hệ thống quản lý 
 
 ## Tác giả
 
-Chủ sở hữu repository: `BeAFA`
+`BeAFA`, `DinhNguyen9404`
 
 ## Đóng góp
 
@@ -218,10 +218,3 @@ Pull requests và các cải tiến đều được hoan nghênh. Nếu bạn mu
 - Hệ thống thông báo cho người dùng
 
 ---
-
-Nếu bạn muốn, tôi có thể hỗ trợ thêm:
-
-- Tạo README song ngữ (Tiếng Anh + Tiếng Việt)
-- Thêm sơ đồ kiến trúc hoặc ảnh chụp thiết lập
-- Tạo cấu hình Docker cho dự án
-- Viết roadmap phát triển cho các tính năng trong tương lai
